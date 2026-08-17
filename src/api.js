@@ -2,6 +2,13 @@ const TOKEN_KEY = "pn_access";
 const REFRESH_KEY = "pn_refresh";
 export const UNAUTH_EVENT = "pn:unauthorized";
 
+/** Render API origin in production. Empty locally so Vite proxies `/api`. */
+const API_URL = String(import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+
+function apiUrl(path) {
+  return `${API_URL}${path}`;
+}
+
 export function getAccessToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
@@ -56,7 +63,7 @@ function expireSession() {
 async function refreshAccess() {
   const refreshToken = getRefreshToken();
   if (!refreshToken) return null;
-  const res = await fetch("/api/v1/auth/token/refresh", {
+  const res = await fetch(apiUrl("/api/v1/auth/token/refresh"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refresh_token: refreshToken }),
@@ -79,7 +86,7 @@ export async function api(path, { method = "GET", body, auth = true, retry = tru
     if (token) headers.Authorization = `Bearer ${token}`;
   }
 
-  const res = await fetch(path, {
+  const res = await fetch(apiUrl(path), {
     method,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
