@@ -4,22 +4,23 @@ import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
 import { locationLabel } from "../utils";
 
-export default function LocationPicker({ value, onChange, required = false }) {
+export default function LocationPicker({ value, onChange, required = false, compact = false }) {
   const { lang } = useLang();
-  const [query, setQuery] = useState(locationLabel(value) || value?.address || "");
+  const [query, setQuery] = useState(locationLabel(value) || "");
   const [hits, setHits] = useState([]);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState("");
   const box = useRef(null);
+  const searchRef = useRef(null);
   const seq = useRef(0);
 
   useEffect(() => {
-    const next = locationLabel(value) || value?.address || "";
+    const next = locationLabel(value) || "";
     if (next && next !== query && !open) setQuery(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value?.address, value?.area, value?.city]);
+  }, [value?.area, value?.city, value?.geoLat, value?.geoLng]);
 
   useEffect(() => {
     function hide(e) {
@@ -50,9 +51,15 @@ export default function LocationPicker({ value, onChange, required = false }) {
     return () => clearTimeout(timer);
   }, [query]);
 
-  function apply(loc) {
+  function patch(partial) {
+    onChange({ ...value, ...partial });
+  }
+
+  function applyPlace(loc) {
+    const nextAddress = loc.address || value?.address || "";
     onChange({
-      address: loc.address || "",
+      ...value,
+      address: nextAddress,
       area: loc.area || "",
       city: loc.city || "",
       state: loc.state || "",
@@ -70,80 +77,116 @@ export default function LocationPicker({ value, onChange, required = false }) {
     setError("");
     try {
       const loc = await placesApi.details(hit.placeId);
-      apply({
+      applyPlace({
         ...loc,
         address: loc.address || hit.description || "",
         area: loc.area || hit.mainText || "",
       });
     } catch {
-      setError(t(lang, "locationFailed"));
+      setError(t(lang, "locationPickFailed"));
     } finally {
       setBusy(false);
     }
   }
 
-  function useCurrent() {
-    if (!navigator.geolocation) {
-      setError(t(lang, "locationDenied"));
-      return;
-    }
+  async function useCurrent() {
     setLocating(true);
     setError("");
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const loc = await placesApi.reverse(pos.coords.latitude, pos.coords.longitude);
-          apply({
-            ...loc,
-            geoLat: loc.geoLat ?? pos.coords.latitude,
-            geoLng: loc.geoLng ?? pos.coords.longitude,
-          });
-        } catch {
-          setError(t(lang, "locationFailed"));
-        } finally {
-          setLocating(false);
-        }
-      },
-      () => {
-        setLocating(false);
-        setError(t(lang, "locationDenied"));
-      },
-      { enableHighAccuracy: true, timeout: 12000 }
-    );
+
+    const applyCoords = async (latitude, longitude) => {
+      try {
+        const loc = await placesApi.reverse(latitude, longitude);
+        applyPlace({
+          ...loc,
+          geoLat: loc.geoLat ?? latitude,
+          geoLng: loc.geoLng ?? longitude,
+        });
+      } catch {
+        onChange({
+          ...value,
+          geoLat: latitude,
+          geoLng: longitude,
+        });
+        setQuery(`${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+        setError(t(lang, "locationFailed"));
+      }
+    };
+
+    // GPS is optional — on failure just move focus to search (no scary error).
+    const askToSearch = () => {
+      setError("");
+      searchRef.current?.focus();
+      setOpen(true);
+    };
+
+    if (!window.isSecureContext || !navigator.geolocation) {
+      askToSearch();
+      setLocating(false);
+      return;
+    }
+
+    const readPosition = (options) =>
+      new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, options);
+      });
+
+    try {
+      let pos;
+      try {
+        pos = await readPosition({
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60_000,
+        });
+      } catch {
+        pos = await readPosition({
+          enableHighAccuracy: false,
+          timeout: 12000,
+          maximumAge: 0,
+        });
+      }
+
+      await applyCoords(pos.coords.latitude, pos.coords.longitude);
+    } catch {
+      askToSearch();
+    } finally {
+      setLocating(false);
+    }
   }
 
   const lat = value?.geoLat;
   const lng = value?.geoLng;
   const hasPin = lat != null && lng != null && lat !== "" && lng !== "";
+  const locality = locationLabel(value);
 
   return (
     <div className="loc-picker" ref={box}>
       <label className="field-lbl">
-        {t(lang, "areaCity")} {required ? <span className="req">*</span> : null}
+        {t(lang, "googleLocation")} {required ? <span className="req">*</span> : null}
       </label>
+      {!compact ? (
+        <>
+          <p className="loc-hint">{t(lang, "googleLocationHint")}</p>
+          <p className="loc-hint loc-hint-soft">{t(lang, "locationGpsOptional")}</p>
+        </>
+      ) : null}
       <div className="loc-search">
         <div className="loc-row">
           <input
+            ref={searchRef}
             className="inp loc-inp"
             value={query}
             placeholder={t(lang, "startTypingArea")}
             autoComplete="off"
             onFocus={() => setOpen(true)}
             onChange={(e) => {
-              const text = e.target.value;
-              setQuery(text);
+              setQuery(e.target.value);
               setOpen(true);
-              onChange({
-                ...value,
-                address: text,
-                area: text,
-                geoLat: null,
-                geoLng: null,
-              });
+              setError("");
             }}
           />
           <button type="button" className="btn btn-s loc-gps" disabled={locating} onClick={useCurrent}>
-            {locating ? t(lang, "locating") : t(lang, "useCurrentLocation")}
+            {locating ? t(lang, "locating") : compact ? t(lang, "gpsShort") : t(lang, "useCurrentLocation")}
           </button>
         </div>
         {open && (hits.length > 0 || busy) ? (
@@ -160,22 +203,43 @@ export default function LocationPicker({ value, onChange, required = false }) {
           </div>
         ) : null}
       </div>
-      {hasPin ? (
-        <>
-          <div className="loc-picked">
-            📍 {locationLabel(value) || value.address}
-            {value.state ? ` · ${value.state}` : ""}
-            {value.pincode ? ` · ${value.pincode}` : ""}
-          </div>
-          <iframe
-            title={t(lang, "shopLocation")}
-            className="loc-map"
-            src={`https://maps.google.com/maps?q=${lat},${lng}&z=16&output=embed`}
-            loading="lazy"
-          />
-        </>
+
+      {hasPin || locality ? (
+        <div className="loc-picked">
+          📍 {locality || value?.address}
+          {value?.state ? ` · ${value.state}` : ""}
+          {value?.pincode ? ` · ${value.pincode}` : ""}
+          {hasPin ? (
+            <span className="loc-coords">
+              {" "}
+              ({Number(lat).toFixed(5)}, {Number(lng).toFixed(5)})
+            </span>
+          ) : null}
+        </div>
       ) : null}
-      {error ? <div className="err">{error}</div> : null}
+
+      {hasPin && !compact ? (
+        <iframe
+          title={t(lang, "shopLocation")}
+          className="loc-map"
+          src={`https://maps.google.com/maps?q=${lat},${lng}&z=16&output=embed`}
+          loading="lazy"
+        />
+      ) : null}
+
+      <label className="field-lbl loc-address-lbl">
+        {t(lang, "shopAddress")} {required ? <span className="req">*</span> : null}
+      </label>
+      {!compact ? <p className="loc-hint">{t(lang, "shopAddressHint")}</p> : null}
+      <textarea
+        className="inp loc-address"
+        rows={compact ? 2 : 3}
+        value={value?.address || ""}
+        placeholder={t(lang, "shopAddressPlaceholder")}
+        onChange={(e) => patch({ address: e.target.value })}
+      />
+
+      {error ? <div className="loc-tip">{error}</div> : null}
     </div>
   );
 }

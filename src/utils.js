@@ -50,3 +50,62 @@ export function locationLabel(loc) {
   const areaCity = [loc.area, loc.city].filter(Boolean).join(", ");
   return areaCity || loc.address || "";
 }
+
+function howToStorageKey(user) {
+  const phone = user?.phone ? String(user.phone) : "guest";
+  return `pn_howto_seen_${phone}`;
+}
+
+/** One-time “How to use” for guests and new users who still need shop setup. */
+export function hasSeenHowTo(user) {
+  try {
+    return localStorage.getItem(howToStorageKey(user)) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function markHowToSeen(user) {
+  try {
+    localStorage.setItem(howToStorageKey(user), "1");
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+export function shouldShowHowTo(user) {
+  if (hasSeenHowTo(user)) return false;
+  // Existing users with a complete shop profile skip the landing how-to.
+  if (user && !needsShopSetup(user)) {
+    markHowToSeen(user);
+    return false;
+  }
+  return true;
+}
+
+function tourStorageKey(user) {
+  const phone = user?.phone ? String(user.phone) : "guest";
+  return `pn_tour_seen_${phone}`;
+}
+
+export function hasSeenTour(user) {
+  try {
+    return localStorage.getItem(tourStorageKey(user)) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function markTourSeen(user) {
+  try {
+    localStorage.setItem(tourStorageKey(user), "1");
+  } catch {
+    /* ignore */
+  }
+}
+
+/** New users only: once after shop setup, until Skip/Done. */
+export function shouldStartTour(user) {
+  if (!user || needsShopSetup(user)) return false;
+  return !hasSeenTour(user);
+}

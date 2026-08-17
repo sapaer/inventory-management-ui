@@ -1,14 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authApi, formatApiError } from "../api";
+import BrandLogo from "../components/BrandLogo";
+import LangSelect from "../components/LangSelect";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
 import { isValidPhone, needsShopSetup } from "../utils";
+import { isDevAuthBypassEnabled } from "../devAuth";
+
+const DEV_OTP = "000000";
 
 export default function Login() {
   const { signIn } = useAuth();
-  const { lang, setLang } = useLang();
+  const { lang } = useLang();
   const nav = useNavigate();
   const [phone, setPhone] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -17,12 +22,18 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const inputs = useRef([]);
+  const devMode = isDevAuthBypassEnabled();
 
   useEffect(() => {
     if (seconds <= 0) return;
     const id = setTimeout(() => setSeconds((s) => s - 1), 1000);
     return () => clearTimeout(id);
   }, [seconds]);
+
+  function goAfterSignIn(data) {
+    signIn(data);
+    nav(needsShopSetup(data.user) || data.isNewUser ? "/setup" : "/dashboard", { replace: true });
+  }
 
   async function requestOtp() {
     setError("");
@@ -44,6 +55,25 @@ export default function Login() {
     }
   }
 
+  /** Local only: request OTP then verify with fixed DEV_OTP_CODE (backend bypass). */
+  async function skipOtpDev() {
+    setError("");
+    if (!isValidPhone(phone)) {
+      setError(t(lang, "invalidPhone"));
+      return;
+    }
+    setBusy(true);
+    try {
+      await authApi.requestOtp(phone);
+      const data = await authApi.verifyOtp(phone, DEV_OTP);
+      goAfterSignIn(data);
+    } catch (e) {
+      setError(formatApiError(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function verify() {
     const code = otp.join("");
     if (code.length !== 6) return;
@@ -51,8 +81,7 @@ export default function Login() {
     setError("");
     try {
       const data = await authApi.verifyOtp(phone, code);
-      signIn(data);
-      nav(needsShopSetup(data.user) || data.isNewUser ? "/setup" : "/", { replace: true });
+      goAfterSignIn(data);
     } catch (e) {
       setError(formatApiError(e));
     } finally {
@@ -61,6 +90,7 @@ export default function Login() {
   }
 
   function onOtpChange(i, value) {
+    setError("");
     const digit = value.replace(/\D/g, "").slice(-1);
     const next = [...otp];
     next[i] = digit;
@@ -73,10 +103,7 @@ export default function Login() {
           setBusy(true);
           authApi
             .verifyOtp(phone, code)
-            .then((data) => {
-              signIn(data);
-              nav(needsShopSetup(data.user) || data.isNewUser ? "/setup" : "/", { replace: true });
-            })
+            .then((data) => goAfterSignIn(data))
             .catch((e) => setError(formatApiError(e)))
             .finally(() => setBusy(false));
         }
@@ -85,6 +112,7 @@ export default function Login() {
   }
 
   function onOtpKey(i, e) {
+    if (e.key === "Backspace") setError("");
     if (e.key === "Backspace" && !otp[i] && i > 0) inputs.current[i - 1]?.focus();
     if (e.key === "Enter") verify();
   }
@@ -93,6 +121,7 @@ export default function Login() {
     const text = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
     if (text.length < 2) return;
     e.preventDefault();
+    setError("");
     const next = [...otp];
     for (let i = 0; i < 6; i++) next[i] = text[i] || "";
     setOtp(next);
@@ -109,7 +138,7 @@ export default function Login() {
     <div className="login">
       <div className="login-left">
         <div>
-          <div className="login-brand">{t(lang, "brand")}</div>
+          <BrandLogo className="login-brand" />
           <div className="login-tag">{t(lang, "tagline")}</div>
           <div className="login-hero">{t(lang, "heroTitle")}</div>
           <div className="login-sub">{t(lang, "heroSub")}</div>
@@ -138,14 +167,7 @@ export default function Login() {
         <div className="login-foot">{t(lang, "freeNote")}</div>
       </div>
       <div className="login-right">
-        <div className="lang-toggle">
-          <button className={lang === "hi" ? "on" : ""} onClick={() => setLang("hi")}>
-            हिन्दी
-          </button>
-          <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>
-            English
-          </button>
-        </div>
+        <LangSelect className="login-lang" />
         <div className="login-form">
           <h1>{t(lang, "createAccount")}</h1>
           <p className="lead">{t(lang, "enterMobile")}</p>
@@ -162,7 +184,10 @@ export default function Login() {
               placeholder="98765 43210"
               value={phone}
               disabled={otpSent}
-              onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+              onChange={(e) => {
+                setError("");
+                setPhone(e.target.value.replace(/\D/g, "").slice(0, 10));
+              }}
               onKeyDown={(e) => e.key === "Enter" && !otpSent && requestOtp()}
             />
           </div>
@@ -199,13 +224,26 @@ export default function Login() {
               </div>
             </>
           ) : (
-            <button className="btn btn-p btn-full" disabled={busy} onClick={requestOtp}>
-              {busy ? t(lang, "sending") : t(lang, "getOtp")}
-            </button>
+            <>
+              <button className="btn btn-p btn-full" disabled={busy} onClick={requestOtp}>
+                {busy ? t(lang, "sending") : t(lang, "getOtp")}
+              </button>
+              {devMode ? (
+                <button
+                  type="button"
+                  className="btn btn-s btn-full"
+                  style={{ marginTop: 10 }}
+                  disabled={busy}
+                  onClick={skipOtpDev}
+                >
+                  {t(lang, "skipOtpDev")}
+                </button>
+              ) : null}
+            </>
           )}
           {error ? <div className="err">{error}</div> : null}
           <p className="hint" style={{ textAlign: "center", marginTop: 14 }}>
-            {t(lang, "noPassword")}
+            {devMode ? t(lang, "devOtpHint") : t(lang, "noPassword")}
           </p>
         </div>
       </div>

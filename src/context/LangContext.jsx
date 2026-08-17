@@ -1,13 +1,20 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { applyPageLanguage, ensurePageTranslator, getInitialLang } from "../pageTranslate";
 
 const LangContext = createContext(null);
 
 export function LangProvider({ children }) {
-  const [lang, setLang] = useState(() => localStorage.getItem("pn_lang") || "en");
+  const [lang, setLangState] = useState(getInitialLang);
 
   useEffect(() => {
-    localStorage.setItem("pn_lang", lang);
+    ensurePageTranslator();
+    applyPageLanguage(lang);
   }, [lang]);
+
+  const setLang = (next) => {
+    setLangState(next);
+    applyPageLanguage(next);
+  };
 
   const value = useMemo(() => ({ lang, setLang }), [lang]);
   return <LangContext.Provider value={value}>{children}</LangContext.Provider>;

@@ -70,7 +70,7 @@ export default function Insights() {
           <div style={{ padding: "8px 17px 16px" }}>
             {stats.byVehicle.map((v) => (
               <div className="bar-row" key={v.id}>
-                <span style={{ width: 90 }}>{lang === "hi" ? v.hi : v.en}</span>
+                <span style={{ width: 90 }}>{v.label}</span>
                 <div className="bar-track">
                   <div className="bar-fill" style={{ width: `${(v.count / stats.max) * 100}%` }} />
                 </div>

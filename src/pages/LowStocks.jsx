@@ -70,7 +70,7 @@ export default function LowStocks() {
       ) : items.length === 0 ? (
         <div className="empty">
           <h2>{t(lang, "inStockBadge")}</h2>
-          <p>{lang === "hi" ? "कोई पार्ट मिनिमम से नीचे नहीं है।" : "Nothing is at or below minimum right now."}</p>
+          <p>{t(lang, "nothingBelowMin")}</p>
         </div>
       ) : (
         <div className="card">

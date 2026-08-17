@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authApi, formatApiError } from "../api";
+import LangSelect from "../components/LangSelect";
 import LocationPicker from "../components/LocationPicker";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
@@ -8,7 +9,7 @@ import { BUSINESS_TYPES, t, VEHICLES } from "../i18n";
 
 export default function Settings() {
   const { user, setUser, signOut } = useAuth();
-  const { lang, setLang } = useLang();
+  const { lang } = useLang();
   const nav = useNavigate();
   const [form, setForm] = useState({
     name: user?.name || "",
@@ -29,10 +30,12 @@ export default function Settings() {
   const [toast, setToast] = useState("");
 
   function set(key, value) {
+    setError("");
     setForm((f) => ({ ...f, [key]: value }));
   }
 
   function toggleVehicle(id) {
+    setError("");
     setForm((f) => {
       const has = f.vehicleCategories.includes(id);
       const next = has ? f.vehicleCategories.filter((x) => x !== id) : [...f.vehicleCategories, id];
@@ -96,7 +99,13 @@ export default function Settings() {
               <input className="inp" type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
             </div>
             <div className="field-grp">
-              <LocationPicker value={form} onChange={(loc) => setForm((f) => ({ ...f, ...loc }))} />
+              <LocationPicker
+                value={form}
+                onChange={(loc) => {
+                  setError("");
+                  setForm((f) => ({ ...f, ...loc }));
+                }}
+              />
             </div>
             <label className="field-lbl">{t(lang, "businessType")}</label>
             <div className="biz-opts" style={{ marginBottom: 14 }}>
@@ -108,8 +117,8 @@ export default function Settings() {
                   onClick={() => set("businessType", b.id)}
                 >
                   <div>
-                    <div className="biz-opt-text">{lang === "hi" ? b.hi : b.en}</div>
-                    <div className="biz-opt-sub">{lang === "hi" ? b.subHi : b.subEn}</div>
+                    <div className="biz-opt-text">{b.label}</div>
+                    <div className="biz-opt-sub">{b.sub}</div>
                   </div>
                   <span className="radio" />
                 </button>
@@ -124,7 +133,7 @@ export default function Settings() {
                   className={`vchip${form.vehicleCategories.includes(v.id) ? " on" : ""}`}
                   onClick={() => toggleVehicle(v.id)}
                 >
-                  {lang === "hi" ? v.hi : v.en}
+                  {v.label}
                 </button>
               ))}
             </div>
@@ -137,14 +146,7 @@ export default function Settings() {
               <div className="card-ttl">{t(lang, "language")}</div>
             </div>
             <div style={{ padding: 16 }}>
-              <div className="lang-toggle">
-                <button className={lang === "hi" ? "on" : ""} onClick={() => setLang("hi")}>
-                  हिन्दी
-                </button>
-                <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>
-                  English
-                </button>
-              </div>
+              <LangSelect />
             </div>
           </div>
           <div className="card" style={{ marginBottom: 14 }}>
@@ -164,7 +166,7 @@ export default function Settings() {
               <div className="card-ttl">{t(lang, "alerts")}</div>
             </div>
             <div style={{ padding: 16, fontSize: 13, color: "#6b7280" }}>
-              {t(lang, "waAlerts")} — {lang === "hi" ? "बैकएंड पर चालू हैं जब क्वांटिटी मिनिमम पर आए।" : "sent by the server when quantity hits minimum."}
+              {t(lang, "waAlerts")} — {t(lang, "waAlertsHint")}
             </div>
           </div>
         </div>
