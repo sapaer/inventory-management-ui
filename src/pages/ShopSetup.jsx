@@ -1,14 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authApi, formatApiError } from "../api";
+import BrandLogo from "../components/BrandLogo";
+import LangSelect from "../components/LangSelect";
 import LocationPicker from "../components/LocationPicker";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import { BUSINESS_TYPES, t, VEHICLES } from "../i18n";
+import { markHowToSeen } from "../utils";
 
 export default function ShopSetup() {
   const { user, setUser } = useAuth();
-  const { lang, setLang } = useLang();
+  const { lang } = useLang();
   const nav = useNavigate();
   const [form, setForm] = useState({
     name: user?.name || "",
@@ -27,10 +30,12 @@ export default function ShopSetup() {
   const [error, setError] = useState("");
 
   function set(key, value) {
+    setError("");
     setForm((f) => ({ ...f, [key]: value }));
   }
 
   function toggleVehicle(id) {
+    setError("");
     setForm((f) => {
       const has = f.vehicleCategories.includes(id);
       const next = has ? f.vehicleCategories.filter((x) => x !== id) : [...f.vehicleCategories, id];
@@ -44,7 +49,7 @@ export default function ShopSetup() {
       setError(t(lang, "shopFieldsRequired"));
       return;
     }
-    if (!form.area.trim() && !form.city.trim() && !form.address.trim()) {
+    if ((!form.area.trim() && !form.city.trim() && form.geoLat == null) || !form.address.trim()) {
       setError(t(lang, "locationRequired"));
       return;
     }
@@ -64,7 +69,8 @@ export default function ShopSetup() {
         vehicleCategories: form.vehicleCategories,
       });
       setUser(updated);
-      nav("/", { replace: true });
+      markHowToSeen(updated);
+      nav("/dashboard", { replace: true });
     } catch (e) {
       setError(formatApiError(e));
     } finally {
@@ -74,93 +80,84 @@ export default function ShopSetup() {
 
   return (
     <div className="setup">
-      <div className="lang-toggle setup-lang">
-        <button className={lang === "hi" ? "on" : ""} onClick={() => setLang("hi")}>
-          हिन्दी
-        </button>
-        <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>
-          English
-        </button>
-      </div>
+      <LangSelect className="setup-lang" />
       <div className="reg-card">
-        <div className="reg-logo">{t(lang, "brand")}</div>
-        <div className="step-ind">
-          <div className="step-dot done" />
-          <div className="step-dot done" />
-          <div className="step-dot active" />
-        </div>
+        <BrandLogo className="reg-logo" />
         <h1 className="reg-title">{t(lang, "tellAboutShop")}</h1>
-        <p className="reg-sub">{t(lang, "shopSetupSub")}</p>
+        <p className="reg-sub">{t(lang, "shopSetupSubShort")}</p>
 
-        <div className="two-col">
-          <div className="field-grp">
-            <label className="field-lbl">
-              {t(lang, "shopName")} <span className="req">*</span>
-            </label>
-            <input
-              className="inp"
-              value={form.shopName}
-              onChange={(e) => set("shopName", e.target.value)}
-              placeholder="Sharma Auto Parts"
-            />
+        <section className="form-block">
+          <h2 className="form-block-title">{t(lang, "basics")}</h2>
+          <div className="two-col">
+            <div className="field-grp">
+              <label className="field-lbl">
+                {t(lang, "shopName")} <span className="req">*</span>
+              </label>
+              <input
+                className="inp"
+                value={form.shopName}
+                onChange={(e) => set("shopName", e.target.value)}
+                placeholder="Sharma Auto Parts"
+              />
+            </div>
+            <div className="field-grp">
+              <label className="field-lbl">
+                {t(lang, "yourName")} <span className="req">*</span>
+              </label>
+              <input
+                className="inp"
+                value={form.name}
+                onChange={(e) => set("name", e.target.value)}
+                placeholder="Ramesh Sharma"
+              />
+            </div>
           </div>
-          <div className="field-grp">
-            <label className="field-lbl">
-              {t(lang, "yourName")} <span className="req">*</span>
-            </label>
-            <input
-              className="inp"
-              value={form.name}
-              onChange={(e) => set("name", e.target.value)}
-              placeholder="Ramesh Sharma"
-            />
-          </div>
-        </div>
+        </section>
 
-        <div className="field-grp">
+        <section className="form-block">
+          <h2 className="form-block-title">{t(lang, "location")}</h2>
           <LocationPicker
             required
+            compact
             value={form}
-            onChange={(loc) => setForm((f) => ({ ...f, ...loc }))}
+            onChange={(loc) => {
+              setError("");
+              setForm((f) => ({ ...f, ...loc }));
+            }}
           />
-        </div>
+        </section>
 
-        <label className="field-lbl">
-          {t(lang, "businessType")} <span className="req">*</span>
-        </label>
-        <div className="biz-opts" style={{ marginBottom: 14 }}>
-          {BUSINESS_TYPES.map((b) => (
-            <button
-              key={b.id}
-              type="button"
-              className={`biz-opt${form.businessType === b.id ? " on" : ""}`}
-              onClick={() => set("businessType", b.id)}
-            >
-              <div>
-                <div className="biz-opt-text">{lang === "hi" ? b.hi : b.en}</div>
-                <div className="biz-opt-sub">{lang === "hi" ? b.subHi : b.subEn}</div>
-              </div>
-              <span className="radio" />
-            </button>
-          ))}
-        </div>
+        <section className="form-block">
+          <h2 className="form-block-title">{t(lang, "businessType")}</h2>
+          <div className="seg-row">
+            {BUSINESS_TYPES.map((b) => (
+              <button
+                key={b.id}
+                type="button"
+                className={`seg${form.businessType === b.id ? " on" : ""}`}
+                onClick={() => set("businessType", b.id)}
+              >
+                {b.label}
+              </button>
+            ))}
+          </div>
+        </section>
 
-        <label className="field-lbl">
-          {t(lang, "vehiclesDeal")}{" "}
-          <span style={{ fontSize: 11, color: "#9ca3af", fontWeight: 400 }}>({t(lang, "selectAll")})</span>
-        </label>
-        <div className="veh-chips" style={{ marginBottom: 18 }}>
-          {VEHICLES.map((v) => (
-            <button
-              key={v.id}
-              type="button"
-              className={`vchip${form.vehicleCategories.includes(v.id) ? " on" : ""}`}
-              onClick={() => toggleVehicle(v.id)}
-            >
-              {lang === "hi" ? v.hi : v.en}
-            </button>
-          ))}
-        </div>
+        <section className="form-block form-block-last">
+          <h2 className="form-block-title">{t(lang, "vehiclesDeal")}</h2>
+          <div className="veh-chips">
+            {VEHICLES.map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                className={`vchip${form.vehicleCategories.includes(v.id) ? " on" : ""}`}
+                onClick={() => toggleVehicle(v.id)}
+              >
+                {v.label}
+              </button>
+            ))}
+          </div>
+        </section>
 
         {error ? <div className="err" style={{ marginBottom: 12 }}>{error}</div> : null}
         <button className="btn btn-p btn-full" disabled={busy} onClick={submit}>

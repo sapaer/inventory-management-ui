@@ -39,17 +39,17 @@ export default function SetQuantityModal({ item, lang, onClose, onSaved }) {
         <div className="muted" style={{ fontSize: 13 }}>
           {item.partName}
         </div>
-        <input className="big-qty" type="number" min="0" value={qty} onChange={(e) => setQty(e.target.value)} />
+        <input className="big-qty" type="number" min="0" value={qty} onChange={(e) => { setError(""); setQty(e.target.value); }} />
         <div className="field-lbl">{t(lang, "reason")}</div>
         <div className="chips">
           {CHANGE_TYPES.map((c) => (
-            <button key={c.id} className={`chip${reason === c.id ? " on" : ""}`} onClick={() => setReason(c.id)}>
-              {lang === "hi" ? c.hi : c.en}
+            <button key={c.id} className={`chip${reason === c.id ? " on" : ""}`} onClick={() => { setError(""); setReason(c.id); }}>
+              {c.label}
             </button>
           ))}
         </div>
         <label className="field-lbl">{t(lang, "note")}</label>
-        <input className="inp" value={note} onChange={(e) => setNote(e.target.value)} />
+        <input className="inp" value={note} onChange={(e) => { setError(""); setNote(e.target.value); }} />
         <div className="hint">{t(lang, "cannotBelowZero")}</div>
         {error ? <div className="err">{error}</div> : null}
         <div className="modal-actions">

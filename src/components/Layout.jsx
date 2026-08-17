@@ -4,11 +4,14 @@ import { inventoryApi } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
-import { initials, locationLabel } from "../utils";
+import { locationLabel } from "../utils";
 import NotificationBell from "./NotificationBell";
+import BrandLogo from "./BrandLogo";
+import UserMenu from "./UserMenu";
+import AppTour from "./AppTour";
 
 const NAV = [
-  { to: "/", key: "home", icon: HomeIcon, end: true },
+  { to: "/dashboard", key: "home", icon: HomeIcon, end: true },
   { to: "/inventory", key: "inventory", icon: BoxIcon },
   { to: "/low-stocks", key: "lowStocks", icon: BellIcon },
   { to: "/insights", key: "insights", icon: ChartIcon },
@@ -21,6 +24,7 @@ export default function Layout() {
   const loc = useLocation();
   const nav = useNavigate();
   const [open, setOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
   const [lowCount, setLowCount] = useState(0);
   const [query, setQuery] = useState("");
 
@@ -36,14 +40,14 @@ export default function Layout() {
   }, [loc.pathname]);
 
   const titleMap = {
-    "/": t(lang, "home"),
+    "/dashboard": t(lang, "home"),
     "/inventory": t(lang, "inventory"),
     "/inventory/new": t(lang, "addPart"),
     "/low-stocks": t(lang, "lowStocks"),
     "/insights": t(lang, "insights"),
     "/settings": t(lang, "settings"),
   };
-  const isHome = loc.pathname === "/";
+  const isHome = loc.pathname === "/dashboard";
   const title = isHome
     ? t(lang, "greeting", user?.name)
     : loc.pathname.includes("/edit")
@@ -52,13 +56,10 @@ export default function Layout() {
   const showAdd = !isHome && loc.pathname !== "/inventory/new" && !loc.pathname.endsWith("/edit");
 
   return (
-    <div className="shell">
+    <div className="shell notranslate" translate="no">
       <div className={`mobile-scrim${open ? " show" : ""}`} onClick={() => setOpen(false)} />
       <aside className={`sidebar${open ? " open" : ""}`}>
-        <NavLink to="/" end className="brand">
-          <div className="brand-name">{t(lang, "brand")}</div>
-          <div className="brand-tag">{t(lang, "tagline")}</div>
-        </NavLink>
+        <BrandLogo className="brand" showTagline taglineClassName="brand-tag" to="/dashboard" />
         <nav className="nav">
           {NAV.map((item) => (
             <NavLink
@@ -77,6 +78,17 @@ export default function Layout() {
         </nav>
         <button className="sidebar-add" onClick={() => nav("/inventory/new")}>
           + {t(lang, "addPart")}
+        </button>
+        <button
+          type="button"
+          className="sidebar-guide"
+          onClick={() => {
+            setGuideOpen(true);
+            setOpen(false);
+          }}
+        >
+          <GuideIcon />
+          {t(lang, "userGuide")}
         </button>
         <div className="shop-foot">
           <div className="shop-nm">{user?.shopName || t(lang, "yourShop")}</div>
@@ -115,12 +127,23 @@ export default function Layout() {
               </button>
             ) : null}
             <NotificationBell />
-            <div className="av">{initials(user?.name || user?.shopName)}</div>
+            <UserMenu />
           </div>
         </header>
         <Outlet />
       </div>
+      <AppTour open={guideOpen} onClose={() => setGuideOpen(false)} />
     </div>
+  );
+}
+
+function GuideIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 16v-1a3 3 0 0 0 1.5-2.6c0-1.1-.9-2-2-2a2 2 0 0 0-2 2" />
+      <circle cx="12" cy="8" r="0.8" fill="currentColor" stroke="none" />
+    </svg>
   );
 }
 

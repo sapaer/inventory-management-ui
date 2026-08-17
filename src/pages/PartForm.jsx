@@ -37,6 +37,7 @@ export default function PartForm() {
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
   const [history, setHistory] = useState([]);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
     if (!editing) return;
@@ -57,6 +58,9 @@ export default function PartForm() {
           costPrice: "",
           images: item.images || [],
         });
+        const hasExtra =
+          item.localName || item.specification || item.brand || item.model || item.description || (item.images || []).length;
+        if (hasExtra) setMoreOpen(true);
       })
       .catch((e) => setError(formatApiError(e)));
     inventoryApi
@@ -66,6 +70,7 @@ export default function PartForm() {
   }, [editing, id]);
 
   function set(key, value) {
+    setError("");
     setForm((f) => ({ ...f, [key]: value }));
   }
 
@@ -83,7 +88,7 @@ export default function PartForm() {
       costPrice: form.costPrice === "" ? undefined : Number(form.costPrice),
       images: form.images.slice(0, 3),
     };
-    if (!editing) body.quantity = Number(form.quantity) || 0;
+    if (!editing) body.quantity = Number(form.quantity);
     return body;
   }
 
@@ -115,6 +120,13 @@ export default function PartForm() {
       setError(t(lang, "partName") + " " + t(lang, "required"));
       return;
     }
+    if (!editing) {
+      const qty = Number(form.quantity);
+      if (!Number.isInteger(qty) || qty < 1) {
+        setError(t(lang, "quantityMustBePositive"));
+        return;
+      }
+    }
     setBusy(true);
     setError("");
     try {
@@ -127,6 +139,7 @@ export default function PartForm() {
       if (created?.isDuplicate) setToast(t(lang, "duplicateWarn"));
       if (addAnother) {
         setForm(empty);
+        setMoreOpen(false);
         setToast(created?.isDuplicate ? t(lang, "duplicateWarn") : t(lang, "saved"));
         setTimeout(() => setToast(""), 2200);
       } else {
@@ -154,48 +167,30 @@ export default function PartForm() {
   return (
     <div className="content">
       <div className="add-wrap">
-        <div style={{ marginBottom: 12, fontSize: 13, color: "#6b7280" }}>
-          <button className="link muted" onClick={() => nav("/inventory")}>
-            ← {t(lang, "inventory")}
-          </button>
-          {" / "}
-          {editing ? t(lang, "edit") : t(lang, "addPart")}
-        </div>
+        <button type="button" className="link muted add-back" onClick={() => nav("/inventory")}>
+          ← {t(lang, "inventory")}
+        </button>
+
         <div className="add-card">
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 18 }}>
-            <div className="add-title">{t(lang, "partDetails")}</div>
-            <span className="plan-pill" style={{ color: "#1a5c46", background: "#e6f7f1" }}>
-              {t(lang, "freePlan")}
-            </span>
-          </div>
+          <h1 className="add-title">{editing ? t(lang, "edit") : t(lang, "addPart")}</h1>
+          <p className="add-sub">{t(lang, "addPartSub")}</p>
 
           <div className="field-grp">
-            <div className="f-lbl">
+            <label className="f-lbl">
               {t(lang, "partName")} <span className="req">*</span>
-            </div>
-            <input className="f-inp" value={form.partName} onChange={(e) => set("partName", e.target.value)} placeholder="Maruti Swift Brake Pad Set" />
-            <div className="hint">{t(lang, "beSpecific")}</div>
-          </div>
-
-          <div className="two-col">
-            <div className="field-grp">
-              <div className="f-lbl">
-                {t(lang, "localName")} <span className="hint">({t(lang, "optional")})</span>
-              </div>
-              <input className="f-inp" value={form.localName} onChange={(e) => set("localName", e.target.value)} />
-            </div>
-            <div className="field-grp">
-              <div className="f-lbl">
-                {t(lang, "spec")} <span className="hint">({t(lang, "optional")})</span>
-              </div>
-              <input className="f-inp" value={form.specification} onChange={(e) => set("specification", e.target.value)} />
-            </div>
+            </label>
+            <input
+              className="f-inp"
+              value={form.partName}
+              onChange={(e) => set("partName", e.target.value)}
+              placeholder="Maruti Swift Brake Pad Set"
+            />
           </div>
 
           <div className="field-grp">
-            <div className="f-lbl">
+            <label className="f-lbl">
               {t(lang, "vehicle")} <span className="req">*</span>
-            </div>
+            </label>
             <div className="veh-pills">
               {VEHICLES.map((v) => (
                 <button
@@ -204,103 +199,134 @@ export default function PartForm() {
                   className={`vp${form.vehicleCategory === v.id ? " on" : ""}`}
                   onClick={() => set("vehicleCategory", v.id)}
                 >
-                  {lang === "hi" ? v.hi : v.en}
+                  {v.label}
                 </button>
               ))}
             </div>
           </div>
 
           <div className="two-col">
-            <div className="field-grp">
-              <div className="f-lbl">{t(lang, "brandField")}</div>
-              <input className="f-inp" value={form.brand} onChange={(e) => set("brand", e.target.value)} />
-            </div>
-            <div className="field-grp">
-              <div className="f-lbl">{t(lang, "model")}</div>
-              <input className="f-inp" value={form.model} onChange={(e) => set("model", e.target.value)} />
-            </div>
-          </div>
-
-          <div className="two-col">
             {!editing ? (
               <div className="field-grp">
-                <div className="f-lbl">
+                <label className="f-lbl">
                   {t(lang, "quantity")} <span className="req">*</span>
-                </div>
+                </label>
                 <div className="qty-ctrl">
-                  <button type="button" onClick={() => set("quantity", Math.max(0, Number(form.quantity) - 1))}>
+                  <button type="button" onClick={() => set("quantity", Math.max(1, Number(form.quantity) - 1 || 1))}>
                     −
                   </button>
-                  <input type="number" min="0" value={form.quantity} onChange={(e) => set("quantity", e.target.value)} />
-                  <button type="button" onClick={() => set("quantity", Number(form.quantity) + 1)}>
+                  <input type="number" min="1" value={form.quantity} onChange={(e) => set("quantity", e.target.value)} />
+                  <button type="button" onClick={() => set("quantity", Math.max(1, Number(form.quantity) || 0) + 1)}>
                     +
                   </button>
                 </div>
               </div>
             ) : null}
             <div className="field-grp">
-              <div className="f-lbl">{t(lang, "minQty")}</div>
-              <input className="f-inp" type="number" min="0" value={form.minQuantity} onChange={(e) => set("minQuantity", e.target.value)} />
+              <label className="f-lbl">{t(lang, "minQty")}</label>
+              <input
+                className="f-inp"
+                type="number"
+                min="0"
+                value={form.minQuantity}
+                onChange={(e) => set("minQuantity", e.target.value)}
+              />
             </div>
             <div className="field-grp">
-              <div className="f-lbl">{t(lang, "sellingPrice")}</div>
+              <label className="f-lbl">{t(lang, "sellingPrice")}</label>
               <div className="pr-wrap">
                 <span className="pr-pfx">₹</span>
-                <input className="f-inp pr-inp" type="number" min="0" value={form.sellingPrice} onChange={(e) => set("sellingPrice", e.target.value)} />
+                <input
+                  className="f-inp pr-inp"
+                  type="number"
+                  min="0"
+                  value={form.sellingPrice}
+                  onChange={(e) => set("sellingPrice", e.target.value)}
+                />
               </div>
-            </div>
-            <div className="field-grp">
-              <div className="f-lbl">{t(lang, "costPrice")}</div>
-              <div className="pr-wrap">
-                <span className="pr-pfx">₹</span>
-                <input className="f-inp pr-inp" type="number" min="0" value={form.costPrice} onChange={(e) => set("costPrice", e.target.value)} />
-              </div>
-              <div className="hint">{t(lang, "costPrivate")}</div>
             </div>
           </div>
 
-          <div className="field-grp">
-            <div className="f-lbl">{t(lang, "description")}</div>
-            <textarea className="f-inp" rows={3} value={form.description} onChange={(e) => set("description", e.target.value)} />
-          </div>
-          <div className="field-grp" style={{ marginBottom: 0 }}>
-            <div className="f-lbl">
-              {t(lang, "photo")} <span className="hint">({t(lang, "optional")})</span>
-            </div>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/jpeg,image/png"
-              multiple
-              hidden
-              onChange={(e) => onFiles(e.target.files)}
-            />
-            <button
-              type="button"
-              className="photo-zone"
-              disabled={uploading || form.images.length >= 3}
-              onClick={() => fileRef.current?.click()}
-            >
-              <div className="pz-title">{uploading ? t(lang, "uploading") : t(lang, "photoClick")}</div>
-              <div className="pz-sub">{t(lang, "photoHint")}</div>
-            </button>
-            {form.images.length ? (
-              <div className="thumbs">
-                {form.images.map((url) => (
-                  <div className="thumb" key={url}>
-                    <img src={url} alt="" />
-                    <button
-                      type="button"
-                      className="thumb-x"
-                      onClick={() => setForm((f) => ({ ...f, images: f.images.filter((u) => u !== url) }))}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
+          <button type="button" className="more-toggle" onClick={() => setMoreOpen((v) => !v)}>
+            {moreOpen ? t(lang, "hideMore") : t(lang, "showMore")}
+          </button>
+
+          {moreOpen ? (
+            <div className="more-panel">
+              <div className="two-col">
+                <div className="field-grp">
+                  <label className="f-lbl">{t(lang, "localName")}</label>
+                  <input className="f-inp" value={form.localName} onChange={(e) => set("localName", e.target.value)} />
+                </div>
+                <div className="field-grp">
+                  <label className="f-lbl">{t(lang, "spec")}</label>
+                  <input className="f-inp" value={form.specification} onChange={(e) => set("specification", e.target.value)} />
+                </div>
               </div>
-            ) : null}
-          </div>
+              <div className="two-col">
+                <div className="field-grp">
+                  <label className="f-lbl">{t(lang, "brandField")}</label>
+                  <input className="f-inp" value={form.brand} onChange={(e) => set("brand", e.target.value)} />
+                </div>
+                <div className="field-grp">
+                  <label className="f-lbl">{t(lang, "model")}</label>
+                  <input className="f-inp" value={form.model} onChange={(e) => set("model", e.target.value)} />
+                </div>
+              </div>
+              <div className="field-grp">
+                <label className="f-lbl">{t(lang, "costPrice")}</label>
+                <div className="pr-wrap">
+                  <span className="pr-pfx">₹</span>
+                  <input
+                    className="f-inp pr-inp"
+                    type="number"
+                    min="0"
+                    value={form.costPrice}
+                    onChange={(e) => set("costPrice", e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="field-grp">
+                <label className="f-lbl">{t(lang, "description")}</label>
+                <textarea className="f-inp" rows={2} value={form.description} onChange={(e) => set("description", e.target.value)} />
+              </div>
+              <div className="field-grp" style={{ marginBottom: 0 }}>
+                <label className="f-lbl">{t(lang, "photo")}</label>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  multiple
+                  hidden
+                  onChange={(e) => onFiles(e.target.files)}
+                />
+                <button
+                  type="button"
+                  className="photo-zone photo-zone-sm"
+                  disabled={uploading || form.images.length >= 3}
+                  onClick={() => fileRef.current?.click()}
+                >
+                  {uploading ? t(lang, "uploading") : t(lang, "photoClick")}
+                </button>
+                {form.images.length ? (
+                  <div className="thumbs">
+                    {form.images.map((url) => (
+                      <div className="thumb" key={url}>
+                        <img src={url} alt="" />
+                        <button
+                          type="button"
+                          className="thumb-x"
+                          onClick={() => setForm((f) => ({ ...f, images: f.images.filter((u) => u !== url) }))}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {error ? <div className="err">{error}</div> : null}

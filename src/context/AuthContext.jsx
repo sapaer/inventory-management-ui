@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { ApiError, authApi, clearTokens, getAccessToken, setTokens, UNAUTH_EVENT } from "../api";
+import { clearDevBypassSession, isDevBypassSession } from "../devAuth";
 
 const AuthContext = createContext(null);
 
@@ -9,10 +10,15 @@ export function AuthProvider({ children }) {
 
   const dropSession = useCallback(() => {
     clearTokens();
+    clearDevBypassSession();
     setUser(null);
   }, []);
 
   const loadProfile = useCallback(async () => {
+    // Drop leftover frontend mock sessions — auth now uses the real backend.
+    if (isDevBypassSession()) {
+      clearDevBypassSession();
+    }
     if (!getAccessToken()) {
       setUser(null);
       setReady(true);
@@ -41,6 +47,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signIn = useCallback((payload) => {
+    clearDevBypassSession();
     setTokens(payload.accessToken, payload.refreshToken);
     setUser(payload.user || null);
   }, []);

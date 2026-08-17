@@ -39,7 +39,7 @@ export default function Dashboard() {
   const recent = [...items].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 5);
   const lowNames = [...low, ...out]
     .slice(0, 3)
-    .map((i) => `${i.partName} (${i.quantity === 0 ? (lang === "hi" ? "आउट" : "out of stock") : `${i.quantity} ${lang === "hi" ? "बचे" : "left"}`})`)
+    .map((i) => `${i.partName} (${i.quantity === 0 ? t(lang, "outOfStockShort") : `${i.quantity} ${t(lang, "leftShort")}`})`)
     .join(", ");
 
   if (loading) return <div className="content">Loading…</div>;

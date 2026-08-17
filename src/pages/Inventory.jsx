@@ -14,7 +14,7 @@ export default function Inventory() {
   const [items, setItems] = useState([]);
   const [allItems, setAllItems] = useState([]);
   const [q, setQ] = useState(() => params.get("q") || "");
-  const [vehicle, setVehicle] = useState("");
+  const [vehicles, setVehicles] = useState([]);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -23,14 +23,14 @@ export default function Inventory() {
   async function load() {
     setError("");
     try {
-      const params = { q: q.trim() || undefined };
-      const countRows = await inventoryApi.list(params);
+      const listParams = { q: q.trim() || undefined };
+      const countRows = await inventoryApi.list(listParams);
       const counted = Array.isArray(countRows) ? countRows : [];
       setAllItems(counted);
-      if (vehicle || status) {
+      if (vehicles.length || status) {
         const filtered = await inventoryApi.list({
-          ...params,
-          vehicle: vehicle || undefined,
+          ...listParams,
+          vehicles: vehicles.length ? vehicles : undefined,
           status: status || undefined,
         });
         setItems(Array.isArray(filtered) ? filtered : []);
@@ -48,7 +48,7 @@ export default function Inventory() {
     const id = setTimeout(load, q ? 250 : 0);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, vehicle, status]);
+  }, [q, vehicles, status]);
 
   const counts = useMemo(() => {
     const c = { ALL: allItems.length };
@@ -56,6 +56,19 @@ export default function Inventory() {
     c.LOW = allItems.filter((i) => stockOf(i) !== "IN_STOCK").length;
     return c;
   }, [allItems]);
+
+  function clearFilters() {
+    setVehicles([]);
+    setStatus("");
+  }
+
+  function toggleVehicle(id) {
+    setVehicles((prev) => (prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]));
+  }
+
+  function toggleLowStock() {
+    setStatus((prev) => (prev === "LOW_STOCK" ? "" : "LOW_STOCK"));
+  }
 
   async function bump(item, delta) {
     try {
@@ -77,21 +90,21 @@ export default function Inventory() {
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t(lang, "search")} />
       </div>
       <div className="chips">
-        <button className={`chip${!vehicle && !status ? " on" : ""}`} onClick={() => { setVehicle(""); setStatus(""); }}>
+        <button className={`chip${!vehicles.length && !status ? " on" : ""}`} onClick={clearFilters}>
           {t(lang, "all")} ({counts.ALL})
         </button>
         {VEHICLES.map((v) => (
           <button
             key={v.id}
-            className={`chip${vehicle === v.id ? " on" : ""}`}
-            onClick={() => { setVehicle(v.id); setStatus(""); }}
+            className={`chip${vehicles.includes(v.id) ? " on" : ""}`}
+            onClick={() => toggleVehicle(v.id)}
           >
-            {lang === "hi" ? v.hi : v.en} ({counts[v.id] || 0})
+            {v.label} ({counts[v.id] || 0})
           </button>
         ))}
         <button
           className={`chip warn${status === "LOW_STOCK" ? " on" : ""}`}
-          onClick={() => { setVehicle(""); setStatus(status === "LOW_STOCK" ? "" : "LOW_STOCK"); }}
+          onClick={toggleLowStock}
         >
           {t(lang, "lowBadge")} ({counts.LOW})
         </button>

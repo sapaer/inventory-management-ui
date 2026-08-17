@@ -121,7 +121,12 @@ export const inventoryApi = {
   list: (params = {}) => {
     const q = new URLSearchParams();
     if (params.q) q.set("q", params.q);
-    if (params.vehicle) q.set("vehicle", params.vehicle);
+    const vehicles = Array.isArray(params.vehicles)
+      ? params.vehicles
+      : params.vehicle
+        ? [params.vehicle]
+        : [];
+    for (const v of vehicles) q.append("vehicle", v);
     if (params.status) q.set("status", params.status);
     const qs = q.toString();
     return api(`/api/v1/inventory${qs ? `?${qs}` : ""}`);
