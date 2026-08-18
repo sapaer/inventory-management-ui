@@ -11,9 +11,13 @@ export function LangProvider({ children }) {
     applyPageLanguage(lang);
   }, [lang]);
 
-  const setLang = (next) => {
-    setLangState(next);
-    applyPageLanguage(next);
+  const setLang = (next, { reload = false } = {}) => {
+    const value = next === "hi" ? "hi" : "en";
+    if (value === lang && !reload) return;
+    applyPageLanguage(value, { reload: reload || value === "hi" });
+    if (!(reload || value === "hi")) {
+      setLangState(value);
+    }
   };
 
   const value = useMemo(() => ({ lang, setLang }), [lang]);

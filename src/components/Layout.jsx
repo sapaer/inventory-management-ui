@@ -8,6 +8,7 @@ import { locationLabel } from "../utils";
 import NotificationBell from "./NotificationBell";
 import BrandLogo from "./BrandLogo";
 import UserMenu from "./UserMenu";
+import LangSelect from "./LangSelect";
 import AppTour from "./AppTour";
 
 const NAV = [
@@ -59,7 +60,7 @@ export default function Layout() {
     <div className="shell notranslate" translate="no">
       <div className={`mobile-scrim${open ? " show" : ""}`} onClick={() => setOpen(false)} />
       <aside className={`sidebar${open ? " open" : ""}`}>
-        <BrandLogo className="brand" showTagline taglineClassName="brand-tag" to="/dashboard" />
+        <BrandLogo className="brand" showTagline taglineClassName="brand-tag" to="/welcome" />
         <nav className="nav">
           {NAV.map((item) => (
             <NavLink
@@ -122,12 +123,14 @@ export default function Layout() {
               </form>
             ) : null}
             {showAdd ? (
-              <button className="btn btn-p" onClick={() => nav("/inventory/new")}>
-                + {t(lang, "addPart")}
+              <button className="btn btn-p topbar-add" onClick={() => nav("/inventory/new")}>
+                + <span className="add-label">{t(lang, "addPart")}</span>
               </button>
             ) : null}
+            <LangSelect className="topbar-lang" />
             <NotificationBell />
             <UserMenu />
+            <BrandLogo className="topbar-brand" to="/welcome" />
           </div>
         </header>
         <Outlet />
