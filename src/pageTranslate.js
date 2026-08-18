@@ -28,7 +28,7 @@ function clearCookie(name) {
 }
 
 /** Drive Google Website Translator without maintaining per-language string maps. */
-export function applyPageLanguage(lang) {
+export function applyPageLanguage(lang, { reload = false } = {}) {
   const next = SUPPORTED.includes(lang) ? lang : "en";
   localStorage.setItem("pn_lang", next);
   document.documentElement.lang = next;
@@ -38,6 +38,11 @@ export function applyPageLanguage(lang) {
     setCookie("googtrans", "/en/en");
   } else {
     setCookie("googtrans", `/en/${next}`);
+  }
+
+  if (reload) {
+    window.location.reload();
+    return;
   }
 
   const trySetCombo = (attempt = 0) => {
