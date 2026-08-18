@@ -24,14 +24,9 @@ export default function Layout() {
   const { lang } = useLang();
   const loc = useLocation();
   const nav = useNavigate();
-  const [open, setOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [lowCount, setLowCount] = useState(0);
   const [query, setQuery] = useState("");
-
-  useEffect(() => {
-    setOpen(false);
-  }, [loc.pathname]);
 
   useEffect(() => {
     inventoryApi
@@ -58,8 +53,7 @@ export default function Layout() {
 
   return (
     <div className="shell notranslate" translate="no">
-      <div className={`mobile-scrim${open ? " show" : ""}`} onClick={() => setOpen(false)} />
-      <aside className={`sidebar${open ? " open" : ""}`}>
+      <aside className="sidebar">
         <BrandLogo className="brand" showTagline taglineClassName="brand-tag" to="/welcome" />
         <nav className="nav">
           {NAV.map((item) => (
@@ -83,10 +77,7 @@ export default function Layout() {
         <button
           type="button"
           className="sidebar-guide"
-          onClick={() => {
-            setGuideOpen(true);
-            setOpen(false);
-          }}
+          onClick={() => setGuideOpen(true)}
         >
           <GuideIcon />
           {t(lang, "userGuide")}
@@ -99,12 +90,7 @@ export default function Layout() {
       </aside>
       <div className="main">
         <header className="topbar">
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <button className="menu-btn" onClick={() => setOpen(true)} aria-label="Menu">
-              ☰
-            </button>
-            <div className="page-title">{title}</div>
-          </div>
+          <div className="page-title">{title}</div>
           <div className="topbar-r">
             {isHome ? (
               <form

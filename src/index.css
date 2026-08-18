@@ -975,71 +975,47 @@ button { cursor: pointer; }
 }
 
 @media (max-width: 900px) {
-  .login { flex-direction: column; }
-  .login-left { width: 100%; padding: 20px 20px 16px; }
-  .login-hero { font-size: 22px; margin-bottom: 6px; }
-  .login-sub, .benefit { display: none; }
-  .login-tag { margin-bottom: 0; }
-  .login-right { padding: 24px 16px max(32px, env(safe-area-inset-bottom)); }
-  .login-right .lang-toggle,
-  .login-right .lang-select { top: 16px; right: 16px; }
-  .stat-row, .qa-grid, .split, .settings-grid { grid-template-columns: 1fr; }
   .sidebar {
-    position: fixed; inset: 0 auto 0 0;
-    width: min(280px, 86vw);
-    transform: translateX(-100%);
-    transition: transform .2s;
-    z-index: 30;
-    padding-bottom: env(safe-area-inset-bottom);
+    width: 156px;
+    position: relative;
+    transform: none;
+    z-index: auto;
   }
-  .sidebar.open { transform: none; }
-  .mobile-scrim.show { display: block; }
-  .menu-btn { display: inline-flex; min-width: 40px; min-height: 40px; align-items: center; justify-content: center; }
+  .brand { padding: 12px 10px; }
+  .brand-name { font-size: 15px; }
+  .nav-item { padding: 8px 8px; font-size: 12px; }
+  .sidebar-add, .sidebar-guide { font-size: 12px; padding: 8px 10px; }
+  .menu-btn, .mobile-scrim { display: none !important; }
   .topbar {
-    height: auto;
-    min-height: 52px;
-    padding: 8px 12px 8px max(12px, env(safe-area-inset-left));
+    height: 48px;
+    padding: 0 10px;
     gap: 8px;
   }
-  .page-title {
-    font-size: 14px;
-    max-width: 42vw;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .topbar-r { gap: 6px; }
-  .topbar-brand .brand-logo-text { font-size: 14px; }
-  .topbar .srch { display: none; }
-  .content .srch { max-width: none !important; width: 100%; }
-  .content .srch input { width: 100%; }
-  .add-label { display: none; }
-  .topbar-add { min-width: 36px; padding: 8px 10px; }
-  .content { padding: 14px 12px max(18px, env(safe-area-inset-bottom)); }
+  .page-title { font-size: 13px; }
+  .topbar-r { gap: 6px; flex-wrap: nowrap; }
+  .topbar .srch { display: flex; }
+  .srch { padding: 4px 8px; }
+  .srch input { width: 92px; font-size: 12px; }
+  .add-label { display: inline; }
+  .topbar-add { padding: 6px 8px; font-size: 12px; }
+  .content { padding: 12px 10px; }
+  .stat-row { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .qa-grid, .split, .settings-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card, .qa-card { padding: 10px; }
+  .stat-val { font-size: 16px; }
+  .login { flex-direction: row; }
+  .login-left { width: 42%; padding: 20px 16px; }
+  .login-hero { font-size: 18px; }
+  .login-sub { font-size: 12px; }
+  .login-right { padding: 20px 16px; position: relative; }
   .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .tbl { min-width: 640px; }
-  .bell-panel {
-    position: fixed;
-    top: 56px;
-    right: 12px;
-    left: 12px;
-    width: auto;
-    max-width: none;
-  }
-  .user-menu-drop { right: 0; max-width: min(240px, calc(100vw - 24px)); }
-  .toast { left: 12px; right: 12px; bottom: max(16px, env(safe-area-inset-bottom)); }
-  .inp, .f-inp, .srch input, .phone-inp, .otp-box, .lang-select-ctrl, .qty-ctrl input, .big-qty {
-    font-size: 16px;
-  }
-  .banner { flex-wrap: wrap; }
-  .banner a, .banner .link { margin-left: 0; }
+  .bell-panel { width: 280px; }
 }
 
 @media (max-width: 520px) {
-  .otp-row { gap: 6px; justify-content: space-between; }
-  .otp-box { width: 40px; height: 46px; flex: 1; max-width: 46px; }
-  .two-col { grid-template-columns: 1fr; }
-  .loc-row { flex-direction: column; }
-  .modal { padding: 18px 14px; }
-  .topbar-lang .lang-select-ctrl { max-width: 96px; font-size: 12px; padding: 0 22px 0 6px; }
+  .sidebar { width: 132px; }
+  .nav-item { font-size: 11px; gap: 6px; }
+  .shop-nm, .shop-lc { font-size: 10px; }
+  .two-col { grid-template-columns: 1fr 1fr; }
+  .otp-box { width: 36px; height: 42px; }
 }
