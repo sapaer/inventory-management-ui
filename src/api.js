@@ -122,6 +122,9 @@ export const authApi = {
   profile: () => api("/api/v1/auth/profile"),
   updateProfile: (body) => api("/api/v1/auth/profile", { method: "PUT", body }),
   logout: () => api("/api/v1/auth/logout", { method: "DELETE" }),
+  passwordLogin: (phone, password) =>
+    api("/api/v1/auth/password/login", { method: "POST", body: { phone, password }, auth: false }),
+  setPassword: (password) => api("/api/v1/auth/password", { method: "PUT", body: { password } }),
 };
 
 export const inventoryApi = {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authApi, formatApiError } from "../api";
+import PasswordField from "../components/PasswordField";
 import LangSelect from "../components/LangSelect";
 import LocationPicker from "../components/LocationPicker";
 import { useAuth } from "../context/AuthContext";
@@ -27,6 +28,9 @@ export default function Settings() {
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [pwBusy, setPwBusy] = useState(false);
   const [toast, setToast] = useState("");
 
   function set(key, value) {
@@ -68,6 +72,30 @@ export default function Settings() {
       setError(formatApiError(e));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function savePassword() {
+    if (pw.length < 8) {
+      setError(t(lang, "passwordTooShort"));
+      return;
+    }
+    if (pw !== pw2) {
+      setError(t(lang, "passwordsMismatch"));
+      return;
+    }
+    setPwBusy(true);
+    setError("");
+    try {
+      await authApi.setPassword(pw);
+      setPw("");
+      setPw2("");
+      setToast(t(lang, "passwordSaved"));
+      setTimeout(() => setToast(""), 2200);
+    } catch (e) {
+      setError(formatApiError(e));
+    } finally {
+      setPwBusy(false);
     }
   }
 
@@ -159,6 +187,40 @@ export default function Settings() {
               <button className="btn btn-s" onClick={logout}>
                 {t(lang, "logout")}
               </button>
+              <div style={{ marginTop: 18 }}>
+                <div className="field-lbl">{t(lang, "setPassword")}</div>
+                <p className="hint" style={{ margin: "4px 0 10px" }}>
+                  {t(lang, "setPasswordHint")}
+                </p>
+                <PasswordField
+                  autoComplete="new-password"
+                  placeholder={t(lang, "newPassword")}
+                  value={pw}
+                  onChange={(e) => {
+                    setError("");
+                    setPw(e.target.value);
+                  }}
+                />
+                <PasswordField
+                  autoComplete="new-password"
+                  placeholder={t(lang, "confirmPassword")}
+                  value={pw2}
+                  onChange={(e) => {
+                    setError("");
+                    setPw2(e.target.value);
+                  }}
+                  style={{ marginTop: 8 }}
+                />
+                <button
+                  type="button"
+                  className="btn btn-s"
+                  style={{ marginTop: 10 }}
+                  disabled={pwBusy}
+                  onClick={savePassword}
+                >
+                  {pwBusy ? t(lang, "saving") : t(lang, "setPassword")}
+                </button>
+              </div>
             </div>
           </div>
           <div className="card">

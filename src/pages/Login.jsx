@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { authApi, formatApiError } from "../api";
+import { ApiError, authApi, formatApiError } from "../api";
 import BrandLogo from "../components/BrandLogo";
+import PasswordField from "../components/PasswordField";
 import LangSelect from "../components/LangSelect";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
@@ -10,12 +11,15 @@ import { isValidPhone, needsShopSetup } from "../utils";
 import { isDevAuthBypassEnabled } from "../devAuth";
 
 const DEV_OTP = "000000";
+const OTP_COOLDOWN_SEC = 45;
 
 export default function Login() {
   const { signIn } = useAuth();
   const { lang } = useLang();
   const nav = useNavigate();
+  const [method, setMethod] = useState("otp");
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [seconds, setSeconds] = useState(0);
@@ -31,6 +35,10 @@ export default function Login() {
   }, [seconds]);
 
   function goAfterSignIn(data) {
+    if (!data?.accessToken) {
+      setError(t(lang, "passwordLoginUnavailable"));
+      return;
+    }
     signIn(data);
     nav(needsShopSetup(data.user) || data.isNewUser ? "/setup" : "/dashboard", { replace: true });
   }
@@ -41,11 +49,13 @@ export default function Login() {
       setError(t(lang, "invalidPhone"));
       return;
     }
+    if (seconds > 0) return;
     setBusy(true);
     try {
       await authApi.requestOtp(phone);
+      setMethod("otp");
       setOtpSent(true);
-      setSeconds(30);
+      setSeconds(OTP_COOLDOWN_SEC);
       setOtp(["", "", "", "", "", ""]);
       setTimeout(() => inputs.current[0]?.focus(), 50);
     } catch (e) {
@@ -72,6 +82,39 @@ export default function Login() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function signInWithPassword(e) {
+    e?.preventDefault();
+    setError("");
+    if (!isValidPhone(phone)) {
+      setError(t(lang, "invalidPhone"));
+      return;
+    }
+    if (String(password).length < 8) {
+      setError(t(lang, "passwordTooShort"));
+      return;
+    }
+    setBusy(true);
+    try {
+      const data = await authApi.passwordLogin(phone, password);
+      goAfterSignIn(data);
+    } catch (e) {
+      if (e instanceof ApiError && (e.status === 404 || e.status === 405)) {
+        setError(t(lang, "passwordLoginUnavailable"));
+      } else {
+        setError(formatApiError(e));
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function forgotPassword() {
+    setMethod("otp");
+    setOtpSent(false);
+    setError("");
+    requestOtp();
   }
 
   async function verify() {
@@ -134,6 +177,12 @@ export default function Login() {
     setError("");
   }
 
+  function switchMethod(next) {
+    setMethod(next);
+    setError("");
+    if (next === "password") setOtpSent(false);
+  }
+
   return (
     <div className="login">
       <div className="login-left">
@@ -169,8 +218,30 @@ export default function Login() {
       <div className="login-right">
         <LangSelect className="login-lang" />
         <div className="login-form">
-          <h1>{t(lang, "createAccount")}</h1>
-          <p className="lead">{t(lang, "enterMobile")}</p>
+          <h1>{t(lang, "signIn")}</h1>
+          <p className="lead">{method === "password" ? t(lang, "enterPassword") : t(lang, "enterMobile")}</p>
+
+          <div className="auth-tabs" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={method === "otp"}
+              className={`auth-tab${method === "otp" ? " on" : ""}`}
+              onClick={() => switchMethod("otp")}
+            >
+              {t(lang, "signInWithOtp")}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={method === "password"}
+              className={`auth-tab${method === "password" ? " on" : ""}`}
+              onClick={() => switchMethod("password")}
+            >
+              {t(lang, "signInWithPassword")}
+            </button>
+          </div>
+
           <label className="field-lbl">
             {t(lang, "mobile")} <span className="req">*</span>
           </label>
@@ -183,18 +254,47 @@ export default function Login() {
               maxLength={10}
               placeholder="98765 43210"
               value={phone}
-              disabled={otpSent}
+              disabled={otpSent && method === "otp"}
               onChange={(e) => {
                 setError("");
                 setPhone(e.target.value.replace(/\D/g, "").slice(0, 10));
               }}
-              onKeyDown={(e) => e.key === "Enter" && !otpSent && requestOtp()}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter") return;
+                if (method === "otp" && !otpSent) requestOtp();
+              }}
             />
           </div>
 
-          {otpSent ? (
+          {method === "password" ? (
+            <form onSubmit={signInWithPassword}>
+              <label className="field-lbl">{t(lang, "password")}</label>
+              <PasswordField
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => {
+                  setError("");
+                  setPassword(e.target.value);
+                }}
+              />
+              <button className="btn btn-p btn-full" style={{ marginTop: 14 }} disabled={busy} type="submit">
+                {busy ? t(lang, "signingIn") : t(lang, "signIn")}
+              </button>
+              <div className="otp-actions">
+                <button type="button" className="link" disabled={busy || seconds > 0} onClick={forgotPassword}>
+                  {t(lang, "forgotPassword")}
+                  {seconds > 0 ? ` (${t(lang, "in", seconds)})` : ""}
+                </button>
+              </div>
+              <p className="hint" style={{ marginTop: 8 }}>
+                {t(lang, "forgotPasswordHint")}
+              </p>
+            </form>
+          ) : otpSent ? (
             <>
-              <div className="otp-sent">✓ {t(lang, "otpSent")} +91 {phone}</div>
+              <div className="otp-sent">
+                ✓ {t(lang, "otpSent")} +91 {phone}
+              </div>
               <label className="field-lbl">{t(lang, "enterOtp")}</label>
               <div className="otp-row" onPaste={onPaste}>
                 {otp.map((d, i) => (
@@ -225,8 +325,9 @@ export default function Login() {
             </>
           ) : (
             <>
-              <button className="btn btn-p btn-full" disabled={busy} onClick={requestOtp}>
+              <button className="btn btn-p btn-full" disabled={busy || seconds > 0} onClick={requestOtp}>
                 {busy ? t(lang, "sending") : t(lang, "getOtp")}
+                {seconds > 0 && !busy ? ` (${t(lang, "in", seconds)})` : ""}
               </button>
               {devMode ? (
                 <button
