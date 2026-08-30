@@ -10,8 +10,43 @@
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
+    <style>
+      /* Same look as Loader overlay — covers the Hindi reload until React mounts. */
+      #pn-translate-bootstrap {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        align-items: center;
+        justify-content: center;
+        background: rgba(240, 244, 242, 0.94);
+        font-family: Inter, -apple-system, Segoe UI, sans-serif;
+      }
+      html.pn-translate-pending #pn-translate-bootstrap { display: flex; }
+      #pn-translate-bootstrap .loader-spinner {
+        width: 40px; height: 40px;
+        border: 3px solid #e2e8e4; border-top-color: #26a87e;
+        border-radius: 50%; animation: loader-spin 0.7s linear infinite;
+      }
+      @keyframes loader-spin { to { transform: rotate(360deg); } }
+    </style>
+    <script>
+      (function () {
+        try {
+          var lang = localStorage.getItem("pn_lang");
+          var pending = sessionStorage.getItem("pn_lang_pending");
+          if (lang === "hi" || pending === "hi" || pending === "en") {
+            document.documentElement.classList.add("pn-translate-pending");
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
+    <div id="pn-translate-bootstrap" class="notranslate" translate="no" role="status" aria-live="polite" aria-busy="true">
+      <span class="loader-spinner" aria-hidden="true"></span>
+      <span class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Loading</span>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

@@ -1,4 +1,20 @@
 const SUPPORTED = ["en", "hi"];
+const PENDING_KEY = "pn_lang_pending";
+export const TRANSLATE_EVENT = "pn:translate";
+
+function emitTranslatePending(pending, lang) {
+  window.dispatchEvent(new CustomEvent(TRANSLATE_EVENT, { detail: { pending, lang } }));
+}
+
+export function isTranslatePending() {
+  try {
+    const pending = sessionStorage.getItem(PENDING_KEY);
+    if (pending === "hi" || pending === "en") return true;
+    return localStorage.getItem("pn_lang") === "hi";
+  } catch {
+    return false;
+  }
+}
 
 export function detectBrowserLang() {
   const candidates = [...(navigator.languages || []), navigator.language || ""];
@@ -27,6 +43,83 @@ function clearCookie(name) {
   }
 }
 
+export function showTranslateLoader(lang = "hi") {
+  try {
+    sessionStorage.setItem(PENDING_KEY, lang);
+  } catch {
+    /* private mode */
+  }
+  document.documentElement.classList.add("pn-translate-pending");
+  emitTranslatePending(true, lang);
+}
+
+export function hideTranslateLoader() {
+  try {
+    sessionStorage.removeItem(PENDING_KEY);
+  } catch {
+    /* private mode */
+  }
+  document.documentElement.classList.remove("pn-translate-pending");
+  emitTranslatePending(false);
+}
+
+function htmlIsTranslated() {
+  const cls = document.documentElement.className || "";
+  return /\btranslated-(ltr|rtl)\b/.test(cls);
+}
+
+function languageIsApplied(lang) {
+  if (lang === "en") return !htmlIsTranslated();
+  if (htmlIsTranslated()) return true;
+  const combo = document.querySelector(".goog-te-combo");
+  return combo?.value === lang && document.body.querySelectorAll("font").length > 0;
+}
+
+function waitUntilLanguageApplied(lang, { timeoutMs = 12000 } = {}) {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      observer.disconnect();
+      clearTimeout(timer);
+      setTimeout(resolve, 180);
+    };
+
+    if (languageIsApplied(lang)) {
+      finish();
+      return;
+    }
+
+    const observer = new MutationObserver(() => {
+      if (languageIsApplied(lang)) finish();
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, { childList: true, subtree: true });
+    const timer = setTimeout(finish, timeoutMs);
+  });
+}
+
+function driveTranslatorCombo(next) {
+  const trySetCombo = (attempt = 0) => {
+    const combo = document.querySelector(".goog-te-combo");
+    if (combo) {
+      if (combo.value !== next) {
+        combo.value = next;
+        combo.dispatchEvent(new Event("change"));
+      }
+      waitUntilLanguageApplied(next).then(hideTranslateLoader);
+      return;
+    }
+    if (attempt < 25) {
+      setTimeout(() => trySetCombo(attempt + 1), 200);
+      return;
+    }
+    waitUntilLanguageApplied(next).then(hideTranslateLoader);
+  };
+  trySetCombo();
+}
+
 /** Drive Google Website Translator without maintaining per-language string maps. */
 export function applyPageLanguage(lang, { reload = false } = {}) {
   const next = SUPPORTED.includes(lang) ? lang : "en";
@@ -40,26 +133,21 @@ export function applyPageLanguage(lang, { reload = false } = {}) {
     setCookie("googtrans", `/en/${next}`);
   }
 
+  if (reload || (next === "hi" && !languageIsApplied(next))) {
+    showTranslateLoader(next);
+  }
+
   if (reload) {
     window.location.reload();
     return;
   }
 
-  const trySetCombo = (attempt = 0) => {
-    const combo = document.querySelector(".goog-te-combo");
-    if (combo) {
-      if (combo.value !== next) {
-        combo.value = next;
-        combo.dispatchEvent(new Event("change"));
-      }
-      return;
-    }
-    if (attempt < 20) {
-      setTimeout(() => trySetCombo(attempt + 1), 200);
-    }
-  };
+  if (next === "en" && !htmlIsTranslated()) {
+    hideTranslateLoader();
+    return;
+  }
 
-  trySetCombo();
+  driveTranslatorCombo(next);
 }
 
 let scriptLoading = false;
@@ -86,13 +174,15 @@ export function ensurePageTranslator() {
     );
     const preferred = getInitialLang();
     if (preferred !== "en") {
-      // Wait a tick for the combo to mount
       setTimeout(() => applyPageLanguage(preferred), 400);
+    } else {
+      hideTranslateLoader();
     }
   };
 
   const script = document.createElement("script");
   script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
   script.async = true;
+  script.onerror = () => hideTranslateLoader();
   document.body.appendChild(script);
 }

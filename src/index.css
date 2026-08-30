@@ -123,6 +123,48 @@ button { cursor: pointer; }
   border: 0;
 }
 
+@keyframes loader-spin {
+  to { transform: rotate(360deg); }
+}
+.loader-spinner {
+  display: block;
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--line);
+  border-top-color: var(--cta);
+  border-radius: 50%;
+  animation: loader-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+.loader-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  padding: 32px 16px;
+}
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(240, 244, 242, 0.94);
+}
+.loader-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: -0.15em;
+}
+.loader-inline .loader-spinner {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+  margin: 0;
+}
+
 .field-lbl, .f-lbl {
   font-size: 12px;
   font-weight: 600;

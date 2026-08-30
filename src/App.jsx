@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import Layout from "./components/Layout";
+import Loader from "./components/Loader";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -14,7 +15,7 @@ import { needsShopSetup } from "./utils";
 
 function Gate({ children }) {
   const { user, ready } = useAuth();
-  if (!ready) return <div className="content">Loading…</div>;
+  if (!ready) return <Loader />;
   if (!user) return <Navigate to="/login" replace />;
   if (needsShopSetup(user)) return <Navigate to="/setup" replace />;
   return children;
@@ -22,7 +23,7 @@ function Gate({ children }) {
 
 function SetupGate({ children }) {
   const { user, ready } = useAuth();
-  if (!ready) return <div className="content">Loading…</div>;
+  if (!ready) return <Loader />;
   if (!user) return <Navigate to="/login" replace />;
   if (!needsShopSetup(user)) return <Navigate to="/dashboard" replace />;
   return children;
@@ -30,7 +31,7 @@ function SetupGate({ children }) {
 
 function PublicOnly({ children }) {
   const { user, ready } = useAuth();
-  if (!ready) return <div className="content">Loading…</div>;
+  if (!ready) return <Loader />;
   if (user && needsShopSetup(user)) return <Navigate to="/setup" replace />;
   if (user) return <Navigate to="/dashboard" replace />;
   return children;
@@ -39,7 +40,7 @@ function PublicOnly({ children }) {
 /** Logged-in users skip marketing and go straight into the product. */
 function Home() {
   const { user, ready } = useAuth();
-  if (!ready) return <div className="content">Loading…</div>;
+  if (!ready) return <Loader />;
   if (user && needsShopSetup(user)) return <Navigate to="/setup" replace />;
   if (user) return <Navigate to="/dashboard" replace />;
   return <Landing />;
