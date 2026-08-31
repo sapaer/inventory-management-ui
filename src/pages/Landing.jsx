@@ -8,6 +8,7 @@ import LangSelect from "../components/LangSelect";
 import UserMenu from "../components/UserMenu";
 import SiteFooter from "../components/SiteFooter";
 import ReviewCarousel from "../components/ReviewCarousel";
+import InventoryPreview from "../components/InventoryPreview";
 import { t } from "../i18n";
 import { SUPPORT } from "../support";
 import { needsShopSetup, shouldShowHowTo, markHowToSeen } from "../utils";
@@ -167,6 +168,45 @@ export default function Landing() {
         </div>
       </section>
 
+      <section className="lp-preview" id="preview">
+        <div className="lp-preview-bg" aria-hidden="true">
+          <div className="lp-hero-grid" />
+          <div className="lp-hero-glow" />
+        </div>
+        <div className="lp-preview-inner">
+          <div className="lp-preview-copy">
+            <p className="lp-hero-badge">{t(lang, "lpHeroBadge")}</p>
+            <h2 className="lp-preview-title">{t(lang, "heroTitle")}</h2>
+            <p className="lp-preview-sub">{t(lang, "lpPrevSub")}</p>
+            <div className="lp-hero-ctas">
+              <Link to={user ? dashboardTo : "/login"} className="lp-btn lp-btn-primary">
+                {user ? t(lang, "lpGoDashboard") : t(lang, "lpSignUp")}
+              </Link>
+              {!user ? (
+                <Link to="/login" className="lp-btn lp-btn-ghost">
+                  {t(lang, "lpLogin")}
+                </Link>
+              ) : null}
+            </div>
+            <ul className="lp-preview-feats">
+              <li>
+                <BoxFeatIcon />
+                {t(lang, "lpFeatTrack")}
+              </li>
+              <li>
+                <WaFeatIcon />
+                {t(lang, "lpFeatAlerts")}
+              </li>
+              <li>
+                <ClipFeatIcon />
+                {t(lang, "lpFeatReports")}
+              </li>
+            </ul>
+          </div>
+          <InventoryPreview />
+        </div>
+      </section>
+
       <section className="lp-section lp-about" id="about">
         <p className="lp-kicker">{t(lang, "lpNavAbout")}</p>
         <h2 className="lp-section-title">{t(lang, "lpAboutTitle")}</h2>
@@ -311,6 +351,31 @@ function MailIcon() {
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <rect x="3" y="5" width="18" height="14" rx="2" />
       <path d="m4 7 8 6 8-6" />
+    </svg>
+  );
+}
+
+function BoxFeatIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+    </svg>
+  );
+}
+
+function WaFeatIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M20 11.5A8.5 8.5 0 0 1 7.3 19.1L4 20l1-3.2A8.5 8.5 0 1 1 20 11.5z" />
+    </svg>
+  );
+}
+
+function ClipFeatIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+      <rect x="9" y="3" width="6" height="4" rx="1" />
     </svg>
   );
 }

@@ -275,6 +275,221 @@
 
 .lp-btn-ghost:hover { background: rgba(244, 250, 247, 0.08); }
 
+.lp-preview {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: #f4faf7;
+  scroll-margin-top: 72px;
+}
+
+.lp-preview-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(165deg, #0a2f24 0%, #145c45 48%, #0f3d2a 100%);
+}
+
+.lp-preview-bg .lp-hero-grid {
+  mask-image: none;
+  opacity: 0.16;
+}
+
+.lp-preview-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.92fr) minmax(320px, 1.15fr);
+  gap: clamp(28px, 5vw, 56px);
+  align-items: center;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(48px, 8vh, 88px) clamp(16px, 4vw, 48px);
+}
+
+.lp-preview-copy {
+  max-width: 460px;
+}
+
+.lp-hero-badge {
+  display: inline-flex;
+  margin-bottom: 18px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(43, 188, 138, 0.65);
+  color: #9fe1cb;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.lp-preview-title {
+  font-family: var(--lp-display);
+  font-size: clamp(1.7rem, 4vw, 2.7rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 0 0 12px;
+}
+
+.lp-preview-sub {
+  font-size: 1.02rem;
+  line-height: 1.5;
+  color: rgba(244, 250, 247, 0.72);
+  margin: 0 0 24px;
+  max-width: 36ch;
+}
+
+.lp-preview-feats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  list-style: none;
+  margin: 26px 0 0;
+  padding: 0;
+  color: #7fd9b4;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.lp-preview-feats li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lp-inv {
+  border: 1px solid rgba(244, 250, 247, 0.14);
+  border-radius: 16px;
+  background: rgba(6, 33, 23, 0.35);
+  padding: 18px 18px 16px;
+  box-shadow: 0 16px 40px rgba(6, 33, 23, 0.28);
+}
+
+.lp-inv-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.lp-inv-head h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.lp-inv-view {
+  color: #2bbc8a !important;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.lp-inv-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.lp-inv-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 12px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(244, 250, 247, 0.1);
+  background: rgba(10, 47, 36, 0.45);
+}
+
+.lp-inv-stat-ic {
+  color: rgba(244, 250, 247, 0.75);
+}
+
+.lp-inv-stat-lbl {
+  font-size: 0.75rem;
+  color: rgba(244, 250, 247, 0.62);
+}
+
+.lp-inv-stat strong {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #2bbc8a;
+  letter-spacing: -0.03em;
+}
+
+.lp-inv-stat em {
+  font-style: normal;
+  font-size: 0.7rem;
+  color: #7fd9b4;
+}
+
+.lp-inv-body {
+  display: grid;
+  grid-template-columns: 1.35fr 0.85fr;
+  gap: 14px;
+}
+
+.lp-inv-chart,
+.lp-inv-top {
+  border-radius: 12px;
+  border: 1px solid rgba(244, 250, 247, 0.1);
+  background: rgba(10, 47, 36, 0.4);
+  padding: 12px;
+}
+
+.lp-inv-chart-ttl {
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(244, 250, 247, 0.8);
+}
+
+.lp-inv-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.lp-inv-top ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.lp-inv-top li {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.lp-inv-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #143d2e;
+}
+
+.lp-inv-part strong {
+  display: block;
+  font-size: 0.85rem;
+}
+
+.lp-inv-part em {
+  display: block;
+  font-style: normal;
+  font-size: 0.72rem;
+  color: rgba(244, 250, 247, 0.5);
+}
+
+.lp-inv-qty {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
 .lp-section {
   padding: clamp(64px, 12vh, 120px) clamp(16px, 4vw, 48px);
   max-width: 880px;
@@ -860,6 +1075,9 @@
   .lp-nav-links { display: none; }
   .lp-reviews-grid { grid-template-columns: 1fr; }
   .lp-support-row { grid-template-columns: 1fr; }
+  .lp-preview-inner { grid-template-columns: 1fr; }
+  .lp-inv-stats,
+  .lp-inv-body { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {
