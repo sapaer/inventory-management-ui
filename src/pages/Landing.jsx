@@ -97,11 +97,6 @@ export default function Landing() {
     <div className="lp">
       <header className="lp-nav">
         <BrandLogo className="lp-nav-brand" />
-        <nav className="lp-nav-links" aria-label="Page">
-          <a href="#about">{t(lang, "lpNavAbout")}</a>
-          <a href="#reviews">{t(lang, "lpNavReviews")}</a>
-          <a href="#support">{t(lang, "lpNavSupport")}</a>
-        </nav>
         <div className="lp-nav-actions">
           <LangSelect />
           {ready && user ? (
@@ -329,6 +324,31 @@ export default function Landing() {
                 →
               </span>
             </a>
+          </div>
+        </div>
+      </section>
+
+      <section className="lp-about-close" id="about-close">
+        <div className="lp-hero-bg" aria-hidden="true">
+          <div className="lp-hero-grid" />
+          <div className="lp-hero-glow" />
+        </div>
+        <div className="lp-about-close-inner">
+          <p className="lp-kicker lp-kicker-line">{t(lang, "lpNavAbout")}</p>
+          <h2 className="lp-section-title">{t(lang, "lpAboutCounter")}</h2>
+          <div className="lp-about-grid">
+            <article className="lp-about-card">
+              <h3>{t(lang, "lpWhatWeDo")}</h3>
+              <p>{t(lang, "lpWhatWeDoBody")}</p>
+            </article>
+            <article className="lp-about-card">
+              <h3>{t(lang, "lpOurVision")}</h3>
+              <p>{t(lang, "lpOurVisionBody")}</p>
+            </article>
+            <article className="lp-about-card">
+              <h3>{t(lang, "lpOurMission")}</h3>
+              <p>{t(lang, "lpOurMissionBody")}</p>
+            </article>
           </div>
         </div>
       </section>

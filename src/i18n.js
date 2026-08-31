@@ -100,6 +100,14 @@ export const messages = {
   lpAboutTitle: "Built for spare parts shops",
   lpAboutBody:
     "PartNear is a free inventory tool for India’s spare parts shops and garages. We help you know what you have, what is running low, and what to reorder — without spreadsheets or guesswork.",
+  lpAboutCounter: "Built for the spare parts counter.",
+  lpWhatWeDo: "What we do",
+  lpWhatWeDoBody: "Free inventory so shops know what they have, what’s low, and what to reorder.",
+  lpOurVision: "Our vision",
+  lpOurVisionBody: "A network where every local shop stays stocked.",
+  lpOurMission: "Our mission",
+  lpOurMissionBody: "Keep stock simple on the phone, alerts on WhatsApp, no spreadsheets.",
+  lpCopyright: "© 2026",
   lpProductTitle: "Stock control that fits the counter",
   lpProductBody:
     "Add parts in under a minute, update quantity with one tap, and get low-stock alerts on WhatsApp before you run out.",
