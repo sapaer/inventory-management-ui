@@ -6,7 +6,10 @@ import BrandLogo from "../components/BrandLogo";
 import Carousel from "../components/Carousel";
 import LangSelect from "../components/LangSelect";
 import UserMenu from "../components/UserMenu";
+import SiteFooter from "../components/SiteFooter";
+import ReviewCarousel from "../components/ReviewCarousel";
 import { t } from "../i18n";
+import { SUPPORT } from "../support";
 import { needsShopSetup, shouldShowHowTo, markHowToSeen } from "../utils";
 import "./Landing.css";
 
@@ -48,20 +51,6 @@ export default function Landing() {
         eyebrow: t(lang, "lpNavVision"),
         title: t(lang, "lpVisionTitle"),
         body: t(lang, "lpVisionBody"),
-      },
-      {
-        id: "review1",
-        eyebrow: t(lang, "lpReviewLabel"),
-        title: t(lang, "lpReview1Title"),
-        body: t(lang, "lpReview1Body"),
-        meta: t(lang, "lpReview1Meta"),
-      },
-      {
-        id: "review2",
-        eyebrow: t(lang, "lpReviewLabel"),
-        title: t(lang, "lpReview2Title"),
-        body: t(lang, "lpReview2Body"),
-        meta: t(lang, "lpReview2Meta"),
       },
       {
         id: "blog1",
@@ -107,6 +96,11 @@ export default function Landing() {
     <div className="lp">
       <header className="lp-nav">
         <BrandLogo className="lp-nav-brand" />
+        <nav className="lp-nav-links" aria-label="Page">
+          <a href="#about">{t(lang, "lpNavAbout")}</a>
+          <a href="#reviews">{t(lang, "lpNavReviews")}</a>
+          <a href="#support">{t(lang, "lpNavSupport")}</a>
+        </nav>
         <div className="lp-nav-actions">
           <LangSelect />
           {ready && user ? (
@@ -254,11 +248,70 @@ export default function Landing() {
         </div>
       </section>
 
-      <footer className="lp-foot">
-        <BrandLogo className="lp-foot-brand" />
-        <span className="lp-foot-note">{t(lang, "freeNote")}</span>
-      </footer>
+      <section className="lp-band lp-reviews" id="reviews">
+        <div className="lp-reviews-inner">
+          <p className="lp-kicker">{t(lang, "lpReviewsKicker")}</p>
+          <h2 className="lp-section-title">{t(lang, "lpReviewsTitle")}</h2>
+          <ReviewCarousel />
+        </div>
+      </section>
+
+      <section className="lp-band lp-support" id="support">
+        <div className="lp-reviews-inner">
+          <p className="lp-kicker">{t(lang, "lpSupportKicker")}</p>
+          <h2 className="lp-section-title">{t(lang, "lpSupportTitle")}</h2>
+          <div className="lp-support-row">
+            <a
+              className="lp-support-card"
+              href={`https://wa.me/${SUPPORT.whatsappDigits}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <span className="lp-support-ic" aria-hidden="true">
+                <WhatsAppIcon />
+              </span>
+              <span className="lp-support-copy">
+                <strong>{t(lang, "lpWhatsAppSupport")}</strong>
+              </span>
+              <span className="lp-support-arrow" aria-hidden="true">
+                →
+              </span>
+            </a>
+            <a className="lp-support-card" href={`mailto:${SUPPORT.email}`}>
+              <span className="lp-support-ic" aria-hidden="true">
+                <MailIcon />
+              </span>
+              <span className="lp-support-copy">
+                <strong>{t(lang, "email")}</strong>
+                <em>{SUPPORT.email}</em>
+              </span>
+              <span className="lp-support-arrow" aria-hidden="true">
+                →
+              </span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <SiteFooter />
     </div>
+  );
+}
+
+function WhatsAppIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M20 11.5A8.5 8.5 0 0 1 7.3 19.1L4 20l1-3.2A8.5 8.5 0 1 1 20 11.5zm-8.5 6.7c1.4 0 2.7-.4 3.8-1.1l.3-.2 2.2.6-.6-2.1.2-.3a6.3 6.3 0 1 0-5.9 3.1zm3.5-4.6c-.2-.1-1.1-.5-1.3-.6s-.3-.1-.4.1l-.4.5c-.1.1-.3.2-.5.1s-1-.4-1.9-1.2c-.7-.6-1.2-1.4-1.3-1.6s0-.4.1-.5l.3-.4.1-.2c0-.1 0-.2-.1-.3l-.6-1.4c-.2-.4-.3-.3-.4-.3h-.4c-.1 0-.3.1-.5.3s-.6.6-.6 1.5.6 1.7.7 1.8c.1.2 1.2 1.9 3 2.6 1.8.7 1.8.5 2.1.5.3 0 1.1-.4 1.2-.9.1-.4.1-.8.1-.9 0 0-.2-.1-.4-.2z" />
+    </svg>
+  );
+}
+
+function MailIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m4 7 8 6 8-6" />
+    </svg>
   );
 }
 

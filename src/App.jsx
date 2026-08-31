@@ -11,6 +11,9 @@ import LowStocks from "./pages/LowStocks";
 import Insights from "./pages/Insights";
 import Settings from "./pages/Settings";
 import ShopSetup from "./pages/ShopSetup";
+import Help from "./pages/Help";
+import Contact from "./pages/Contact";
+import Terms from "./pages/Terms";
 import { needsShopSetup } from "./utils";
 
 function Gate({ children }) {
@@ -51,6 +54,9 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/welcome" element={<Landing />} />
+      <Route path="/help" element={<Help />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/terms" element={<Terms />} />
       <Route
         path="/login"
         element={

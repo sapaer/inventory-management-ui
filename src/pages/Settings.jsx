@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { authApi, formatApiError } from "../api";
 import PasswordField from "../components/PasswordField";
 import LangSelect from "../components/LangSelect";
@@ -187,6 +187,13 @@ export default function Settings() {
               <button className="btn btn-s" onClick={logout}>
                 {t(lang, "logout")}
               </button>
+              <div className="legal-inline" style={{ textAlign: "left", marginTop: 16 }}>
+                <Link to="/help">{t(lang, "help")}</Link>
+                {" · "}
+                <Link to="/contact">{t(lang, "contact")}</Link>
+                {" · "}
+                <Link to="/terms">{t(lang, "terms")}</Link>
+              </div>
               <div style={{ marginTop: 18 }}>
                 <div className="field-lbl">{t(lang, "setPassword")}</div>
                 <p className="hint" style={{ margin: "4px 0 10px" }}>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ApiError, authApi, formatApiError } from "../api";
 import BrandLogo from "../components/BrandLogo";
 import PasswordField from "../components/PasswordField";
@@ -345,6 +345,14 @@ export default function Login() {
           {error ? <div className="err">{error}</div> : null}
           <p className="hint" style={{ textAlign: "center", marginTop: 14 }}>
             {devMode ? t(lang, "devOtpHint") : t(lang, "noPassword")}
+          </p>
+          <p className="legal-inline">
+            {t(lang, "agreePrefix")}{" "}
+            <Link to="/terms">{t(lang, "terms")}</Link>
+            {" · "}
+            <Link to="/help">{t(lang, "help")}</Link>
+            {" · "}
+            <Link to="/contact">{t(lang, "contact")}</Link>
           </p>
         </div>
       </div>

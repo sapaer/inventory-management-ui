@@ -1,52 +1,40 @@
-import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useState } from "react";
-import Loader from "../components/Loader";
-import {
-  applyPageLanguage,
-  ensurePageTranslator,
-  getInitialLang,
-  isTranslatePending,
-  showTranslateLoader,
-  TRANSLATE_EVENT,
-} from "../pageTranslate";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { applyGoogleLang, ensurePageTranslator, getInitialLang, persistLang } from "../pageTranslate";
 
 const LangContext = createContext(null);
 
+function LangRouteSync() {
+  const { lang } = useLang();
+  const loc = useLocation();
+
+  useEffect(() => {
+    if (lang !== "hi") return undefined;
+    const id = setTimeout(() => applyGoogleLang("hi"), 200);
+    return () => clearTimeout(id);
+  }, [lang, loc.pathname]);
+
+  return null;
+}
+
 export function LangProvider({ children }) {
   const [lang, setLangState] = useState(getInitialLang);
-  const [translating, setTranslating] = useState(isTranslatePending);
-
-  useLayoutEffect(() => {
-    document.getElementById("pn-translate-bootstrap")?.remove();
-  }, []);
 
   useEffect(() => {
-    function onTranslate(e) {
-      setTranslating(Boolean(e.detail?.pending));
-    }
-    window.addEventListener(TRANSLATE_EVENT, onTranslate);
-    return () => window.removeEventListener(TRANSLATE_EVENT, onTranslate);
-  }, []);
-
-  useEffect(() => {
+    persistLang(lang);
     ensurePageTranslator();
-    applyPageLanguage(lang);
-  }, [lang]);
+  }, []);
 
-  const setLang = (next, { reload = false } = {}) => {
-    const value = next === "hi" ? "hi" : "en";
-    if (value === lang && !reload) return;
-    const shouldReload = reload || value === "hi";
-    if (shouldReload) showTranslateLoader(value);
-    applyPageLanguage(value, { reload: shouldReload });
-    if (!shouldReload) {
-      setLangState(value);
-    }
+  const setLang = (next) => {
+    const value = persistLang(next === "hi" ? "hi" : "en");
+    setLangState(value);
+    applyGoogleLang(value);
   };
 
   const value = useMemo(() => ({ lang, setLang }), [lang]);
   return (
     <LangContext.Provider value={value}>
-      {translating ? <Loader variant="overlay" noTranslate /> : null}
+      <LangRouteSync />
       {children}
     </LangContext.Provider>
   );

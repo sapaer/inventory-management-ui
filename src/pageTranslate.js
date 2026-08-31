@@ -1,165 +1,90 @@
+const LANG_KEY = "pn_lang";
 const SUPPORTED = ["en", "hi"];
-const PENDING_KEY = "pn_lang_pending";
-export const TRANSLATE_EVENT = "pn:translate";
 
-function emitTranslatePending(pending, lang) {
-  window.dispatchEvent(new CustomEvent(TRANSLATE_EVENT, { detail: { pending, lang } }));
-}
-
-export function isTranslatePending() {
+export function getInitialLang() {
   try {
-    const pending = sessionStorage.getItem(PENDING_KEY);
-    if (pending === "hi" || pending === "en") return true;
-    return localStorage.getItem("pn_lang") === "hi";
+    const saved = localStorage.getItem(LANG_KEY);
+    if (saved === "hi") return "hi";
   } catch {
-    return false;
-  }
-}
-
-export function detectBrowserLang() {
-  const candidates = [...(navigator.languages || []), navigator.language || ""];
-  for (const raw of candidates) {
-    const code = String(raw).toLowerCase().split("-")[0];
-    if (SUPPORTED.includes(code)) return code;
+    /* private mode */
   }
   return "en";
 }
 
-export function getInitialLang() {
-  const saved = localStorage.getItem("pn_lang");
-  if (SUPPORTED.includes(saved)) return saved;
-  return detectBrowserLang();
+function expireCookie(name, extra = "") {
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;${extra}`;
 }
 
-function setCookie(name, value) {
-  document.cookie = `${name}=${value};path=/;max-age=${60 * 60 * 24 * 365}`;
-}
-
-function clearCookie(name) {
-  document.cookie = `${name}=;path=/;max-age=0`;
+function clearGoogTrans() {
   const host = window.location.hostname;
-  if (host && host.includes(".")) {
-    document.cookie = `${name}=;path=/;domain=.${host};max-age=0`;
-  }
+  const extras = [""];
+  if (host) extras.push(`domain=${host}`);
+  if (host && host.includes(".")) extras.push(`domain=.${host}`);
+  extras.forEach((extra) => expireCookie("googtrans", extra));
 }
 
-export function showTranslateLoader(lang = "hi") {
-  try {
-    sessionStorage.setItem(PENDING_KEY, lang);
-  } catch {
-    /* private mode */
-  }
-  document.documentElement.classList.add("pn-translate-pending");
-  emitTranslatePending(true, lang);
-}
-
-export function hideTranslateLoader() {
-  try {
-    sessionStorage.removeItem(PENDING_KEY);
-  } catch {
-    /* private mode */
-  }
-  document.documentElement.classList.remove("pn-translate-pending");
-  emitTranslatePending(false);
-}
-
-function htmlIsTranslated() {
-  const cls = document.documentElement.className || "";
-  return /\btranslated-(ltr|rtl)\b/.test(cls);
-}
-
-function languageIsApplied(lang) {
-  if (lang === "en") return !htmlIsTranslated();
-  if (htmlIsTranslated()) return true;
-  const combo = document.querySelector(".goog-te-combo");
-  return combo?.value === lang && document.body.querySelectorAll("font").length > 0;
-}
-
-function waitUntilLanguageApplied(lang, { timeoutMs = 12000 } = {}) {
-  return new Promise((resolve) => {
-    let settled = false;
-    const finish = () => {
-      if (settled) return;
-      settled = true;
-      observer.disconnect();
-      clearTimeout(timer);
-      setTimeout(resolve, 180);
-    };
-
-    if (languageIsApplied(lang)) {
-      finish();
-      return;
-    }
-
-    const observer = new MutationObserver(() => {
-      if (languageIsApplied(lang)) finish();
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    observer.observe(document.body, { childList: true, subtree: true });
-    const timer = setTimeout(finish, timeoutMs);
-  });
-}
-
-function driveTranslatorCombo(next) {
-  const trySetCombo = (attempt = 0) => {
-    const combo = document.querySelector(".goog-te-combo");
-    if (combo) {
-      if (combo.value !== next) {
-        combo.value = next;
-        combo.dispatchEvent(new Event("change"));
-      }
-      waitUntilLanguageApplied(next).then(hideTranslateLoader);
-      return;
-    }
-    if (attempt < 25) {
-      setTimeout(() => trySetCombo(attempt + 1), 200);
-      return;
-    }
-    waitUntilLanguageApplied(next).then(hideTranslateLoader);
-  };
-  trySetCombo();
-}
-
-/** Drive Google Website Translator without maintaining per-language string maps. */
-export function applyPageLanguage(lang, { reload = false } = {}) {
+export function persistLang(lang) {
   const next = SUPPORTED.includes(lang) ? lang : "en";
-  localStorage.setItem("pn_lang", next);
+  try {
+    localStorage.setItem(LANG_KEY, next);
+  } catch {
+    /* private mode */
+  }
   document.documentElement.lang = next;
-
-  if (next === "en") {
-    clearCookie("googtrans");
-    setCookie("googtrans", "/en/en");
+  if (next === "hi") {
+    document.cookie = "googtrans=/en/hi;path=/;max-age=31536000";
   } else {
-    setCookie("googtrans", `/en/${next}`);
+    clearGoogTrans();
   }
+  return next;
+}
 
-  if (reload || (next === "hi" && !languageIsApplied(next))) {
-    showTranslateLoader(next);
-  }
+function fireCombo(value) {
+  const combo = document.querySelector(".goog-te-combo");
+  if (!combo) return false;
+  combo.value = value;
+  combo.dispatchEvent(new Event("change", { bubbles: true }));
+  return true;
+}
 
-  if (reload) {
-    window.location.reload();
+function isGoogleTranslated() {
+  const html = document.documentElement;
+  return html.classList.contains("translated-ltr") || html.classList.contains("translated-rtl");
+}
+
+function applyHindi(attempt = 0) {
+  const combo = document.querySelector(".goog-te-combo");
+  if (!combo) {
+    if (attempt < 40) setTimeout(() => applyHindi(attempt + 1), 150);
     return;
   }
-
-  if (next === "en" && !htmlIsTranslated()) {
-    hideTranslateLoader();
+  if (combo.value === "hi") {
+    fireCombo("en");
+    setTimeout(() => fireCombo("hi"), 180);
     return;
   }
-
-  driveTranslatorCombo(next);
+  fireCombo("hi");
 }
 
 let scriptLoading = false;
 
-export function ensurePageTranslator() {
-  if (document.getElementById("google_translate_element")) return;
+function loadGoogleTranslator() {
+  if (document.getElementById("google_translate_element")) {
+    applyHindi();
+    return;
+  }
+
   const host = document.createElement("div");
   host.id = "google_translate_element";
   host.setAttribute("aria-hidden", "true");
   document.body.appendChild(host);
 
-  if (scriptLoading || window.google?.translate) return;
+  if (window.google?.translate) {
+    window.googleTranslateElementInit?.();
+    applyHindi();
+    return;
+  }
+  if (scriptLoading) return;
   scriptLoading = true;
 
   window.googleTranslateElementInit = () => {
@@ -167,22 +92,40 @@ export function ensurePageTranslator() {
     new window.google.translate.TranslateElement(
       {
         pageLanguage: "en",
-        includedLanguages: SUPPORTED.join(","),
+        includedLanguages: "en,hi",
         autoDisplay: false,
       },
       "google_translate_element"
     );
-    const preferred = getInitialLang();
-    if (preferred !== "en") {
-      setTimeout(() => applyPageLanguage(preferred), 400);
-    } else {
-      hideTranslateLoader();
-    }
+    setTimeout(() => applyHindi(), 300);
   };
 
   const script = document.createElement("script");
   script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
   script.async = true;
-  script.onerror = () => hideTranslateLoader();
   document.body.appendChild(script);
+}
+
+export function applyGoogleLang(lang) {
+  const next = persistLang(lang === "hi" ? "hi" : "en");
+
+  if (next === "hi") {
+    loadGoogleTranslator();
+    return;
+  }
+
+  clearGoogTrans();
+  if (isGoogleTranslated()) {
+    window.location.reload();
+  }
+}
+
+/** Load Google only when Hindi is the saved language. English stays original copy. */
+export function ensurePageTranslator() {
+  if (getInitialLang() === "hi") {
+    loadGoogleTranslator();
+    return;
+  }
+  clearGoogTrans();
+  if (isGoogleTranslated()) window.location.reload();
 }

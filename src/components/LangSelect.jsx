@@ -14,7 +14,7 @@ export default function LangSelect({ className = "" }) {
       <select
         className="lang-select-ctrl"
         value={lang}
-        onChange={(e) => setLang(e.target.value, { reload: true })}
+        onChange={(e) => setLang(e.target.value)}
         aria-label="Language"
       >
         {OPTIONS.map((opt) => (
