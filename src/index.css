@@ -32,7 +32,7 @@ body {
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body, #root { min-height: 100%; }
+html, body, #root { min-height: 100%; max-width: 100%; }
 html { overflow-x: hidden; }
 body {
   font-family: Inter, -apple-system, Segoe UI, sans-serif;
@@ -40,6 +40,8 @@ body {
   background: var(--sage);
   top: 0 !important;
   overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
 }
 
 button, input, textarea, select { font-family: inherit; }
@@ -184,7 +186,44 @@ button { cursor: pointer; }
   background: #fff;
 }
 .inp:focus, .f-inp:focus { border-color: var(--cta); }
+.pw-wrap { position: relative; }
+.pw-inp { padding-right: 42px; }
+.pw-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+.pw-toggle:hover { color: var(--ink); background: var(--soft); }
 .hint { font-size: 11px; color: #9ca3af; margin-top: 5px; }
+.legal-inline {
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.45;
+  text-align: center;
+  margin-top: 12px;
+}
+.legal-inline a { color: #145c45; }
+.terms-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 4px 0 16px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #374151;
+}
+.terms-check input { margin-top: 3px; }
+.terms-check a { color: #145c45; }
 .err { font-size: 12px; color: #b91c1c; margin-top: 8px; }
 
 /* Login */
@@ -239,6 +278,29 @@ button { cursor: pointer; }
 .login-form { width: 100%; max-width: 360px; }
 .login-form h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
 .login-form .lead { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+.auth-tabs {
+  display: flex;
+  gap: 6px;
+  margin: -8px 0 18px;
+  padding: 4px;
+  background: var(--soft);
+  border-radius: 10px;
+}
+.auth-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.auth-tab.on {
+  background: #fff;
+  color: var(--forest);
+  box-shadow: 0 1px 3px rgba(15, 61, 42, 0.12);
+}
 .login-right .lang-toggle,
 .login-right .lang-select { position: absolute; top: 24px; right: 28px; }
 
@@ -490,6 +552,8 @@ button { cursor: pointer; }
   cursor: pointer;
   width: calc(100% - 16px);
   text-align: left;
+  text-decoration: none;
+  box-sizing: border-box;
 }
 .sidebar-guide:hover {
   background: rgba(255,255,255,.1);

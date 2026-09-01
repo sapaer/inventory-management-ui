@@ -58,9 +58,15 @@ export default function UserMenu({ variant = "default" }) {
           </div>
           {!needsShopSetup(user) ? (
             <Link to="/settings" className="user-menu-item" role="menuitem" onClick={() => setOpen(false)}>
-              {t(lang, "settings")}
+              {t(lang, "profile")}
             </Link>
           ) : null}
+          <Link to="/help" className="user-menu-item" role="menuitem" onClick={() => setOpen(false)}>
+            {t(lang, "help")}
+          </Link>
+          <Link to="/contact" className="user-menu-item" role="menuitem" onClick={() => setOpen(false)}>
+            {t(lang, "contact")}
+          </Link>
           <button type="button" className="user-menu-item danger" role="menuitem" onClick={logout}>
             {t(lang, "logout")}
           </button>

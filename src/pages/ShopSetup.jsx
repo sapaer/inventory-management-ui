@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { authApi, formatApiError } from "../api";
 import BrandLogo from "../components/BrandLogo";
 import LangSelect from "../components/LangSelect";
@@ -28,6 +28,7 @@ export default function ShopSetup() {
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   function set(key, value) {
     setError("");
@@ -51,6 +52,10 @@ export default function ShopSetup() {
     }
     if ((!form.area.trim() && !form.city.trim() && form.geoLat == null) || !form.address.trim()) {
       setError(t(lang, "locationRequired"));
+      return;
+    }
+    if (!acceptedTerms) {
+      setError(t(lang, "acceptTermsRequired"));
       return;
     }
     setBusy(true);
@@ -159,6 +164,20 @@ export default function ShopSetup() {
           </div>
         </section>
 
+        <label className="terms-check">
+          <input
+            type="checkbox"
+            checked={acceptedTerms}
+            onChange={(e) => {
+              setError("");
+              setAcceptedTerms(e.target.checked);
+            }}
+          />
+          <span>
+            {t(lang, "acceptTerms")}{" "}
+            <Link to="/terms">{t(lang, "terms")}</Link>
+          </span>
+        </label>
         {error ? <div className="err" style={{ marginBottom: 12 }}>{error}</div> : null}
         <button className="btn btn-p btn-full" disabled={busy} onClick={submit}>
           {busy ? t(lang, "saving") : t(lang, "setupCatalog")}

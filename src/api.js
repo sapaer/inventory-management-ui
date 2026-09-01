@@ -113,6 +113,29 @@ export const healthApi = {
   check: () => api("/health", { auth: false }),
 };
 
+export const reviewsApi = {
+  async list() {
+    const { DUMMY_REVIEWS, normalizeReviews } = await import("./data/reviewsDummy");
+    const urls = [];
+    if (import.meta.env.DEV) urls.push("/api/v1/public/reviews");
+    const remote = apiUrl("/api/v1/public/reviews");
+    if (remote && !urls.includes(remote)) urls.push(remote);
+
+    for (const url of urls) {
+      try {
+        const res = await fetch(url);
+        const payload = await parseBody(res);
+        if (!res.ok || payload.success === false) continue;
+        const next = normalizeReviews(payload.data);
+        if (next.items.length) return next;
+      } catch {
+        /* try next source */
+      }
+    }
+    return normalizeReviews(DUMMY_REVIEWS);
+  },
+};
+
 export const authApi = {
   requestOtp: (phone) => api("/api/v1/auth/otp/request", { method: "POST", body: { phone }, auth: false }),
   verifyOtp: (phone, otp) =>
@@ -122,6 +145,9 @@ export const authApi = {
   profile: () => api("/api/v1/auth/profile"),
   updateProfile: (body) => api("/api/v1/auth/profile", { method: "PUT", body }),
   logout: () => api("/api/v1/auth/logout", { method: "DELETE" }),
+  passwordLogin: (phone, password) =>
+    api("/api/v1/auth/password/login", { method: "POST", body: { phone, password }, auth: false }),
+  setPassword: (password) => api("/api/v1/auth/password", { method: "PUT", body: { password } }),
 };
 
 export const inventoryApi = {

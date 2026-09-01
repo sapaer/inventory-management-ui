@@ -16,7 +16,7 @@ const NAV = [
   { to: "/inventory", key: "inventory", icon: BoxIcon },
   { to: "/low-stocks", key: "lowStocks", icon: BellIcon },
   { to: "/insights", key: "insights", icon: ChartIcon },
-  { to: "/settings", key: "settings", icon: GearIcon },
+  { to: "/settings", key: "profile", icon: GearIcon },
 ];
 
 export default function Layout() {
@@ -41,7 +41,7 @@ export default function Layout() {
     "/inventory/new": t(lang, "addPart"),
     "/low-stocks": t(lang, "lowStocks"),
     "/insights": t(lang, "insights"),
-    "/settings": t(lang, "settings"),
+    "/settings": t(lang, "profile"),
   };
   const isHome = loc.pathname === "/dashboard";
   const title = isHome
@@ -52,7 +52,7 @@ export default function Layout() {
   const showAdd = !isHome && loc.pathname !== "/inventory/new" && !loc.pathname.endsWith("/edit");
 
   return (
-    <div className="shell notranslate" translate="no">
+    <div className="shell">
       <aside className="sidebar">
         <BrandLogo className="brand" showTagline taglineClassName="brand-tag" to="/welcome" />
         <nav className="nav">
@@ -82,6 +82,9 @@ export default function Layout() {
           <GuideIcon />
           {t(lang, "userGuide")}
         </button>
+        <NavLink to="/help" className="sidebar-guide">
+          {t(lang, "help")}
+        </NavLink>
         <div className="shop-foot">
           <div className="shop-nm">{user?.shopName || t(lang, "yourShop")}</div>
           <div className="shop-lc">{locationLabel(user) || (user?.phone ? `+91 ${user.phone}` : "")}</div>

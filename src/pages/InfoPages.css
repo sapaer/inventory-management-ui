@@ -1,0 +1,153 @@
+.info-main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 28px clamp(16px, 4vw, 48px) 56px;
+  flex: 1;
+}
+
+.info-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.info-draft {
+  display: inline-block;
+  margin: 0 0 14px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.info-title {
+  font-family: var(--lp-display, inherit);
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  margin: 0 0 10px;
+  color: #0f291c;
+}
+
+.info-lead {
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: #3d5348;
+  margin: 0 0 22px;
+}
+
+.info-meta {
+  font-size: 13px;
+  color: #6b7280;
+  margin: -12px 0 24px;
+}
+
+.info-section {
+  margin-bottom: 22px;
+}
+
+.info-section h2 {
+  font-size: 1.05rem;
+  margin: 0 0 8px;
+  color: #145c45;
+}
+
+.info-section p {
+  margin: 0;
+  line-height: 1.6;
+  color: #374151;
+}
+
+.info-faq-item {
+  border: 1px solid #d7e4dc;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: #fff;
+}
+
+.info-faq-item summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #145c45;
+}
+
+.info-faq-item p {
+  margin: 10px 0 0;
+  line-height: 1.55;
+  color: #374151;
+}
+
+.info-cta {
+  margin-top: 22px;
+}
+
+.info-cta a {
+  color: #145c45;
+  font-weight: 600;
+}
+
+.info-cards {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #d7e4dc;
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+}
+
+.info-card strong {
+  color: #145c45;
+}
+
+.info-card em {
+  font-size: 12px;
+  color: #9ca3af;
+  font-style: normal;
+}
+
+.info-note {
+  margin-top: 20px;
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.legal-inline {
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.45;
+  text-align: center;
+  margin-top: 12px;
+}
+
+.legal-inline a {
+  color: #145c45;
+}
+
+.terms-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 4px 0 16px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #374151;
+}
+
+.terms-check input {
+  margin-top: 3px;
+}
+
+.terms-check a {
+  color: #145c45;
+}
