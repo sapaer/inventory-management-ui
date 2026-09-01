@@ -72,7 +72,7 @@ function WeekChart({ labels, points, max }) {
   const area = `${line} L${xs[xs.length - 1]},${h - bottom} L${xs[0]},${h - bottom} Z`;
 
   return (
-    <svg className="lp-inv-svg" viewBox={`0 0 ${w} ${h}`} role="img" aria-label={labels.join(", ")}>
+    <svg className="lp-inv-svg" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" role="img" aria-label={labels.join(", ")}>
       <defs>
         <linearGradient id="lpInvFill" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#2bbc8a" stopOpacity="0.35" />

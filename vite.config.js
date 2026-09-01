@@ -11,13 +11,13 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "http://localhost:8080",
+        target: "https://inventory-management-ivjd.onrender.com",
         bypass(req) {
           if (req.url?.split("?")[0] === "/api/v1/public/reviews") return req.url;
         },
       },
-      "/health": "http://localhost:8080",
-      "/actuator": "http://localhost:8080",
+      "/health": "https://inventory-management-ivjd.onrender.com",
+      "/actuator": "https://inventory-management-ivjd.onrender.com",
     },
   },
 });

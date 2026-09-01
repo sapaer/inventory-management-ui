@@ -11,8 +11,8 @@ export const DUMMY_INVENTORY_PREVIEW = {
     points: [2200, 3100, 2800, 4300, 5200, 6400, 7800],
   },
   topParts: [
-    { id: "p1", name: "Spark Plug", sku: "NGK-BKR6E", qty: "1,248", image: "/parts/spark-plug.svg" },
-    { id: "p2", name: "Oil Filter", sku: "OF-2041", qty: "987", image: "/parts/oil-filter.svg" },
-    { id: "p3", name: "Brake Pad", sku: "BP-330", qty: "765", image: "/parts/brake-pad.svg" },
+    { id: "p1", name: "Spark Plug", sku: "NGK BKR6E", qty: "1,248", image: "/assets/parts/spark-plug.png" },
+    { id: "p2", name: "Oil Filter", sku: "Bosch 0986AF", qty: "987", image: "/assets/parts/oil-filter.png" },
+    { id: "p3", name: "Brake Pad", sku: "TVS Apache RTR", qty: "765", image: "/assets/parts/brake-pad.png" },
   ],
 };

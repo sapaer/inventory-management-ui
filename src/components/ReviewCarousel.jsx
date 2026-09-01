@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { reviewsApi } from "../api";
 import { t } from "../i18n";
 import { useLang } from "../context/LangContext";
@@ -9,6 +9,8 @@ export default function ReviewCarousel() {
   const [payload, setPayload] = useState(null);
   const [index, setIndex] = useState(0);
   const [perPage, setPerPage] = useState(3);
+  const [hovered, setHovered] = useState(false);
+  const [tabHidden, setTabHidden] = useState(false);
 
   useEffect(() => {
     let live = true;
@@ -21,11 +23,27 @@ export default function ReviewCarousel() {
   }, []);
 
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 820px)");
+    const mq = window.matchMedia("(max-width: 1100px)");
     const apply = () => setPerPage(mq.matches ? 1 : 3);
     apply();
     mq.addEventListener("change", apply);
     return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  const total = payload ? payload.items.length : 0;
+  const pages = Math.max(1, Math.ceil(total / perPage));
+
+  useEffect(() => {
+    if (hovered || tabHidden || pages < 2) return undefined;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+    const id = window.setInterval(() => setIndex((n) => n + 1), 5000);
+    return () => window.clearInterval(id);
+  }, [hovered, tabHidden, pages]);
+
+  useEffect(() => {
+    const onVisibility = () => setTabHidden(document.hidden);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
 
   if (!payload) {
@@ -35,14 +53,20 @@ export default function ReviewCarousel() {
   const items = payload.items;
   if (!items.length) return null;
 
-  const count = items.length;
-  const pageCount = Math.max(1, Math.ceil(count / perPage));
+  const count = total;
+  const pageCount = pages;
   const page = ((index % pageCount) + pageCount) % pageCount;
   const start = page * perPage;
   const visible = Array.from({ length: Math.min(perPage, count) }, (_, i) => items[(start + i) % count]);
 
   return (
-    <div className="lp-reviews-wrap">
+    <div
+      className="lp-reviews-wrap"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocusCapture={() => setHovered(true)}
+      onBlurCapture={() => setHovered(false)}
+    >
       <div className="lp-reviews-rating">
         <span>{payload.averageRating.toFixed(1)}/5</span>
         <Stars value={Math.round(payload.averageRating)} />

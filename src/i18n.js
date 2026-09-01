@@ -44,6 +44,7 @@ export const messages = {
   benefit3: "Update quantity in one tap",
   benefit3s: "Plus and minus right on the catalog",
   freeNote: "Bilkul free hai — koi charge nahi.",
+  footRights: "All rights reserved.",
   createAccount: "Create your account",
   enterMobile: "Enter your mobile number — OTP on WhatsApp.",
   mobile: "Mobile number",
@@ -111,6 +112,28 @@ export const messages = {
   lpProductTitle: "Stock control that fits the counter",
   lpProductBody:
     "Add parts in under a minute, update quantity with one tap, and get low-stock alerts on WhatsApp before you run out.",
+  lpValueKicker: "What you get",
+  lpValueTitle: "Everything your counter needs — free",
+  lpValueBody:
+    "PartNear replaces the register and the guesswork. Here is exactly what you can do from day one.",
+  lpValue1Title: "A live count of every part",
+  lpValue1Body:
+    "Two-wheelers, cars, three-wheelers, commercial and EV parts in one catalog — with the exact quantity sitting on your shelf right now.",
+  lpValue2Title: "WhatsApp alerts before you run out",
+  lpValue2Body:
+    "Set a minimum for each part. When stock drops to it, PartNear messages you on WhatsApp so you reorder in time instead of losing the sale.",
+  lpValue3Title: "One-tap quantity updates",
+  lpValue3Body:
+    "Sold a part or received a delivery? Press plus or minus on the catalog. No forms, no spreadsheet, no waiting till closing time.",
+  lpValue4Title: "A low-stock list you can order from",
+  lpValue4Body:
+    "One screen showing everything below its minimum, so you can call your supplier with a ready list instead of walking the shelves.",
+  lpValue5Title: "Manage multiple shops at once",
+  lpValue5Body:
+    "Run more than one counter or godown from the same account — switch between shops and see each one’s stock and alerts separately.",
+  lpValue6Title: "Works on the phone at your counter",
+  lpValue6Body:
+    "Sign in with a WhatsApp OTP, use it on any phone or laptop, and add your staff. No installation and no subscription.",
   lpVisionTitle: "A network where every shop stays stocked",
   lpVisionBody:
     "We are building toward a connected spare parts network — so local shops run with clarity today, and can find what they need across the network tomorrow.",
@@ -339,6 +362,7 @@ export const messages = {
   leftShort: "left",
   help: "Help",
   contact: "Contact",
+  contactUs: "Contact us",
   terms: "Terms",
   contactSupport: "Contact support",
   legalDraftBanner: "Draft copy — not final",
