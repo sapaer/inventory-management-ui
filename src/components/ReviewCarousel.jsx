@@ -7,10 +7,12 @@ import ReviewCard from "./ReviewCard";
 export default function ReviewCarousel() {
   const { lang } = useLang();
   const [payload, setPayload] = useState(null);
-  const [index, setIndex] = useState(0);
+  const [slide, setSlide] = useState(0);
+  const [animate, setAnimate] = useState(true);
   const [perPage, setPerPage] = useState(3);
   const [hovered, setHovered] = useState(false);
   const [tabHidden, setTabHidden] = useState(false);
+  const jumpFrame = useRef(0);
 
   useEffect(() => {
     let live = true;
@@ -34,9 +36,14 @@ export default function ReviewCarousel() {
   const pages = Math.max(1, Math.ceil(total / perPage));
 
   useEffect(() => {
+    setSlide(0);
+    setAnimate(true);
+  }, [perPage, total]);
+
+  useEffect(() => {
     if (hovered || tabHidden || pages < 2) return undefined;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
-    const id = window.setInterval(() => setIndex((n) => n + 1), 5000);
+    const id = window.setInterval(goNext, 5000);
     return () => window.clearInterval(id);
   }, [hovered, tabHidden, pages]);
 
@@ -45,6 +52,42 @@ export default function ReviewCarousel() {
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
+
+  useEffect(() => () => window.cancelAnimationFrame(jumpFrame.current), []);
+
+  function goTo(next) {
+    setAnimate(true);
+    setSlide(next);
+  }
+
+  function goNext() {
+    setAnimate(true);
+    setSlide((n) => (n >= pages ? 1 : n + 1));
+  }
+
+  /**
+   * Going back from the first page would slide the wrong way, so land on the
+   * trailing clone without animating and glide left from there on the next frame.
+   */
+  function goPrev() {
+    if (slide > 0) {
+      goTo(slide - 1);
+      return;
+    }
+    setAnimate(false);
+    setSlide(pages);
+    jumpFrame.current = window.requestAnimationFrame(() => {
+      jumpFrame.current = window.requestAnimationFrame(() => goTo(pages - 1));
+    });
+  }
+
+  /** The trailing clone matches the first page, so swap to it once it is in view. */
+  function handleTransitionEnd(event) {
+    if (event.target !== event.currentTarget || event.propertyName !== "transform") return;
+    if (slide < pages) return;
+    setAnimate(false);
+    setSlide(0);
+  }
 
   if (!payload) {
     return <p className="lp-reviews-status">{t(lang, "loading")}</p>;
@@ -55,9 +98,11 @@ export default function ReviewCarousel() {
 
   const count = total;
   const pageCount = pages;
-  const page = ((index % pageCount) + pageCount) % pageCount;
-  const start = page * perPage;
-  const visible = Array.from({ length: Math.min(perPage, count) }, (_, i) => items[(start + i) % count]);
+  const page = slide % pageCount;
+  const pageItems = (n) =>
+    Array.from({ length: Math.min(perPage, count) }, (_, i) => items[(n * perPage + i) % count]);
+  const slides = Array.from({ length: pageCount }, (_, n) => pageItems(n));
+  if (pageCount > 1) slides.push(pageItems(0));
 
   return (
     <div
@@ -77,22 +122,34 @@ export default function ReviewCarousel() {
             type="button"
             className="lp-reviews-arrow"
             aria-label="Previous reviews"
-            onClick={() => setIndex((n) => n - 1)}
+            onClick={goPrev}
           >
             ‹
           </button>
         ) : null}
-        <div className="lp-reviews-grid">
-          {visible.map((item) => (
-            <ReviewCard key={`${item.id}-${page}`} review={item} />
-          ))}
+        <div className="lp-reviews-viewport">
+          <div
+            className={`lp-reviews-track${animate ? " is-animating" : ""}`}
+            style={{ transform: `translate3d(-${slide * 100}%, 0, 0)` }}
+            onTransitionEnd={handleTransitionEnd}
+          >
+            {slides.map((group, n) => (
+              <div className="lp-reviews-page" key={n} aria-hidden={n !== slide}>
+                <div className="lp-reviews-grid">
+                  {group.map((item, i) => (
+                    <ReviewCard key={`${item.id}-${n}-${i}`} review={item} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
         {count > perPage ? (
           <button
             type="button"
             className="lp-reviews-arrow"
             aria-label="Next reviews"
-            onClick={() => setIndex((n) => n + 1)}
+            onClick={goNext}
           >
             ›
           </button>
@@ -107,7 +164,7 @@ export default function ReviewCarousel() {
               className={`lp-carousel-dot${i === page ? " on" : ""}`}
               aria-label={`Reviews page ${i + 1}`}
               aria-current={i === page}
-              onClick={() => setIndex(i)}
+              onClick={() => goTo(i)}
             />
           ))}
         </div>

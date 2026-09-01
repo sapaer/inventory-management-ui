@@ -1009,12 +1009,34 @@
   min-width: 0;
 }
 
-.lp-reviews-grid {
+.lp-reviews-viewport {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  padding: 8px 0;
+  margin: -8px 0;
+}
+
+.lp-reviews-track {
+  display: flex;
+  will-change: transform;
+}
+
+.lp-reviews-track.is-animating {
+  transition: transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.lp-reviews-page {
+  flex: 0 0 100%;
+  min-width: 100%;
+}
+
+.lp-reviews-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   min-width: 0;
+  height: 100%;
 }
 
 .lp-reviews-arrow {
@@ -1047,12 +1069,7 @@
   border: 1px solid rgba(20, 92, 69, 0.16);
   background: var(--lp-fog);
   box-shadow: 0 8px 24px rgba(20, 92, 69, 0.06);
-  animation: lp-review-in 0.45s ease both;
-}
-
-@keyframes lp-review-in {
-  from { opacity: 0; transform: translateX(14px); }
-  to { opacity: 1; transform: none; }
+  height: 100%;
 }
 
 .lp-review-quote-mark {
@@ -1304,8 +1321,10 @@
   .lp-brand-mark,
   .lp-hero-title,
   .lp-hero-sub,
-  .lp-hero-ctas,
-  .lp-review-card {
+  .lp-hero-ctas {
     animation: none;
+  }
+  .lp-reviews-track.is-animating {
+    transition: none;
   }
 }
