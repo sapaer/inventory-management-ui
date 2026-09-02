@@ -251,6 +251,7 @@ export default function Login() {
               className="phone-inp"
               type="tel"
               inputMode="numeric"
+              autoComplete="tel"
               maxLength={10}
               placeholder="98765 43210"
               value={phone}
@@ -304,6 +305,7 @@ export default function Login() {
                     className={`otp-box${d ? " filled" : ""}`}
                     maxLength={1}
                     inputMode="numeric"
+                    autoComplete={i === 0 ? "one-time-code" : "off"}
                     value={d}
                     onChange={(e) => onOtpChange(i, e.target.value)}
                     onKeyDown={(e) => onOtpKey(i, e)}
