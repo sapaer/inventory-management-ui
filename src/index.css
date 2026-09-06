@@ -19,6 +19,10 @@ body {
   --forest: #1a5c46;
   --forest-deep: #0f3d2a;
   --cta: #26a87e;
+  /* Accent that drives the auth page's left panel + the glass tints.
+     Swap these two to reskin the login/signup screen. */
+  --auth-accent: #1a5c46;
+  --auth-accent-deep: #0f3d2a;
   --sage: #f0f4f2;
   --line: #e2e8e4;
   --muted: #6b7280;
@@ -231,22 +235,48 @@ button { cursor: pointer; }
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: #fff;
+  /* Soft tint pulled from the accent so the page never reads as flat white.
+     Change --auth-accent to restyle. The radial sits near the left panel. */
+  background: var(--sage);
+  background:
+    radial-gradient(
+      900px 480px at 8% 0%,
+      color-mix(in srgb, var(--auth-accent) 16%, #fff) 0%,
+      transparent 62%
+    ),
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--auth-accent) 8%, #fff) 0%,
+      color-mix(in srgb, var(--auth-accent) 3%, #fff) 48%,
+      color-mix(in srgb, var(--auth-accent) 7%, #fff) 100%
+    );
 }
 .login {
   flex: 1;
   min-height: 0;
   display: flex;
-  background: #fff;
+  background: transparent;
   padding: 16px;
   gap: 16px;
 }
+/* Glass nav on the auth screen — frosts the tinted page behind it. */
+.login-page .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.75);
+  background: color-mix(in srgb, var(--auth-accent) 7%, rgba(255, 255, 255, 0.55));
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid color-mix(in srgb, var(--auth-accent) 12%, rgba(255, 255, 255, 0.35));
+}
 .login-left {
   width: 46%;
-  background: linear-gradient(160deg, var(--forest) 0%, var(--forest-deep) 100%);
+  background: linear-gradient(160deg, var(--auth-accent) 0%, var(--auth-accent-deep) 100%);
   color: #fff;
   padding: 40px 44px;
   border-radius: 24px;
+  box-shadow: 0 24px 60px color-mix(in srgb, var(--auth-accent) 30%, transparent);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -310,12 +340,20 @@ button { cursor: pointer; }
   width: 136px;
   height: 136px;
   border-radius: 50%;
-  background: #f0faf5;
-  color: var(--forest);
+  color: var(--auth-accent);
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 16px;
+  /* Frosted-glass disc: tinted, translucent, blurs whatever is behind it. */
+  background: #eef5f1;
+  background: color-mix(in srgb, var(--auth-accent) 12%, rgba(255, 255, 255, 0.55));
+  backdrop-filter: blur(12px) saturate(1.5);
+  -webkit-backdrop-filter: blur(12px) saturate(1.5);
+  border: 1px solid color-mix(in srgb, var(--auth-accent) 18%, rgba(255, 255, 255, 0.6));
+  box-shadow:
+    0 10px 30px color-mix(in srgb, var(--auth-accent) 22%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 .login-avatar svg { width: 76px; height: 76px; display: block; }
 .login-form .login-title { text-align: center; margin-bottom: 32px; }
