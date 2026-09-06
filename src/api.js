@@ -145,9 +145,21 @@ export const authApi = {
   profile: () => api("/api/v1/auth/profile"),
   updateProfile: (body) => api("/api/v1/auth/profile", { method: "PUT", body }),
   logout: () => api("/api/v1/auth/logout", { method: "DELETE" }),
+  // Not implemented on the backend yet — kept so the UI degrades to "unavailable" instead of breaking.
   passwordLogin: (phone, password) =>
     api("/api/v1/auth/password/login", { method: "POST", body: { phone, password }, auth: false }),
-  setPassword: (password) => api("/api/v1/auth/password", { method: "PUT", body: { password } }),
+  // First-time only; 409 PASSWORD_ALREADY_SET if one already exists — use changePassword instead.
+  setPassword: (password) => api("/api/v1/auth/password", { method: "POST", body: { password } }),
+  // Change flow: request an OTP to the account's own phone, then submit it with the new password.
+  requestPasswordChangeOtp: () => api("/api/v1/auth/password/change/request", { method: "POST" }),
+  changePassword: (otp, newPassword) =>
+    api("/api/v1/auth/password", { method: "PUT", body: { otp, newPassword } }),
+  // Multiple shops on one phone.
+  selectAccount: (phoneToken, accountId) =>
+    api("/api/v1/auth/accounts/select", { method: "POST", body: { phoneToken, accountId }, auth: false }),
+  listAccounts: () => api("/api/v1/auth/accounts"),
+  createAccount: () => api("/api/v1/auth/accounts", { method: "POST" }),
+  switchAccount: (accountId) => api("/api/v1/auth/accounts/switch", { method: "POST", body: { accountId } }),
 };
 
 export const inventoryApi = {

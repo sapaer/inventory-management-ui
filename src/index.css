@@ -673,8 +673,57 @@ button { cursor: pointer; }
 .user-menu-item:hover { background: var(--soft); }
 .user-menu-item.danger { color: #991b1b; }
 .user-menu-item.danger:hover { background: #fee2e2; }
+.user-menu-item.on { color: var(--forest); font-weight: 700; cursor: default; }
+.user-menu-item.on:hover { background: none; }
+.user-menu-item:disabled { opacity: 0.6; cursor: default; }
+.user-menu-section {
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+}
+.user-menu-section-ttl {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 4px 10px 6px;
+}
+.user-menu-error {
+  font-size: 12px;
+  color: #b91c1c;
+  padding: 6px 10px 2px;
+}
 .user-menu-lp .av {
   background: var(--forest);
+}
+.account-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+.account-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.account-picker-item:hover { background: var(--soft); }
+.account-picker-item:disabled { opacity: 0.6; cursor: default; }
+.account-picker-meta { display: flex; flex-direction: column; gap: 2px; }
+.account-picker-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+.account-picker-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #991b1b;
+  width: fit-content;
 }
 .content { flex: 1; overflow: auto; padding: 18px 22px; }
 

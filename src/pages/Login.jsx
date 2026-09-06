@@ -7,7 +7,7 @@ import LangSelect from "../components/LangSelect";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
-import { isValidPhone, needsShopSetup } from "../utils";
+import { initials, isValidPhone, needsShopSetup } from "../utils";
 import { isDevAuthBypassEnabled } from "../devAuth";
 
 const DEV_OTP = "000000";
@@ -25,6 +25,7 @@ export default function Login() {
   const [seconds, setSeconds] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [picker, setPicker] = useState(null);
   const inputs = useRef([]);
   const devMode = isDevAuthBypassEnabled();
 
@@ -35,12 +36,30 @@ export default function Login() {
   }, [seconds]);
 
   function goAfterSignIn(data) {
+    if (data?.needsAccountSelection) {
+      setPicker({ phoneToken: data.phoneToken, accounts: data.accounts || [] });
+      return;
+    }
     if (!data?.accessToken) {
       setError(t(lang, "passwordLoginUnavailable"));
       return;
     }
+    setPicker(null);
     signIn(data);
     nav(needsShopSetup(data.user) || data.isNewUser ? "/setup" : "/dashboard", { replace: true });
+  }
+
+  async function pickAccount(accountId) {
+    setBusy(true);
+    setError("");
+    try {
+      const data = await authApi.selectAccount(picker.phoneToken, accountId);
+      goAfterSignIn(data);
+    } catch (e) {
+      setError(formatApiError(e));
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function requestOtp() {
@@ -181,6 +200,58 @@ export default function Login() {
     setMethod(next);
     setError("");
     if (next === "password") setOtpSent(false);
+  }
+
+  if (picker) {
+    return (
+      <div className="login">
+        <div className="login-left">
+          <div>
+            <BrandLogo className="login-brand" />
+            <div className="login-tag">{t(lang, "tagline")}</div>
+          </div>
+        </div>
+        <div className="login-right">
+          <LangSelect className="login-lang" />
+          <div className="login-form">
+            <h1>{t(lang, "chooseShop")}</h1>
+            <p className="lead">{t(lang, "chooseShopHint")}</p>
+            <div className="account-picker">
+              {picker.accounts.map((acc) => (
+                <button
+                  key={acc.id}
+                  type="button"
+                  className="account-picker-item"
+                  disabled={busy}
+                  onClick={() => pickAccount(acc.id)}
+                >
+                  <span className="av">{initials(acc.shopName || acc.name)}</span>
+                  <span className="account-picker-meta">
+                    <span className="account-picker-name">{acc.shopName || acc.name || t(lang, "unnamedShop")}</span>
+                    {acc.status === "DEACTIVATED" ? (
+                      <span className="account-picker-badge">{t(lang, "deactivated")}</span>
+                    ) : null}
+                  </span>
+                </button>
+              ))}
+            </div>
+            {error ? <div className="err">{error}</div> : null}
+            <button
+              type="button"
+              className="link"
+              style={{ marginTop: 14 }}
+              disabled={busy}
+              onClick={() => {
+                setPicker(null);
+                setError("");
+              }}
+            >
+              {t(lang, "changeNumber")}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
