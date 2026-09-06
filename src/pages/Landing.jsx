@@ -1,10 +1,7 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
-import BrandLogo from "../components/BrandLogo";
-import LangSelect from "../components/LangSelect";
-import UserMenu from "../components/UserMenu";
+import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import ReviewCarousel from "../components/ReviewCarousel";
 import InventoryPreview from "../components/InventoryPreview";
@@ -16,66 +13,13 @@ import "./Landing.css";
 const SHOW_CLOSING_HERO = false;
 
 export default function Landing() {
-  const { user, ready } = useAuth();
+  const { user } = useAuth();
   const { lang } = useLang();
   const dashboardTo = user && needsShopSetup(user) ? "/setup" : "/dashboard";
-  const [showHomeTip, setShowHomeTip] = useState(false);
-
-  useEffect(() => {
-    if (!ready || !user) {
-      setShowHomeTip(false);
-      return;
-    }
-    const showId = setTimeout(() => setShowHomeTip(true), 500);
-    return () => clearTimeout(showId);
-  }, [ready, user]);
-
-  useEffect(() => {
-    if (!showHomeTip) return;
-    function dismiss() {
-      setShowHomeTip(false);
-    }
-    document.addEventListener("pointerdown", dismiss);
-    document.addEventListener("keydown", dismiss);
-    return () => {
-      document.removeEventListener("pointerdown", dismiss);
-      document.removeEventListener("keydown", dismiss);
-    };
-  }, [showHomeTip]);
 
   return (
     <div className="lp">
-      <header className="lp-nav">
-        <BrandLogo className="lp-nav-brand" />
-        <div className="lp-nav-actions">
-          <LangSelect />
-          {ready && user ? (
-            <>
-              <div className="lp-nav-home-wrap">
-                <Link to={dashboardTo} className="lp-nav-home" aria-label={t(lang, "home")}>
-                  <HomeIcon />
-                  <span>{t(lang, "home")}</span>
-                </Link>
-                {showHomeTip ? (
-                  <div className="lp-home-tip" role="status">
-                    {t(lang, "lpHomeTip")}
-                  </div>
-                ) : null}
-              </div>
-              <UserMenu variant="landing" />
-            </>
-          ) : ready ? (
-            <>
-              <Link to="/login" className="lp-nav-login">
-                {t(lang, "lpLogin")}
-              </Link>
-              <Link to="/login" className="lp-nav-cta">
-                {t(lang, "lpSignUp")}
-              </Link>
-            </>
-          ) : null}
-        </div>
-      </header>
+      <SiteHeader sticky />
 
       <section className="lp-preview" id="preview">
         <div className="lp-preview-bg" aria-hidden="true">
@@ -90,11 +34,11 @@ export default function Landing() {
             <h1 className="lp-hero-title">{t(lang, "heroTitle")}</h1>
             <p className="lp-hero-sub">{t(lang, "heroSub")}</p>
             <div className="lp-hero-ctas">
-              <Link to={user ? dashboardTo : "/login"} className="lp-btn lp-btn-primary">
+              <Link to={user ? dashboardTo : "/auth?mode=signup"} className="lp-btn lp-btn-primary">
                 {user ? t(lang, "lpGoDashboard") : t(lang, "lpSignUp")}
               </Link>
               {!user ? (
-                <Link to="/login" className="lp-btn lp-btn-ghost">
+                <Link to="/auth?mode=login" className="lp-btn lp-btn-ghost">
                   {t(lang, "lpLogin")}
                 </Link>
               ) : null}
@@ -196,10 +140,10 @@ export default function Landing() {
           <p className="lp-hero-sub">{t(lang, "heroSub")}</p>
           {!user ? (
             <div className="lp-hero-ctas">
-              <Link to="/login" className="lp-btn lp-btn-primary">
+              <Link to="/auth?mode=signup" className="lp-btn lp-btn-primary">
                 {t(lang, "lpSignUp")}
               </Link>
-              <Link to="/login" className="lp-btn lp-btn-ghost">
+              <Link to="/auth?mode=login" className="lp-btn lp-btn-ghost">
                 {t(lang, "lpLogin")}
               </Link>
             </div>
@@ -300,10 +244,3 @@ function ClipFeatIcon() {
   );
 }
 
-function HomeIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5z" />
-    </svg>
-  );
-}

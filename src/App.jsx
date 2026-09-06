@@ -3,7 +3,7 @@ import { useAuth } from "./context/AuthContext";
 import Layout from "./components/Layout";
 import Loader from "./components/Loader";
 import Landing from "./pages/Landing";
-import Login from "./pages/Login";
+import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
 import PartForm from "./pages/PartForm";
@@ -19,7 +19,7 @@ import { needsShopSetup } from "./utils";
 function Gate({ children }) {
   const { user, ready } = useAuth();
   if (!ready) return <Loader />;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/auth?mode=login" replace />;
   if (needsShopSetup(user)) return <Navigate to="/setup" replace />;
   return children;
 }
@@ -27,7 +27,7 @@ function Gate({ children }) {
 function SetupGate({ children }) {
   const { user, ready } = useAuth();
   if (!ready) return <Loader />;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/auth?mode=login" replace />;
   if (!needsShopSetup(user)) return <Navigate to="/dashboard" replace />;
   return children;
 }
@@ -58,13 +58,15 @@ export default function App() {
       <Route path="/contact" element={<Contact />} />
       <Route path="/terms" element={<Terms />} />
       <Route
-        path="/login"
+        path="/auth"
         element={
           <PublicOnly>
-            <Login />
+            <Auth />
           </PublicOnly>
         }
       />
+      <Route path="/login" element={<Navigate to="/auth?mode=login" replace />} />
+      <Route path="/signup" element={<Navigate to="/auth?mode=signup" replace />} />
       <Route
         path="/setup"
         element={

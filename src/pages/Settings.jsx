@@ -193,7 +193,7 @@ export default function Settings() {
 
   async function logout() {
     await signOut();
-    nav("/login", { replace: true });
+    nav("/auth?mode=login", { replace: true });
   }
 
   return (

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
 import BrandLogo from "./BrandLogo";
+import "./SiteFooter.css";
 
 export default function SiteFooter({ variant = "dark" }) {
   const { lang } = useLang();

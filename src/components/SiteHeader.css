@@ -1,0 +1,78 @@
+.site-header {
+  display: flex;
+  align-items: center;
+  gap: 10px 16px;
+  width: 100%;
+  padding: 14px clamp(16px, 4vw, 48px);
+  background: #fff;
+  border-bottom: 1px solid var(--line, #e2e8e4);
+}
+
+.site-header-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+}
+
+.site-header-brand {
+  font-family: var(--lp-display, "Syne", "Segoe UI", sans-serif);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.03em;
+  color: var(--forest, #1a5c46);
+  text-decoration: none;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.site-header-brand .brand-logo-text,
+.site-header-brand .brand-name {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+.site-header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  min-width: 0;
+}
+
+.site-header .lang-select-ctrl {
+  max-width: min(148px, 38vw);
+}
+
+.site-header-link {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--forest, #1a5c46);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.site-header-link:hover {
+  text-decoration: underline;
+}
+
+.site-header-cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: var(--forest, #1a5c46);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.site-header-cta:hover {
+  background: var(--forest-deep, #0f3d2a);
+}
