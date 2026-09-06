@@ -1,15 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authApi, formatApiError } from "../api";
-import BrandLogo from "../components/BrandLogo";
-import LangSelect from "../components/LangSelect";
+import AuthLayout from "../components/AuthLayout";
 import LocationPicker from "../components/LocationPicker";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import { BUSINESS_TYPES, t, VEHICLES } from "../i18n";
 import { markHowToSeen } from "../utils";
 
-export default function ShopSetup() {
+export default function AccountSetup() {
   const { user, setUser } = useAuth();
   const { lang } = useLang();
   const nav = useNavigate();
@@ -84,12 +83,10 @@ export default function ShopSetup() {
   }
 
   return (
-    <div className="setup">
-      <LangSelect className="setup-lang" />
-      <div className="reg-card">
-        <BrandLogo className="reg-logo" />
-        <h1 className="reg-title">{t(lang, "tellAboutShop")}</h1>
-        <p className="reg-sub">{t(lang, "shopSetupSubShort")}</p>
+    <AuthLayout variant="setup" hideLogin hideSignup>
+      <div className="login-form login-form-wide">
+        <h1 className="login-title">{t(lang, "tellAboutShop")}</h1>
+        <p className="lead">{t(lang, "shopSetupSubShort")}</p>
 
         <section className="form-block">
           <h2 className="form-block-title">{t(lang, "basics")}</h2>
@@ -174,15 +171,18 @@ export default function ShopSetup() {
             }}
           />
           <span>
-            {t(lang, "acceptTerms")}{" "}
-            <Link to="/terms">{t(lang, "terms")}</Link>
+            {t(lang, "acceptTerms")} <Link to="/terms">{t(lang, "terms")}</Link>
           </span>
         </label>
-        {error ? <div className="err" style={{ marginBottom: 12 }}>{error}</div> : null}
+        {error ? (
+          <div className="err" style={{ marginBottom: 12 }}>
+            {error}
+          </div>
+        ) : null}
         <button className="btn btn-p btn-full" disabled={busy} onClick={submit}>
           {busy ? t(lang, "saving") : t(lang, "setupCatalog")}
         </button>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

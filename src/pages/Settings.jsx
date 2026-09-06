@@ -184,7 +184,7 @@ export default function Settings() {
     try {
       const data = await authApi.createAccount();
       signIn(data);
-      window.location.href = "/setup";
+      window.location.href = "/account-setup";
     } catch (e) {
       setAccountsError(formatApiError(e));
       setSwitching(false);

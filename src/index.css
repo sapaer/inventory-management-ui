@@ -318,6 +318,20 @@ button { cursor: pointer; }
   justify-content: center;
   padding: 20px 0;
 }
+/* Setup screen: long form — top-align it and let the page scroll. */
+.login-right-main.is-top {
+  justify-content: flex-start;
+  padding-top: 4px;
+}
+.login-form-wide {
+  max-width: 460px;
+}
+.login-form.login-form-wide .login-title {
+  margin-bottom: 6px;
+}
+.login-form-wide .lead {
+  margin-bottom: 22px;
+}
 .login-right-foot {
   display: flex;
   align-items: center;
@@ -1262,6 +1276,7 @@ p.login-signup { text-align: center; margin-top: 14px; }
   .login-right { padding: 4px 12px 12px; }
   .login-right-main { padding: 12px 0; }
   .login-form { max-width: 420px; }
+  .login-form-wide { max-width: 100%; }
   .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .bell-panel { width: 280px; }
 }
@@ -1275,6 +1290,7 @@ p.login-signup { text-align: center; margin-top: 14px; }
   .login-right { padding: 18px 18px 22px; }
   .login-right-main { padding: 6px 0; }
   .login-form { max-width: 380px; }
+  .login-form-wide .two-col { grid-template-columns: 1fr; }
   .login-avatar { width: 104px; height: 104px; }
   .login-avatar svg { width: 58px; height: 58px; }
   .login-form .login-title { margin-bottom: 22px; }

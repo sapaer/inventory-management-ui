@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ApiError, authApi, formatApiError } from "../api";
+import AuthLayout from "../components/AuthLayout";
 import PasswordField from "../components/PasswordField";
-import SiteHeader from "../components/SiteHeader";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
@@ -73,7 +73,7 @@ export default function Auth() {
       }
     }
 
-    nav(needsShopSetup(data.user) || data.isNewUser ? "/setup" : "/dashboard", { replace: true });
+    nav(needsShopSetup(data.user) || data.isNewUser ? "/account-setup" : "/dashboard", { replace: true });
   }
 
   async function pickAccount(accountId) {
@@ -258,277 +258,222 @@ export default function Auth() {
 
   if (picker) {
     return (
-      <div className="login-page">
-        <SiteHeader hideLogin={!isSignup} hideSignup={isSignup} />
-        <div className="login">
-          <div className="login-left">
-            <div>
-              <div className="login-tag">{t(lang, "tagline")}</div>
-            </div>
+      <AuthLayout hideLogin={!isSignup} hideSignup={isSignup}>
+        <div className="login-form">
+          <h1 className="login-title">{t(lang, "chooseShop")}</h1>
+          <p className="lead">{t(lang, "chooseShopHint")}</p>
+          <div className="account-picker">
+            {picker.accounts.map((acc) => (
+              <button
+                key={acc.id}
+                type="button"
+                className="account-picker-item"
+                disabled={busy}
+                onClick={() => pickAccount(acc.id)}
+              >
+                <span className="av">{initials(acc.shopName || acc.name)}</span>
+                <span className="account-picker-meta">
+                  <span className="account-picker-name">{acc.shopName || acc.name || t(lang, "unnamedShop")}</span>
+                  {acc.status === "DEACTIVATED" ? (
+                    <span className="account-picker-badge">{t(lang, "deactivated")}</span>
+                  ) : null}
+                </span>
+              </button>
+            ))}
           </div>
-          <div className="login-right">
-            <div className="login-right-main">
-              <div className="login-form">
-                <h1 className="login-title">{t(lang, "chooseShop")}</h1>
-                <p className="lead">{t(lang, "chooseShopHint")}</p>
-                <div className="account-picker">
-                  {picker.accounts.map((acc) => (
-                    <button
-                      key={acc.id}
-                      type="button"
-                      className="account-picker-item"
-                      disabled={busy}
-                      onClick={() => pickAccount(acc.id)}
-                    >
-                      <span className="av">{initials(acc.shopName || acc.name)}</span>
-                      <span className="account-picker-meta">
-                        <span className="account-picker-name">{acc.shopName || acc.name || t(lang, "unnamedShop")}</span>
-                        {acc.status === "DEACTIVATED" ? (
-                          <span className="account-picker-badge">{t(lang, "deactivated")}</span>
-                        ) : null}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-                {error ? <div className="err">{error}</div> : null}
-                <button
-                  type="button"
-                  className="link"
-                  style={{ marginTop: 14 }}
-                  disabled={busy}
-                  onClick={() => {
-                    setPicker(null);
-                    setError("");
-                  }}
-                >
-                  {t(lang, "changeNumber")}
-                </button>
-              </div>
-            </div>
-          </div>
+          {error ? <div className="err">{error}</div> : null}
+          <button
+            type="button"
+            className="link"
+            style={{ marginTop: 14 }}
+            disabled={busy}
+            onClick={() => {
+              setPicker(null);
+              setError("");
+            }}
+          >
+            {t(lang, "changeNumber")}
+          </button>
         </div>
-      </div>
+      </AuthLayout>
     );
   }
 
   return (
-    <div className="login-page">
-      <SiteHeader hideLogin={!isSignup} hideSignup={isSignup} />
-      <div className="login">
-        <div className="login-left">
-          <div>
-            <div className="login-tag">{t(lang, "tagline")}</div>
-            <div className="login-hero">{t(lang, "heroTitle")}</div>
-            <div className="login-sub">{t(lang, "heroSub")}</div>
-            <div className="benefit">
-              <span className="benefit-ic">1</span>
-              <div>
-                <strong>{t(lang, "benefit1")}</strong>
-                <span>{t(lang, "benefit1s")}</span>
-              </div>
-            </div>
-            <div className="benefit">
-              <span className="benefit-ic">2</span>
-              <div>
-                <strong>{t(lang, "benefit2")}</strong>
-                <span>{t(lang, "benefit2s")}</span>
-              </div>
-            </div>
-            <div className="benefit">
-              <span className="benefit-ic">3</span>
-              <div>
-                <strong>{t(lang, "benefit3")}</strong>
-                <span>{t(lang, "benefit3s")}</span>
-              </div>
-            </div>
-          </div>
+    <AuthLayout hideLogin={!isSignup} hideSignup={isSignup}>
+      <div className="login-form">
+        <div className="login-avatar" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="8" r="3.4" fill="currentColor" />
+            <path
+              d="M4.5 19.2c1.3-3.6 4.1-5.4 7.5-5.4s6.2 1.8 7.5 5.4"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
         </div>
-        <div className="login-right">
-          <div className="login-right-main">
-            <div className="login-form">
-              <div className="login-avatar" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="8" r="3.4" fill="currentColor" />
-                  <path
-                    d="M4.5 19.2c1.3-3.6 4.1-5.4 7.5-5.4s6.2 1.8 7.5 5.4"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
+        <h1 className="login-title">{isSignup ? t(lang, "lpSignUp") : t(lang, "signIn")}</h1>
+
+        {otpSent ? (
+          <>
+            <div className="otp-sent">
+              ✓ {t(lang, "otpSent")} +91 {phone}
+            </div>
+            <p className="lead" style={{ marginTop: 8 }}>
+              {t(lang, "checkWhatsappOtp")}
+            </p>
+            <label className="field-lbl">{t(lang, "enterOtp")}</label>
+            <div className="otp-row" onPaste={onPaste}>
+              {otp.map((d, i) => (
+                <input
+                  key={i}
+                  ref={(el) => (inputs.current[i] = el)}
+                  className={`otp-box${d ? " filled" : ""}`}
+                  maxLength={1}
+                  inputMode="numeric"
+                  value={d}
+                  onChange={(e) => onOtpChange(i, e.target.value)}
+                  onKeyDown={(e) => onOtpKey(i, e)}
+                />
+              ))}
+            </div>
+            <button className="btn btn-p btn-full" disabled={busy || otp.join("").length !== 6} onClick={verify}>
+              {busy ? t(lang, "verifying") : t(lang, "verifyOtp")}
+            </button>
+            <div className="otp-actions">
+              <button className="link" disabled={seconds > 0 || busy} onClick={requestOtp}>
+                {t(lang, "resend")}
+                {seconds > 0 ? ` (${t(lang, "in", seconds)})` : ""}
+              </button>
+              <button className="link muted" onClick={changeNumber}>
+                {t(lang, "changeNumber")}
+              </button>
+            </div>
+          </>
+        ) : method === "otp" ? (
+          <>
+            {isSignup ? (
+              <div className="name-row">
+                <div className="name-col">
+                  <label className="field-lbl">
+                    {t(lang, "firstName")} <span className="req">*</span>
+                  </label>
+                  <input
+                    className="inp"
+                    type="text"
+                    autoComplete="given-name"
+                    value={firstName}
+                    onChange={(e) => {
+                      setError("");
+                      setFirstName(e.target.value);
+                    }}
                   />
-                </svg>
+                </div>
+                <div className="name-col">
+                  <label className="field-lbl">
+                    {t(lang, "lastName")} <span className="req">*</span>
+                  </label>
+                  <input
+                    className="inp"
+                    type="text"
+                    autoComplete="family-name"
+                    value={lastName}
+                    onChange={(e) => {
+                      setError("");
+                      setLastName(e.target.value);
+                    }}
+                  />
+                </div>
               </div>
-              <h1 className="login-title">{isSignup ? t(lang, "lpSignUp") : t(lang, "signIn")}</h1>
+            ) : null}
+            {phoneField}
+            <button
+              className="btn btn-p btn-full"
+              style={{ marginTop: 4 }}
+              disabled={busy || seconds > 0}
+              onClick={requestOtp}
+            >
+              {busy
+                ? t(lang, "sending")
+                : isSignup
+                  ? t(lang, "createAccountCta")
+                  : t(lang, "getOtp")}
+              {seconds > 0 && !busy ? ` (${t(lang, "in", seconds)})` : ""}
+            </button>
 
-              {otpSent ? (
-                <>
-                  <div className="otp-sent">
-                    ✓ {t(lang, "otpSent")} +91 {phone}
-                  </div>
-                  <p className="lead" style={{ marginTop: 8 }}>
-                    {t(lang, "checkWhatsappOtp")}
-                  </p>
-                  <label className="field-lbl">{t(lang, "enterOtp")}</label>
-                  <div className="otp-row" onPaste={onPaste}>
-                    {otp.map((d, i) => (
-                      <input
-                        key={i}
-                        ref={(el) => (inputs.current[i] = el)}
-                        className={`otp-box${d ? " filled" : ""}`}
-                        maxLength={1}
-                        inputMode="numeric"
-                        value={d}
-                        onChange={(e) => onOtpChange(i, e.target.value)}
-                        onKeyDown={(e) => onOtpKey(i, e)}
-                      />
-                    ))}
-                  </div>
-                  <button className="btn btn-p btn-full" disabled={busy || otp.join("").length !== 6} onClick={verify}>
-                    {busy ? t(lang, "verifying") : t(lang, "verifyOtp")}
-                  </button>
-                  <div className="otp-actions">
-                    <button className="link" disabled={seconds > 0 || busy} onClick={requestOtp}>
-                      {t(lang, "resend")}
-                      {seconds > 0 ? ` (${t(lang, "in", seconds)})` : ""}
-                    </button>
-                    <button className="link muted" onClick={changeNumber}>
-                      {t(lang, "changeNumber")}
-                    </button>
-                  </div>
-                </>
-              ) : method === "otp" ? (
-                <>
-                  {isSignup ? (
-                    <div className="name-row">
-                      <div className="name-col">
-                        <label className="field-lbl">
-                          {t(lang, "firstName")} <span className="req">*</span>
-                        </label>
-                        <input
-                          className="inp"
-                          type="text"
-                          autoComplete="given-name"
-                          value={firstName}
-                          onChange={(e) => {
-                            setError("");
-                            setFirstName(e.target.value);
-                          }}
-                        />
-                      </div>
-                      <div className="name-col">
-                        <label className="field-lbl">
-                          {t(lang, "lastName")} <span className="req">*</span>
-                        </label>
-                        <input
-                          className="inp"
-                          type="text"
-                          autoComplete="family-name"
-                          value={lastName}
-                          onChange={(e) => {
-                            setError("");
-                            setLastName(e.target.value);
-                          }}
-                        />
-                      </div>
-                    </div>
-                  ) : null}
-                  {phoneField}
-                  <button
-                    className="btn btn-p btn-full"
-                    style={{ marginTop: 4 }}
-                    disabled={busy || seconds > 0}
-                    onClick={requestOtp}
-                  >
-                    {busy
-                      ? t(lang, "sending")
-                      : isSignup
-                        ? t(lang, "createAccountCta")
-                        : t(lang, "getOtp")}
-                    {seconds > 0 && !busy ? ` (${t(lang, "in", seconds)})` : ""}
-                  </button>
+            {isSignup ? (
+              <p className="hint" style={{ textAlign: "center", marginTop: 8 }}>
+                {t(lang, "signupOtpHint")}
+              </p>
+            ) : null}
 
-                  {isSignup ? (
-                    <p className="hint" style={{ textAlign: "center", marginTop: 8 }}>
-                      {t(lang, "signupOtpHint")}
-                    </p>
-                  ) : null}
+            {!isSignup ? (
+              <>
+                <div className="or-sep">
+                  <span>{t(lang, "or")}</span>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-s btn-full"
+                  disabled={busy}
+                  onClick={() => switchMethod("password")}
+                >
+                  {t(lang, "loginWithPassword")}
+                </button>
+              </>
+            ) : null}
 
-                  {!isSignup ? (
-                    <>
-                      <div className="or-sep">
-                        <span>{t(lang, "or")}</span>
-                      </div>
-                      <button
-                        type="button"
-                        className="btn btn-s btn-full"
-                        disabled={busy}
-                        onClick={() => switchMethod("password")}
-                      >
-                        {t(lang, "loginWithPassword")}
-                      </button>
-                    </>
-                  ) : null}
+            {authToggleLink}
+          </>
+        ) : (
+          <>
+            <form onSubmit={signInWithPassword}>
+              {phoneField}
+              <div className="field-lbl-row">
+                <label className="field-lbl">{t(lang, "password")}</label>
+                <button
+                  type="button"
+                  className="link"
+                  disabled={busy || seconds > 0}
+                  onClick={forgotPassword}
+                >
+                  {t(lang, "forgotPassword")}
+                  {seconds > 0 ? ` (${t(lang, "in", seconds)})` : ""}
+                </button>
+              </div>
+              <PasswordField
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => {
+                  setError("");
+                  setPassword(e.target.value);
+                }}
+              />
+              <button className="btn btn-p btn-full" style={{ marginTop: 14 }} disabled={busy} type="submit">
+                {busy ? t(lang, "signingIn") : t(lang, "signIn")}
+              </button>
+            </form>
 
-                  {authToggleLink}
-                </>
-              ) : (
-                <>
-                  <form onSubmit={signInWithPassword}>
-                    {phoneField}
-                    <div className="field-lbl-row">
-                      <label className="field-lbl">{t(lang, "password")}</label>
-                      <button
-                        type="button"
-                        className="link"
-                        disabled={busy || seconds > 0}
-                        onClick={forgotPassword}
-                      >
-                        {t(lang, "forgotPassword")}
-                        {seconds > 0 ? ` (${t(lang, "in", seconds)})` : ""}
-                      </button>
-                    </div>
-                    <PasswordField
-                      autoComplete="current-password"
-                      value={password}
-                      onChange={(e) => {
-                        setError("");
-                        setPassword(e.target.value);
-                      }}
-                    />
-                    <button className="btn btn-p btn-full" style={{ marginTop: 14 }} disabled={busy} type="submit">
-                      {busy ? t(lang, "signingIn") : t(lang, "signIn")}
-                    </button>
-                  </form>
-
-                  <div className="or-sep">
-                    <span>{t(lang, "or")}</span>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="btn btn-s btn-full"
-                    disabled={busy}
-                    onClick={() => switchMethod("otp")}
-                  >
-                    {t(lang, "loginWithOtp")}
-                  </button>
-
-                  {authToggleLink}
-                </>
-              )}
-
-              {error ? <div className="err">{error}</div> : null}
+            <div className="or-sep">
+              <span>{t(lang, "or")}</span>
             </div>
-          </div>
-          <div className="login-right-foot">
-            <span className="login-copy">
-              © {new Date().getFullYear()} {t(lang, "brand")}. {t(lang, "footRights")}
-            </span>
-            <Link to="/terms" className="login-privacy">
-              {t(lang, "privacyPolicy")}
-            </Link>
-          </div>
-        </div>
+
+            <button
+              type="button"
+              className="btn btn-s btn-full"
+              disabled={busy}
+              onClick={() => switchMethod("otp")}
+            >
+              {t(lang, "loginWithOtp")}
+            </button>
+
+            {authToggleLink}
+          </>
+        )}
+
+        {error ? <div className="err">{error}</div> : null}
       </div>
-    </div>
+    </AuthLayout>
   );
 }

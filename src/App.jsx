@@ -10,7 +10,7 @@ import PartForm from "./pages/PartForm";
 import LowStocks from "./pages/LowStocks";
 import Insights from "./pages/Insights";
 import Settings from "./pages/Settings";
-import ShopSetup from "./pages/ShopSetup";
+import AccountSetup from "./pages/AccountSetup";
 import Help from "./pages/Help";
 import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
@@ -20,7 +20,7 @@ function Gate({ children }) {
   const { user, ready } = useAuth();
   if (!ready) return <Loader />;
   if (!user) return <Navigate to="/auth?mode=login" replace />;
-  if (needsShopSetup(user)) return <Navigate to="/setup" replace />;
+  if (needsShopSetup(user)) return <Navigate to="/account-setup" replace />;
   return children;
 }
 
@@ -35,7 +35,7 @@ function SetupGate({ children }) {
 function PublicOnly({ children }) {
   const { user, ready } = useAuth();
   if (!ready) return <Loader />;
-  if (user && needsShopSetup(user)) return <Navigate to="/setup" replace />;
+  if (user && needsShopSetup(user)) return <Navigate to="/account-setup" replace />;
   if (user) return <Navigate to="/dashboard" replace />;
   return children;
 }
@@ -44,7 +44,7 @@ function PublicOnly({ children }) {
 function Home() {
   const { user, ready } = useAuth();
   if (!ready) return <Loader />;
-  if (user && needsShopSetup(user)) return <Navigate to="/setup" replace />;
+  if (user && needsShopSetup(user)) return <Navigate to="/account-setup" replace />;
   if (user) return <Navigate to="/dashboard" replace />;
   return <Landing />;
 }
@@ -68,13 +68,14 @@ export default function App() {
       <Route path="/login" element={<Navigate to="/auth?mode=login" replace />} />
       <Route path="/signup" element={<Navigate to="/auth?mode=signup" replace />} />
       <Route
-        path="/setup"
+        path="/account-setup"
         element={
           <SetupGate>
-            <ShopSetup />
+            <AccountSetup />
           </SetupGate>
         }
       />
+      <Route path="/setup" element={<Navigate to="/account-setup" replace />} />
       <Route
         element={
           <Gate>

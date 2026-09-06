@@ -15,7 +15,7 @@ const SHOW_CLOSING_HERO = false;
 export default function Landing() {
   const { user } = useAuth();
   const { lang } = useLang();
-  const dashboardTo = user && needsShopSetup(user) ? "/setup" : "/dashboard";
+  const dashboardTo = user && needsShopSetup(user) ? "/account-setup" : "/dashboard";
 
   return (
     <div className="lp">

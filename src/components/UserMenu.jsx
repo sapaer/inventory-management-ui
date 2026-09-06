@@ -66,7 +66,7 @@ export default function UserMenu({ variant = "default" }) {
       signIn(data);
       setOpen(false);
       // Full reload so every page refetches under the new account instead of showing stale data.
-      window.location.href = needsShopSetup(data.user) ? "/setup" : "/dashboard";
+      window.location.href = needsShopSetup(data.user) ? "/account-setup" : "/dashboard";
     } catch (e) {
       setSwitchError(formatApiError(e));
       setSwitching(false);
@@ -80,7 +80,7 @@ export default function UserMenu({ variant = "default" }) {
       const data = await authApi.createAccount();
       signIn(data);
       setOpen(false);
-      window.location.href = "/setup";
+      window.location.href = "/account-setup";
     } catch (e) {
       setSwitchError(formatApiError(e));
       setSwitching(false);

@@ -16,7 +16,7 @@ import "./SiteHeader.css";
 export default function SiteHeader({ hideLogin = false, hideSignup = false, sticky = false }) {
   const { user, ready } = useAuth();
   const { lang } = useLang();
-  const homeTo = user && needsShopSetup(user) ? "/setup" : user ? "/dashboard" : "/welcome";
+  const homeTo = user && needsShopSetup(user) ? "/account-setup" : user ? "/dashboard" : "/welcome";
 
   return (
     <header className={`site-header${sticky ? " site-header-sticky" : ""}`}>
