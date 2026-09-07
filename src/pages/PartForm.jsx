@@ -1,6 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { formatApiError, inventoryApi, uploadApi } from "../api";
+import FormField from "../components/FormField";
+import FormPanel from "../components/FormPanel";
+import MoneyInput from "../components/MoneyInput";
+import PhotoUploader from "../components/PhotoUploader";
+import QtyStepper from "../components/QtyStepper";
+import VehicleChips from "../components/VehicleChips";
 import { useLang } from "../context/LangContext";
 import { t, VEHICLES } from "../i18n";
 import { formatWhen } from "../utils";
@@ -26,7 +32,6 @@ export default function PartForm() {
   const { lang } = useLang();
   const nav = useNavigate();
   const loc = useLocation();
-  const fileRef = useRef(null);
   const [form, setForm] = useState(() => ({
     ...empty,
     partName: loc.state?.partName || "",
@@ -59,7 +64,7 @@ export default function PartForm() {
           images: item.images || [],
         });
         const hasExtra =
-          item.localName || item.specification || item.brand || item.model || item.description || (item.images || []).length;
+          item.localName || item.specification || item.brand || item.model || item.description;
         if (hasExtra) setMoreOpen(true);
       })
       .catch((e) => setError(formatApiError(e)));
@@ -111,13 +116,12 @@ export default function PartForm() {
       setError(formatApiError(e));
     } finally {
       setUploading(false);
-      if (fileRef.current) fileRef.current.value = "";
     }
   }
 
   async function save(addAnother) {
     if (!form.partName.trim()) {
-      setError(t(lang, "partName") + " " + t(lang, "required"));
+      setError(`${t(lang, "partName")} ${t(lang, "required")}`);
       return;
     }
     if (!editing) {
@@ -165,194 +169,120 @@ export default function PartForm() {
   }
 
   return (
-    <div className="content">
-      <div className="add-wrap">
-        <button type="button" className="link muted add-back" onClick={() => nav("/inventory")}>
-          ← {t(lang, "inventory")}
-        </button>
-
-        <div className="add-card">
-          <h1 className="add-title">{editing ? t(lang, "edit") : t(lang, "addPart")}</h1>
-          <p className="add-sub">{t(lang, "addPartSub")}</p>
-
-          <div className="field-grp">
-            <label className="f-lbl">
-              {t(lang, "partName")} <span className="req">*</span>
-            </label>
-            <input
-              className="f-inp"
-              value={form.partName}
-              onChange={(e) => set("partName", e.target.value)}
-              placeholder="Maruti Swift Brake Pad Set"
-            />
+    <div className="content part-form-page">
+      <div className="part-form">
+        <header className="part-form-top">
+          <button type="button" className="part-form-back" onClick={() => nav("/inventory")} aria-label={t(lang, "inventory")}>
+            ←
+          </button>
+          <div>
+            <h1 className="part-form-title">{editing ? t(lang, "edit") : t(lang, "addPart")}</h1>
+            <p className="part-form-sub part-form-sub-desktop">{t(lang, "addPartSub")}</p>
           </div>
+        </header>
 
-          <div className="field-grp">
-            <label className="f-lbl">
-              {t(lang, "vehicle")} <span className="req">*</span>
-            </label>
-            <div className="veh-pills">
-              {VEHICLES.map((v) => (
-                <button
-                  key={v.id}
-                  type="button"
-                  className={`vp${form.vehicleCategory === v.id ? " on" : ""}`}
-                  onClick={() => set("vehicleCategory", v.id)}
-                >
-                  {v.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="two-col">
-            {!editing ? (
-              <div className="field-grp">
-                <label className="f-lbl">
-                  {t(lang, "quantity")} <span className="req">*</span>
-                </label>
-                <div className="qty-ctrl">
-                  <button type="button" onClick={() => set("quantity", Math.max(1, Number(form.quantity) - 1 || 1))}>
-                    −
-                  </button>
-                  <input type="number" min="1" value={form.quantity} onChange={(e) => set("quantity", e.target.value)} />
-                  <button type="button" onClick={() => set("quantity", Math.max(1, Number(form.quantity) || 0) + 1)}>
-                    +
-                  </button>
-                </div>
-              </div>
-            ) : null}
-            <div className="field-grp">
-              <label className="f-lbl">{t(lang, "minQty")}</label>
+        <div className="part-form-grid">
+          <FormPanel title={t(lang, "basicInfo")} className="part-form-basics">
+            <FormField label={t(lang, "partName")} required>
               <input
                 className="f-inp"
-                type="number"
-                min="0"
-                value={form.minQuantity}
-                onChange={(e) => set("minQuantity", e.target.value)}
+                value={form.partName}
+                onChange={(e) => set("partName", e.target.value)}
+                placeholder="Maruti Swift Brake Pad Set"
               />
-            </div>
-            <div className="field-grp">
-              <label className="f-lbl">{t(lang, "sellingPrice")}</label>
-              <div className="pr-wrap">
-                <span className="pr-pfx">₹</span>
-                <input
-                  className="f-inp pr-inp"
-                  type="number"
-                  min="0"
-                  value={form.sellingPrice}
-                  onChange={(e) => set("sellingPrice", e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
+            </FormField>
 
+            <FormField label={t(lang, "vehicle")} required>
+              <VehicleChips
+                options={VEHICLES}
+                value={form.vehicleCategory}
+                onChange={(id) => set("vehicleCategory", id)}
+              />
+            </FormField>
+
+            <div className="part-form-row">
+              {!editing ? (
+                <FormField label={t(lang, "quantity")} required>
+                  <QtyStepper value={form.quantity} min={1} onChange={(v) => set("quantity", v)} />
+                </FormField>
+              ) : null}
+              <FormField label={t(lang, "sellingPrice")}>
+                <MoneyInput value={form.sellingPrice} onChange={(v) => set("sellingPrice", v)} />
+              </FormField>
+            </div>
+          </FormPanel>
+
+          <FormPanel title={t(lang, "addPhotos")} optional className="part-form-photos">
+            <PhotoUploader
+              images={form.images}
+              uploading={uploading}
+              onAddFiles={onFiles}
+              onRemove={(url) => setForm((f) => ({ ...f, images: f.images.filter((u) => u !== url) }))}
+              chooseLabel={t(lang, "chooseFiles")}
+              emptyTitle={t(lang, "photoClick")}
+              emptyHint={t(lang, "photoHint")}
+              uploadingLabel={t(lang, "uploading")}
+            />
+          </FormPanel>
+        </div>
+
+        <FormPanel className="part-form-more">
           <button type="button" className="more-toggle" onClick={() => setMoreOpen((v) => !v)}>
             {moreOpen ? t(lang, "hideMore") : t(lang, "showMore")}
           </button>
 
           {moreOpen ? (
             <div className="more-panel">
-              <div className="two-col">
-                <div className="field-grp">
-                  <label className="f-lbl">{t(lang, "localName")}</label>
-                  <input className="f-inp" value={form.localName} onChange={(e) => set("localName", e.target.value)} />
-                </div>
-                <div className="field-grp">
-                  <label className="f-lbl">{t(lang, "spec")}</label>
-                  <input className="f-inp" value={form.specification} onChange={(e) => set("specification", e.target.value)} />
-                </div>
-              </div>
-              <div className="two-col">
-                <div className="field-grp">
-                  <label className="f-lbl">{t(lang, "brandField")}</label>
+              <div className="part-form-row">
+                <FormField label={t(lang, "brandField")}>
                   <input className="f-inp" value={form.brand} onChange={(e) => set("brand", e.target.value)} />
-                </div>
-                <div className="field-grp">
-                  <label className="f-lbl">{t(lang, "model")}</label>
+                </FormField>
+                <FormField label={t(lang, "model")}>
                   <input className="f-inp" value={form.model} onChange={(e) => set("model", e.target.value)} />
-                </div>
+                </FormField>
               </div>
-              <div className="field-grp">
-                <label className="f-lbl">{t(lang, "costPrice")}</label>
-                <div className="pr-wrap">
-                  <span className="pr-pfx">₹</span>
+              <div className="part-form-row">
+                <FormField label={t(lang, "localName")}>
+                  <input className="f-inp" value={form.localName} onChange={(e) => set("localName", e.target.value)} />
+                </FormField>
+                <FormField label={t(lang, "spec")}>
                   <input
-                    className="f-inp pr-inp"
+                    className="f-inp"
+                    value={form.specification}
+                    onChange={(e) => set("specification", e.target.value)}
+                  />
+                </FormField>
+              </div>
+              <div className="part-form-row">
+                <FormField label={t(lang, "minQty")}>
+                  <input
+                    className="f-inp"
                     type="number"
                     min="0"
-                    value={form.costPrice}
-                    onChange={(e) => set("costPrice", e.target.value)}
+                    value={form.minQuantity}
+                    onChange={(e) => set("minQuantity", e.target.value)}
                   />
-                </div>
+                </FormField>
+                <FormField label={t(lang, "costPrice")}>
+                  <MoneyInput value={form.costPrice} onChange={(v) => set("costPrice", v)} />
+                </FormField>
               </div>
-              <div className="field-grp">
-                <label className="f-lbl">{t(lang, "description")}</label>
-                <textarea className="f-inp" rows={2} value={form.description} onChange={(e) => set("description", e.target.value)} />
-              </div>
-              <div className="field-grp" style={{ marginBottom: 0 }}>
-                <label className="f-lbl">{t(lang, "photo")}</label>
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="image/jpeg,image/png"
-                  multiple
-                  hidden
-                  onChange={(e) => onFiles(e.target.files)}
+              <FormField label={t(lang, "description")}>
+                <textarea
+                  className="f-inp"
+                  rows={3}
+                  value={form.description}
+                  onChange={(e) => set("description", e.target.value)}
                 />
-                <button
-                  type="button"
-                  className="photo-zone photo-zone-sm"
-                  disabled={uploading || form.images.length >= 3}
-                  onClick={() => fileRef.current?.click()}
-                >
-                  {uploading ? t(lang, "uploading") : t(lang, "photoClick")}
-                </button>
-                {form.images.length ? (
-                  <div className="thumbs">
-                    {form.images.map((url) => (
-                      <div className="thumb" key={url}>
-                        <img src={url} alt="" />
-                        <button
-                          type="button"
-                          className="thumb-x"
-                          onClick={() => setForm((f) => ({ ...f, images: f.images.filter((u) => u !== url) }))}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
+              </FormField>
             </div>
           ) : null}
-        </div>
+        </FormPanel>
 
-        {error ? <div className="err">{error}</div> : null}
-        <div className="add-actions">
-          <button className="btn btn-p" disabled={busy || uploading} onClick={() => save(false)}>
-            {busy ? t(lang, "saving") : t(lang, "saveCatalog")}
-          </button>
-          {!editing ? (
-            <button className="btn btn-s" disabled={busy || uploading} onClick={() => save(true)}>
-              {t(lang, "saveAnother")}
-            </button>
-          ) : (
-            <button className="btn btn-d" disabled={busy} onClick={remove}>
-              {t(lang, "delete")}
-            </button>
-          )}
-          <button className="btn btn-g" onClick={() => nav("/inventory")}>
-            {t(lang, "cancel")}
-          </button>
-        </div>
+        {error ? <div className="err part-form-err">{error}</div> : null}
 
         {editing && history.length ? (
-          <div className="card" style={{ marginTop: 18 }}>
-            <div className="card-hd">
-              <div className="card-ttl">{t(lang, "history")}</div>
-            </div>
+          <FormPanel title={t(lang, "history")} className="part-form-history">
             {history.map((h) => (
               <div className="list-row" key={h.id}>
                 <div style={{ flex: 1 }}>
@@ -365,8 +295,31 @@ export default function PartForm() {
                 <span className="time">{formatWhen(h.createdAt)}</span>
               </div>
             ))}
-          </div>
+          </FormPanel>
         ) : null}
+
+        <div className="part-form-actions">
+          <button type="button" className="btn btn-g part-form-cancel" onClick={() => nav("/inventory")}>
+            {t(lang, "cancel")}
+          </button>
+          {!editing ? (
+            <button type="button" className="btn btn-s part-form-another" disabled={busy || uploading} onClick={() => save(true)}>
+              {t(lang, "saveAnother")}
+            </button>
+          ) : (
+            <button type="button" className="btn btn-d part-form-delete" disabled={busy} onClick={remove}>
+              {t(lang, "delete")}
+            </button>
+          )}
+          <button
+            type="button"
+            className="btn btn-p part-form-save"
+            disabled={busy || uploading}
+            onClick={() => save(false)}
+          >
+            {busy ? t(lang, "saving") : t(lang, "savePart")}
+          </button>
+        </div>
       </div>
       {toast ? <div className="toast">{toast}</div> : null}
     </div>

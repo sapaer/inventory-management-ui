@@ -89,24 +89,29 @@ export default function Inventory() {
         <span>⌕</span>
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t(lang, "search")} />
       </div>
-      <div className="chips">
-        <button className={`chip${!vehicles.length && !status ? " on" : ""}`} onClick={clearFilters}>
-          {t(lang, "all")} ({counts.ALL})
-        </button>
-        {VEHICLES.map((v) => (
-          <button
-            key={v.id}
-            className={`chip${vehicles.includes(v.id) ? " on" : ""}`}
-            onClick={() => toggleVehicle(v.id)}
-          >
-            {v.label} ({counts[v.id] || 0})
+      <div className="inv-toolbar">
+        <div className="chips">
+          <button className={`chip${!vehicles.length && !status ? " on" : ""}`} onClick={clearFilters}>
+            {t(lang, "all")} ({counts.ALL})
           </button>
-        ))}
-        <button
-          className={`chip warn${status === "LOW_STOCK" ? " on" : ""}`}
-          onClick={toggleLowStock}
-        >
-          {t(lang, "lowBadge")} ({counts.LOW})
+          {VEHICLES.map((v) => (
+            <button
+              key={v.id}
+              className={`chip${vehicles.includes(v.id) ? " on" : ""}`}
+              onClick={() => toggleVehicle(v.id)}
+            >
+              {v.label} ({counts[v.id] || 0})
+            </button>
+          ))}
+          <button
+            className={`chip warn${status === "LOW_STOCK" ? " on" : ""}`}
+            onClick={toggleLowStock}
+          >
+            {t(lang, "lowBadge")} ({counts.LOW})
+          </button>
+        </div>
+        <button type="button" className="btn btn-p inv-add" onClick={() => nav("/inventory/new")}>
+          + {t(lang, "addPart")}
         </button>
       </div>
       {error ? <div className="err" style={{ marginBottom: 10 }}>{error}</div> : null}
