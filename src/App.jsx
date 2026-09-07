@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useSearchParams } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import Layout from "./components/Layout";
 import Loader from "./components/Loader";
@@ -16,14 +16,15 @@ import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 import { needsShopSetup } from "./utils";
 
+/** Any signed-in user may use the app. Shop setup is a first-run nudge, not a wall. */
 function Gate({ children }) {
   const { user, ready } = useAuth();
   if (!ready) return <Loader />;
   if (!user) return <Navigate to="/auth?mode=login" replace />;
-  if (needsShopSetup(user)) return <Navigate to="/account-setup" replace />;
   return children;
 }
 
+/** Setup is a one-time screen; send anyone who's already done it into the app. */
 function SetupGate({ children }) {
   const { user, ready } = useAuth();
   if (!ready) return <Loader />;
@@ -35,7 +36,6 @@ function SetupGate({ children }) {
 function PublicOnly({ children }) {
   const { user, ready } = useAuth();
   if (!ready) return <Loader />;
-  if (user && needsShopSetup(user)) return <Navigate to="/account-setup" replace />;
   if (user) return <Navigate to="/dashboard" replace />;
   return children;
 }
@@ -44,9 +44,19 @@ function PublicOnly({ children }) {
 function Home() {
   const { user, ready } = useAuth();
   if (!ready) return <Loader />;
-  if (user && needsShopSetup(user)) return <Navigate to="/account-setup" replace />;
   if (user) return <Navigate to="/dashboard" replace />;
   return <Landing />;
+}
+
+/**
+ * Everything reached from the "My account" menu lives at /account; the section
+ * is a query param (?section=profile | ?section=store) so the path never changes.
+ */
+function AccountView() {
+  const [params] = useSearchParams();
+  const section = params.get("section");
+  if (section === "store") return <div className="content" />;
+  return <Settings />;
 }
 
 export default function App() {
@@ -89,7 +99,9 @@ export default function App() {
         <Route path="/inventory/:id/edit" element={<PartForm />} />
         <Route path="/low-stocks" element={<LowStocks />} />
         <Route path="/insights" element={<Insights />} />
-        <Route path="/settings" element={<Settings />} />
+        <Route path="/account" element={<AccountView />} />
+        <Route path="/profile" element={<Navigate to="/account?section=profile" replace />} />
+        <Route path="/settings" element={<Navigate to="/account?section=profile" replace />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

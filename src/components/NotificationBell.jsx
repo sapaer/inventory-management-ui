@@ -5,7 +5,7 @@ import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
 import { formatWhen } from "../utils";
 
-export default function NotificationBell() {
+export default function NotificationBell({ label }) {
   const { lang } = useLang();
   const nav = useNavigate();
   const [open, setOpen] = useState(false);
@@ -51,12 +51,17 @@ export default function NotificationBell() {
   }
 
   return (
-    <div className="bell-wrap" ref={box}>
-      <button className="bell-btn" onClick={() => { setOpen((v) => !v); if (!open) load(); }} aria-label="Notifications">
+    <div className={`bell-wrap${label ? " bell-wrap-labelled" : ""}`} ref={box}>
+      <button
+        className="bell-btn"
+        onClick={() => { setOpen((v) => !v); if (!open) load(); }}
+        aria-label={label || "Notifications"}
+      >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
+        {label ? <span className="bell-label">{label}</span> : null}
         {unread > 0 ? <span className="bell-dot">{unread > 9 ? "9+" : unread}</span> : null}
       </button>
       {open ? (

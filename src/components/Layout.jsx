@@ -1,32 +1,52 @@
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import { inventoryApi } from "../api";
-import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
-import { locationLabel } from "../utils";
 import NotificationBell from "./NotificationBell";
 import BrandLogo from "./BrandLogo";
 import UserMenu from "./UserMenu";
 import LangSelect from "./LangSelect";
-import AppTour from "./AppTour";
 
 const NAV = [
   { to: "/dashboard", key: "home", icon: HomeIcon, end: true },
   { to: "/inventory", key: "inventory", icon: BoxIcon },
   { to: "/low-stocks", key: "lowStocks", icon: BellIcon },
   { to: "/insights", key: "insights", icon: ChartIcon },
-  { to: "/settings", key: "profile", icon: GearIcon },
 ];
 
 export default function Layout() {
-  const { user } = useAuth();
   const { lang } = useLang();
   const loc = useLocation();
   const nav = useNavigate();
-  const [guideOpen, setGuideOpen] = useState(false);
   const [lowCount, setLowCount] = useState(0);
   const [query, setQuery] = useState("");
+  const [acctOpen, setAcctOpen] = useState(false);
+  const acctRef = useRef(null);
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem("navCollapsed") === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("navCollapsed", collapsed ? "1" : "0");
+    } catch {
+      /* ignore */
+    }
+  }, [collapsed]);
+
+  useEffect(() => {
+    if (!acctOpen) return;
+    function onDoc(e) {
+      if (!acctRef.current?.contains(e.target)) setAcctOpen(false);
+    }
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [acctOpen]);
 
   useEffect(() => {
     inventoryApi
@@ -35,65 +55,103 @@ export default function Layout() {
       .catch(() => setLowCount(0));
   }, [loc.pathname]);
 
-  const titleMap = {
-    "/dashboard": t(lang, "home"),
-    "/inventory": t(lang, "inventory"),
-    "/inventory/new": t(lang, "addPart"),
-    "/low-stocks": t(lang, "lowStocks"),
-    "/insights": t(lang, "insights"),
-    "/settings": t(lang, "profile"),
-  };
   const isHome = loc.pathname === "/dashboard";
-  const title = isHome
-    ? t(lang, "greeting", user?.name)
-    : loc.pathname.includes("/edit")
-      ? t(lang, "edit")
-      : titleMap[loc.pathname] || t(lang, "dashboard");
-  const showAdd = !isHome && loc.pathname !== "/inventory/new" && !loc.pathname.endsWith("/edit");
+  const acctSection =
+    loc.pathname === "/account" ? new URLSearchParams(loc.search).get("section") || "profile" : null;
 
   return (
-    <div className="shell">
+    <div className={`shell${collapsed ? " nav-collapsed" : ""}`}>
       <aside className="sidebar">
-        <BrandLogo className="brand" showTagline taglineClassName="brand-tag" to="/welcome" />
+        <div className="sidebar-head">
+          <BrandLogo className="brand" showTagline taglineClassName="brand-tag" to="/welcome" />
+          <button
+            type="button"
+            className="nav-toggle"
+            aria-pressed={collapsed}
+            aria-label={t(lang, collapsed ? "expandNav" : "collapseNav")}
+            data-tip={t(lang, collapsed ? "expandNav" : "collapseNav")}
+            onClick={() => setCollapsed((v) => !v)}
+          >
+            <ToggleIcon />
+          </button>
+        </div>
         <nav className="nav">
           {NAV.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.end}
+              aria-label={t(lang, item.key)}
+              data-tip={t(lang, item.key)}
               className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}
             >
               <span className="nav-ic">
                 <item.icon />
               </span>
-              {t(lang, item.key)}
+              <span className="nav-txt">{t(lang, item.key)}</span>
               {item.key === "lowStocks" && lowCount > 0 ? <span className="nav-badge">{lowCount}</span> : null}
             </NavLink>
           ))}
         </nav>
-        <button className="sidebar-add" onClick={() => nav("/inventory/new")}>
-          + {t(lang, "addPart")}
-        </button>
         <button
-          type="button"
-          className="sidebar-guide"
-          onClick={() => setGuideOpen(true)}
+          className="sidebar-add"
+          aria-label={t(lang, "addPart")}
+          data-tip={t(lang, "addPart")}
+          onClick={() => nav("/inventory/new")}
         >
-          <GuideIcon />
-          {t(lang, "userGuide")}
+          <span className="sidebar-add-ic">+</span>
+          <span className="nav-txt">{t(lang, "addPart")}</span>
         </button>
-        <NavLink to="/help" className="sidebar-guide">
-          {t(lang, "help")}
-        </NavLink>
-        <div className="shop-foot">
-          <div className="shop-nm">{user?.shopName || t(lang, "yourShop")}</div>
-          <div className="shop-lc">{locationLabel(user) || (user?.phone ? `+91 ${user.phone}` : "")}</div>
-          <span className="plan-pill">{t(lang, "freePlan")}</span>
+        <div className={`sidebar-acct${acctOpen ? " open" : ""}`} ref={acctRef}>
+          {acctOpen ? (
+            <div className="sidebar-acct-menu" role="menu">
+              <Link
+                to="/account?section=profile"
+                className={`sidebar-acct-item${acctSection === "profile" ? " active" : ""}`}
+                role="menuitem"
+                onClick={() => setAcctOpen(false)}
+              >
+                <span className="nav-ic">
+                  <GearIcon />
+                </span>
+                {t(lang, "profile")}
+              </Link>
+              <Link
+                to="/account?section=store"
+                className={`sidebar-acct-item${acctSection === "store" ? " active" : ""}`}
+                role="menuitem"
+                onClick={() => setAcctOpen(false)}
+              >
+                <span className="nav-ic">
+                  <StoreIcon />
+                </span>
+                {t(lang, "storeDetails")}
+              </Link>
+              <div className="sidebar-acct-item sidebar-acct-notif">
+                <NotificationBell label={t(lang, "notifications")} />
+              </div>
+            </div>
+          ) : null}
+          <button
+            type="button"
+            className="sidebar-acct-btn"
+            aria-expanded={acctOpen}
+            aria-label={t(lang, "myAccount")}
+            data-tip={t(lang, "myAccount")}
+            onClick={() => setAcctOpen((v) => !v)}
+          >
+            <span className="nav-ic">
+              <UserIcon />
+            </span>
+            <span className="nav-txt">{t(lang, "myAccount")}</span>
+            <span className="sidebar-acct-caret">
+              <CaretIcon />
+            </span>
+          </button>
         </div>
       </aside>
       <div className="main">
         <header className="topbar">
-          <div className="page-title">{title}</div>
           <div className="topbar-r">
             {isHome ? (
               <form
@@ -111,34 +169,49 @@ export default function Layout() {
                 />
               </form>
             ) : null}
-            {showAdd ? (
-              <button className="btn btn-p topbar-add" onClick={() => nav("/inventory/new")}>
-                + <span className="add-label">{t(lang, "addPart")}</span>
-              </button>
-            ) : null}
             <LangSelect className="topbar-lang" />
-            <NotificationBell />
             <UserMenu />
             <BrandLogo className="topbar-brand" to="/welcome" />
           </div>
         </header>
         <Outlet />
       </div>
-      <AppTour open={guideOpen} onClose={() => setGuideOpen(false)} />
     </div>
   );
 }
 
-function GuideIcon() {
+function UserIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 16v-1a3 3 0 0 0 1.5-2.6c0-1.1-.9-2-2-2a2 2 0 0 0-2 2" />
-      <circle cx="12" cy="8" r="0.8" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5" />
     </svg>
   );
 }
-
+function ToggleIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M9 4v16" />
+    </svg>
+  );
+}
+function StoreIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M4 9V7l1.5-3h13L20 7v2a2.5 2.5 0 0 1-4.5 1.5A2.5 2.5 0 0 1 12 11a2.5 2.5 0 0 1-3.5-.5A2.5 2.5 0 0 1 4 9z" />
+      <path d="M5 11v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8" />
+      <path d="M10 20v-5h4v5" />
+    </svg>
+  );
+}
+function CaretIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
 function HomeIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

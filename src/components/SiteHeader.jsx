@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
-import { needsShopSetup } from "../utils";
 import BrandLogo from "./BrandLogo";
 import LangSelect from "./LangSelect";
 import UserMenu from "./UserMenu";
@@ -10,26 +9,21 @@ import "./SiteHeader.css";
 
 /**
  * Shared top bar for the public pages (landing, login, info pages).
- * Brand on the left; language switch plus context buttons on the right.
+ * The brand always goes to the landing page. When signed in, the profile
+ * menu carries dashboard / settings / etc.; signed out shows login + signup.
  * `hideLogin` / `hideSignup` drop the matching button on the page that already is that.
  */
 export default function SiteHeader({ hideLogin = false, hideSignup = false, sticky = false }) {
   const { user, ready } = useAuth();
   const { lang } = useLang();
-  const homeTo = user && needsShopSetup(user) ? "/account-setup" : user ? "/dashboard" : "/welcome";
 
   return (
     <header className={`site-header${sticky ? " site-header-sticky" : ""}`}>
-      <BrandLogo className="site-header-brand" to={homeTo} />
+      <BrandLogo className="site-header-brand" to="/welcome" />
       <div className="site-header-actions">
         <LangSelect className="site-header-lang" />
         {ready && user ? (
-          <>
-            <Link to={homeTo} className="site-header-link">
-              {t(lang, "home")}
-            </Link>
-            <UserMenu variant="landing" />
-          </>
+          <UserMenu variant="landing" />
         ) : ready ? (
           <>
             {!hideLogin ? (

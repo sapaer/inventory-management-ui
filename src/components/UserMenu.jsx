@@ -128,11 +128,12 @@ export default function UserMenu({ variant = "default" }) {
             {t(lang, "addShop")}
           </button>
           {switchError ? <div className="user-menu-error">{switchError}</div> : null}
-          {!needsShopSetup(user) ? (
-            <Link to="/settings" className="user-menu-item" role="menuitem" onClick={() => setOpen(false)}>
-              {t(lang, "profile")}
-            </Link>
-          ) : null}
+          <Link to="/dashboard" className="user-menu-item" role="menuitem" onClick={() => setOpen(false)}>
+            {t(lang, "dashboard")}
+          </Link>
+          <Link to="/account?section=profile" className="user-menu-item" role="menuitem" onClick={() => setOpen(false)}>
+            {t(lang, "profile")}
+          </Link>
           <Link to="/help" className="user-menu-item" role="menuitem" onClick={() => setOpen(false)}>
             {t(lang, "help")}
           </Link>

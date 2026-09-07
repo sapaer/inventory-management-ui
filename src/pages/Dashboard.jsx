@@ -61,7 +61,7 @@ export default function Dashboard() {
         <div className="banner mint">
           {user?.shopName || user?.name ? t(lang, "welcomeBanner") : t(lang, "completeProfile")}
           {!user?.shopName || !user?.name ? (
-            <Link className="link" to="/settings">
+            <Link className="link" to="/account?section=profile">
               {t(lang, "settings")} →
             </Link>
           ) : null}
@@ -180,7 +180,7 @@ export default function Dashboard() {
                 ●
               </span>
               <div style={{ flex: 1, color: "#374151" }}>{t(lang, "hintProfile")}</div>
-              <Link className="link" to="/settings">
+              <Link className="link" to="/account?section=profile">
                 {t(lang, "settings")}
               </Link>
             </div>
