@@ -32,6 +32,7 @@ export default function PartForm() {
   const { lang } = useLang();
   const nav = useNavigate();
   const loc = useLocation();
+  const viewOnly = Boolean(loc.state?.viewOnly);
   const [form, setForm] = useState(() => ({
     ...empty,
     partName: loc.state?.partName || "",
@@ -176,17 +177,20 @@ export default function PartForm() {
             ←
           </button>
           <div>
-            <h1 className="part-form-title">{editing ? t(lang, "edit") : t(lang, "addPart")}</h1>
+            <h1 className="part-form-title">
+              {viewOnly ? t(lang, "view") : editing ? t(lang, "edit") : t(lang, "addPart")}
+            </h1>
             <p className="part-form-sub part-form-sub-desktop">{t(lang, "addPartSub")}</p>
           </div>
         </header>
 
-        <div className="part-form-grid">
+        <div className={`part-form-grid${viewOnly ? " is-readonly" : ""}`}>
           <FormPanel title={t(lang, "basicInfo")} className="part-form-basics">
             <FormField label={t(lang, "partName")} required>
               <input
                 className="f-inp"
                 value={form.partName}
+                disabled={viewOnly}
                 onChange={(e) => set("partName", e.target.value)}
                 placeholder="Maruti Swift Brake Pad Set"
               />
@@ -196,18 +200,22 @@ export default function PartForm() {
               <VehicleChips
                 options={VEHICLES}
                 value={form.vehicleCategory}
+                disabled={viewOnly}
                 onChange={(id) => set("vehicleCategory", id)}
               />
             </FormField>
 
-            <div className="part-form-row">
+            <div className="part-form-row part-form-row-3">
               {!editing ? (
                 <FormField label={t(lang, "quantity")} required>
-                  <QtyStepper value={form.quantity} min={1} onChange={(v) => set("quantity", v)} />
+                  <QtyStepper value={form.quantity} min={1} disabled={viewOnly} onChange={(v) => set("quantity", v)} />
                 </FormField>
               ) : null}
+              <FormField label={t(lang, "minQty")} tooltip={t(lang, "minQtyHint")}>
+                <QtyStepper value={form.minQuantity} min={0} disabled={viewOnly} onChange={(v) => set("minQuantity", v)} />
+              </FormField>
               <FormField label={t(lang, "sellingPrice")}>
-                <MoneyInput value={form.sellingPrice} onChange={(v) => set("sellingPrice", v)} />
+                <MoneyInput value={form.sellingPrice} disabled={viewOnly} onChange={(v) => set("sellingPrice", v)} />
               </FormField>
             </div>
           </FormPanel>
@@ -216,8 +224,9 @@ export default function PartForm() {
             <PhotoUploader
               images={form.images}
               uploading={uploading}
-              onAddFiles={onFiles}
-              onRemove={(url) => setForm((f) => ({ ...f, images: f.images.filter((u) => u !== url) }))}
+              disabled={viewOnly}
+              onAddFiles={viewOnly ? undefined : onFiles}
+              onRemove={viewOnly ? undefined : (url) => setForm((f) => ({ ...f, images: f.images.filter((u) => u !== url) }))}
               chooseLabel={t(lang, "chooseFiles")}
               emptyTitle={t(lang, "photoClick")}
               emptyHint={t(lang, "photoHint")}
@@ -235,43 +244,34 @@ export default function PartForm() {
             <div className="more-panel">
               <div className="part-form-row">
                 <FormField label={t(lang, "brandField")}>
-                  <input className="f-inp" value={form.brand} onChange={(e) => set("brand", e.target.value)} />
+                  <input className="f-inp" value={form.brand} disabled={viewOnly} onChange={(e) => set("brand", e.target.value)} />
                 </FormField>
                 <FormField label={t(lang, "model")}>
-                  <input className="f-inp" value={form.model} onChange={(e) => set("model", e.target.value)} />
+                  <input className="f-inp" value={form.model} disabled={viewOnly} onChange={(e) => set("model", e.target.value)} />
                 </FormField>
               </div>
               <div className="part-form-row">
                 <FormField label={t(lang, "localName")}>
-                  <input className="f-inp" value={form.localName} onChange={(e) => set("localName", e.target.value)} />
+                  <input className="f-inp" value={form.localName} disabled={viewOnly} onChange={(e) => set("localName", e.target.value)} />
                 </FormField>
                 <FormField label={t(lang, "spec")}>
                   <input
                     className="f-inp"
                     value={form.specification}
+                    disabled={viewOnly}
                     onChange={(e) => set("specification", e.target.value)}
                   />
                 </FormField>
               </div>
-              <div className="part-form-row">
-                <FormField label={t(lang, "minQty")}>
-                  <input
-                    className="f-inp"
-                    type="number"
-                    min="0"
-                    value={form.minQuantity}
-                    onChange={(e) => set("minQuantity", e.target.value)}
-                  />
-                </FormField>
-                <FormField label={t(lang, "costPrice")}>
-                  <MoneyInput value={form.costPrice} onChange={(v) => set("costPrice", v)} />
-                </FormField>
-              </div>
+              <FormField label={t(lang, "costPrice")}>
+                <MoneyInput value={form.costPrice} disabled={viewOnly} onChange={(v) => set("costPrice", v)} />
+              </FormField>
               <FormField label={t(lang, "description")}>
                 <textarea
                   className="f-inp"
                   rows={3}
                   value={form.description}
+                  disabled={viewOnly}
                   onChange={(e) => set("description", e.target.value)}
                 />
               </FormField>
@@ -299,26 +299,43 @@ export default function PartForm() {
         ) : null}
 
         <div className="part-form-actions">
-          <button type="button" className="btn btn-g part-form-cancel" onClick={() => nav("/inventory")}>
-            {t(lang, "cancel")}
-          </button>
-          {!editing ? (
-            <button type="button" className="btn btn-s part-form-another" disabled={busy || uploading} onClick={() => save(true)}>
-              {t(lang, "saveAnother")}
-            </button>
+          {viewOnly ? (
+            <>
+              <button type="button" className="btn btn-g" onClick={() => nav("/inventory")}>
+                {t(lang, "cancel")}
+              </button>
+              <button
+                type="button"
+                className="btn btn-p"
+                onClick={() => nav(`/inventory/${id}/edit`, { replace: true, state: {} })}
+              >
+                {t(lang, "edit")}
+              </button>
+            </>
           ) : (
-            <button type="button" className="btn btn-d part-form-delete" disabled={busy} onClick={remove}>
-              {t(lang, "delete")}
-            </button>
+            <>
+              <button type="button" className="btn btn-g part-form-cancel" onClick={() => nav("/inventory")}>
+                {t(lang, "cancel")}
+              </button>
+              {!editing ? (
+                <button type="button" className="btn btn-s part-form-another" disabled={busy || uploading} onClick={() => save(true)}>
+                  {t(lang, "saveAnother")}
+                </button>
+              ) : (
+                <button type="button" className="btn btn-d part-form-delete" disabled={busy} onClick={remove}>
+                  {t(lang, "delete")}
+                </button>
+              )}
+              <button
+                type="button"
+                className="btn btn-p part-form-save"
+                disabled={busy || uploading}
+                onClick={() => save(false)}
+              >
+                {busy ? t(lang, "saving") : t(lang, "savePart")}
+              </button>
+            </>
           )}
-          <button
-            type="button"
-            className="btn btn-p part-form-save"
-            disabled={busy || uploading}
-            onClick={() => save(false)}
-          >
-            {busy ? t(lang, "saving") : t(lang, "savePart")}
-          </button>
         </div>
       </div>
       {toast ? <div className="toast">{toast}</div> : null}

@@ -9,6 +9,7 @@ export default function PhotoUploader({
   onAddFiles,
   onRemove,
   uploading = false,
+  disabled = false,
   maxCount = 3,
   chooseLabel = "Choose Files",
   emptyTitle = "Add photos",
@@ -16,10 +17,10 @@ export default function PhotoUploader({
   uploadingLabel = "Uploading…",
 }) {
   const fileRef = useRef(null);
-  const canAdd = images.length < maxCount && !uploading;
+  const canAdd = !disabled && images.length < maxCount && !uploading && typeof onAddFiles === "function";
 
   return (
-    <div className="photo-uploader">
+    <div className={`photo-uploader${disabled ? " is-readonly" : ""}`}>
       <input
         ref={fileRef}
         type="file"
@@ -46,7 +47,7 @@ export default function PhotoUploader({
         </span>
         <span className="photo-drop-title">{uploading ? uploadingLabel : emptyTitle}</span>
         <span className="photo-drop-hint">{emptyHint}</span>
-        <span className="photo-drop-btn">{chooseLabel}</span>
+        {!disabled ? <span className="photo-drop-btn">{chooseLabel}</span> : null}
       </button>
 
       {images.length > 0 ? (
@@ -54,14 +55,16 @@ export default function PhotoUploader({
           {images.map((url) => (
             <div className="photo-thumb" key={url}>
               <img src={url} alt="" />
-              <button
-                type="button"
-                className="photo-thumb-x"
-                aria-label="Remove photo"
-                onClick={() => onRemove?.(url)}
-              >
-                ×
-              </button>
+              {!disabled && onRemove ? (
+                <button
+                  type="button"
+                  className="photo-thumb-x"
+                  aria-label="Remove photo"
+                  onClick={() => onRemove(url)}
+                >
+                  ×
+                </button>
+              ) : null}
             </div>
           ))}
           {canAdd ? (

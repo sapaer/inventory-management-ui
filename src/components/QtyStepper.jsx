@@ -7,17 +7,27 @@ export default function QtyStepper({ value, onChange, min = 1, disabled = false 
     onChange(Math.max(min, current + delta));
   }
 
+  function onType(raw) {
+    const digits = String(raw).replace(/[^\d]/g, "");
+    if (digits === "") {
+      onChange("");
+      return;
+    }
+    onChange(Math.max(min, Number(digits)));
+  }
+
   return (
     <div className={`qty-stepper${disabled ? " is-disabled" : ""}`}>
       <button type="button" aria-label="Decrease" disabled={disabled || current <= min} onClick={() => bump(-1)}>
         −
       </button>
       <input
-        type="number"
-        min={min}
+        type="text"
+        inputMode="numeric"
+        autoComplete="off"
         value={value}
         disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onType(e.target.value)}
       />
       <button type="button" aria-label="Increase" disabled={disabled} onClick={() => bump(1)}>
         +
