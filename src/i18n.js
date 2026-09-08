@@ -329,6 +329,8 @@ export const messages = {
   storeDetails: "Store details",
   collapseNav: "Collapse menu",
   expandNav: "Expand menu",
+  openMenu: "Open menu",
+  closeMenu: "Close menu",
   notifications: "Notifications",
   waAlerts: "WhatsApp low-stock alerts",
   waAlertsHint: "sent by the server when quantity hits minimum.",
