@@ -3,8 +3,9 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { formatApiError, inventoryApi } from "../api";
 import { useLang } from "../context/LangContext";
 import { t, vehicleLabel, VEHICLES } from "../i18n";
-import { formatPrice, formatWhen, stockOf } from "../utils";
+import { formatPrice, formatDate, stockOf } from "../utils";
 import StatusBadge from "../components/StatusBadge";
+import EditChoiceModal from "../components/EditChoiceModal";
 import SetQuantityModal from "../components/SetQuantityModal";
 
 export default function Inventory() {
@@ -18,7 +19,9 @@ export default function Inventory() {
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [modalItem, setModalItem] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const [editChoiceItem, setEditChoiceItem] = useState(null);
+  const [qtyItem, setQtyItem] = useState(null);
 
   async function load() {
     setError("");
@@ -70,16 +73,18 @@ export default function Inventory() {
     setStatus((prev) => (prev === "LOW_STOCK" ? "" : "LOW_STOCK"));
   }
 
-  async function bump(item, delta) {
+  async function removeItem(item) {
+    if (!confirm(t(lang, "confirmDelete"))) return;
+    setDeletingId(item.id);
+    setError("");
     try {
-      const updated = await inventoryApi.quantity(item.id, {
-        change: delta,
-        changeType: delta > 0 ? "RECEIVED" : "SOLD",
-      });
-      setItems((rows) => rows.map((r) => (r.id === item.id ? updated : r)));
-      setAllItems((rows) => rows.map((r) => (r.id === item.id ? updated : r)));
+      await inventoryApi.remove(item.id);
+      setItems((rows) => rows.filter((r) => r.id !== item.id));
+      setAllItems((rows) => rows.filter((r) => r.id !== item.id));
     } catch (e) {
       setError(formatApiError(e));
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -136,7 +141,7 @@ export default function Inventory() {
                   <th>{t(lang, "price")}</th>
                   <th>{t(lang, "status")}</th>
                   <th>{t(lang, "updated")}</th>
-                  <th />
+                  <th className="tbl-actions-hd">{t(lang, "actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -154,31 +159,45 @@ export default function Inventory() {
                         </span>
                       </td>
                       <td>
-                        <div className="qty-row">
-                          <button className="qb" onClick={() => bump(item, -1)} disabled={item.quantity <= 0}>
-                            −
-                          </button>
-                          <button
-                            className={`qv${st === "LOW_STOCK" ? " low" : ""}${st === "OUT_OF_STOCK" ? " out" : ""}`}
-                            onClick={() => setModalItem(item)}
-                            title={t(lang, "setQty")}
-                          >
-                            {item.quantity}
-                          </button>
-                          <button className="qb" onClick={() => bump(item, 1)}>
-                            +
-                          </button>
-                        </div>
+                        <span
+                          className={`qty-text${st === "LOW_STOCK" ? " low" : ""}${st === "OUT_OF_STOCK" ? " out" : ""}`}
+                        >
+                          {item.quantity}
+                        </span>
                       </td>
                       <td style={{ fontWeight: 600 }}>{formatPrice(item.sellingPrice)}</td>
                       <td>
                         <StatusBadge status={st} lang={lang} />
                       </td>
-                      <td style={{ fontSize: 12, color: "#9ca3af" }}>{formatWhen(item.updatedAt)}</td>
+                      <td style={{ fontSize: 12, color: "#9ca3af" }}>{formatDate(item.updatedAt)}</td>
                       <td>
-                        <button className="btn btn-g" onClick={() => nav(`/inventory/${item.id}/edit`)}>
-                          {t(lang, "edit")}
-                        </button>
+                        <div className="row-actions">
+                          <button
+                            type="button"
+                            className="act-btn act-view"
+                            onClick={() => nav(`/inventory/${item.id}/edit`, { state: { viewOnly: true } })}
+                          >
+                            <ViewIcon />
+                            <span>{t(lang, "view")}</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="act-btn act-edit"
+                            onClick={() => setEditChoiceItem(item)}
+                          >
+                            <EditIcon />
+                            <span>{t(lang, "edit")}</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="act-btn act-delete"
+                            disabled={deletingId === item.id}
+                            onClick={() => removeItem(item)}
+                          >
+                            <TrashIcon />
+                            <span>{t(lang, "delete")}</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -189,18 +208,64 @@ export default function Inventory() {
           <div className="tbl-foot">{t(lang, "showing", items.length, allItems.length)}</div>
         </div>
       )}
-      {modalItem ? (
-        <SetQuantityModal
-          item={modalItem}
+      {editChoiceItem ? (
+        <EditChoiceModal
+          item={editChoiceItem}
           lang={lang}
-          onClose={() => setModalItem(null)}
+          t={t}
+          onClose={() => setEditChoiceItem(null)}
+          onEditQuantity={() => {
+            setQtyItem(editChoiceItem);
+            setEditChoiceItem(null);
+          }}
+          onEditDetails={() => {
+            const id = editChoiceItem.id;
+            setEditChoiceItem(null);
+            nav(`/inventory/${id}/edit`);
+          }}
+        />
+      ) : null}
+      {qtyItem ? (
+        <SetQuantityModal
+          item={qtyItem}
+          lang={lang}
+          onClose={() => setQtyItem(null)}
           onSaved={(updated) => {
             setItems((rows) => rows.map((r) => (r.id === updated.id ? updated : r)));
             setAllItems((rows) => rows.map((r) => (r.id === updated.id ? updated : r)));
-            setModalItem(null);
+            setQtyItem(null);
           }}
         />
       ) : null}
     </div>
+  );
+}
+
+function ViewIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EditIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M3 6h18" />
+      <path d="M8 6V4h8v2" />
+      <path d="M19 6l-1 14H6L5 6" />
+      <path d="M10 11v6M14 11v6" />
+    </svg>
   );
 }
