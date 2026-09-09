@@ -25,11 +25,20 @@ export default function ReviewCarousel() {
   }, []);
 
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 1100px)");
-    const apply = () => setPerPage(mq.matches ? 1 : 3);
+    const compact = window.matchMedia("(max-width: 640px)");
+    const tablet = window.matchMedia("(max-width: 1100px)");
+    const apply = () => {
+      if (compact.matches) setPerPage(1);
+      else if (tablet.matches) setPerPage(2);
+      else setPerPage(3);
+    };
     apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
+    compact.addEventListener("change", apply);
+    tablet.addEventListener("change", apply);
+    return () => {
+      compact.removeEventListener("change", apply);
+      tablet.removeEventListener("change", apply);
+    };
   }, []);
 
   const total = payload ? payload.items.length : 0;

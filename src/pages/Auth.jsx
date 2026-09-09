@@ -258,7 +258,7 @@ export default function Auth() {
 
   if (picker) {
     return (
-      <AuthLayout hideLogin={!isSignup} hideSignup={isSignup}>
+      <AuthLayout hideLogin hideSignup>
         <div className="login-form">
           <h1 className="login-title">{t(lang, "chooseShop")}</h1>
           <p className="lead">{t(lang, "chooseShopHint")}</p>
@@ -300,7 +300,7 @@ export default function Auth() {
   }
 
   return (
-    <AuthLayout hideLogin={!isSignup} hideSignup={isSignup}>
+    <AuthLayout hideLogin hideSignup>
       <div className="login-form">
         <div className="login-avatar" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

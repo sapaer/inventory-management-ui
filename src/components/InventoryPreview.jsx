@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
 import { DUMMY_INVENTORY_PREVIEW } from "../data/inventoryPreviewDummy";
+import "./GlassPanel.css";
 
 export default function InventoryPreview({ data = DUMMY_INVENTORY_PREVIEW }) {
   const { lang } = useLang();
@@ -9,7 +10,7 @@ export default function InventoryPreview({ data = DUMMY_INVENTORY_PREVIEW }) {
   const inventoryTo = "/inventory";
 
   return (
-    <div className="lp-inv">
+    <div className="lp-inv glass glass-dark">
       <div className="lp-inv-head">
         <h3>{t(lang, "inventory")}</h3>
         <Link to={inventoryTo} className="lp-inv-view">

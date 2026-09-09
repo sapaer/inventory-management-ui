@@ -262,17 +262,7 @@ button { cursor: pointer; }
   padding: 16px;
   gap: 16px;
 }
-/* Glass nav on the auth screen — frosts the tinted page behind it. */
-.login-page .site-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  background: rgba(255, 255, 255, 0.75);
-  background: color-mix(in srgb, var(--auth-accent) 7%, rgba(255, 255, 255, 0.55));
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  border-bottom: 1px solid color-mix(in srgb, var(--auth-accent) 12%, rgba(255, 255, 255, 0.35));
-}
+/* Auth header glass lives on .site-header (GlassPanel). */
 .login-left {
   width: 46%;
   background: linear-gradient(160deg, var(--auth-accent) 0%, var(--auth-accent-deep) 100%);

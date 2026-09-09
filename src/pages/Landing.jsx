@@ -3,14 +3,24 @@ import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
+import PageSection from "../components/PageSection";
+import GlassPanel from "../components/GlassPanel";
+import ValueCard from "../components/ValueCard";
 import ReviewCarousel from "../components/ReviewCarousel";
 import InventoryPreview from "../components/InventoryPreview";
+import SectionWave from "../components/SectionWave";
 import { t } from "../i18n";
 import { needsShopSetup } from "../utils";
 import "./Landing.css";
 
 /** Closing PartNear hero is parked for now — flip to true to bring it back. */
 const SHOW_CLOSING_HERO = false;
+
+const NAV_LINKS = [
+  { href: "#product", labelKey: "lpNavProduct" },
+  { href: "#reviews", labelKey: "lpNavReviews" },
+  { href: "#about-close", labelKey: "lpNavAbout" },
+];
 
 export default function Landing() {
   const { user } = useAuth();
@@ -19,7 +29,7 @@ export default function Landing() {
 
   return (
     <div className="lp">
-      <SiteHeader sticky />
+      <SiteHeader sticky links={NAV_LINKS} />
 
       <section className="lp-preview" id="preview">
         <div className="lp-preview-bg" aria-hidden="true">
@@ -33,26 +43,23 @@ export default function Landing() {
             </p>
             <h1 className="lp-hero-title">{t(lang, "heroTitle")}</h1>
             <p className="lp-hero-sub">{t(lang, "heroSub")}</p>
-            <div className="lp-hero-ctas">
-              <Link to={user ? dashboardTo : "/auth?mode=signup"} className="lp-btn lp-btn-primary">
-                {user ? t(lang, "lpGoDashboard") : t(lang, "lpSignUp")}
-              </Link>
-              {!user ? (
-                <Link to="/auth?mode=login" className="lp-btn lp-btn-ghost">
-                  {t(lang, "lpLogin")}
+            {user ? (
+              <div className="lp-hero-ctas">
+                <Link to={dashboardTo} className="lp-btn lp-btn-primary">
+                  {t(lang, "lpGoDashboard")}
                 </Link>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
             <ul className="lp-preview-feats">
-              <li>
+              <li className="glass glass-chip">
                 <BoxFeatIcon />
                 {t(lang, "lpFeatTrack")}
               </li>
-              <li>
+              <li className="glass glass-chip">
                 <WaFeatIcon />
                 {t(lang, "lpFeatAlerts")}
               </li>
-              <li>
+              <li className="glass glass-chip">
                 <ClipFeatIcon />
                 {t(lang, "lpFeatReports")}
               </li>
@@ -60,59 +67,63 @@ export default function Landing() {
           </div>
           <InventoryPreview />
         </div>
+        <SectionWave className="lp-preview-wave" />
       </section>
 
-      <section className="lp-section lp-product" id="product">
-        <p className="lp-kicker">{t(lang, "lpValueKicker")}</p>
-        <h2 className="lp-section-title">{t(lang, "lpValueTitle")}</h2>
-        <p className="lp-section-body">{t(lang, "lpValueBody")}</p>
-        <ul className="lp-value-list">
-          {VALUE_ITEMS.map(({ id, Icon }) => (
-            <li key={id} className="lp-value-card">
-              <span className="lp-value-ic" aria-hidden="true">
-                <Icon />
-              </span>
-              <div className="lp-value-copy">
-                <strong>{t(lang, `${id}Title`)}</strong>
-                <span>{t(lang, `${id}Body`)}</span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <div className="lp-mid">
+        <PageSection
+          id="product"
+          className="lp-product"
+          compact
+          kicker={t(lang, "lpValueKicker")}
+          title={t(lang, "lpValueTitle")}
+          body={t(lang, "lpValueBody")}
+        >
+          <ul className="lp-value-list">
+            {VALUE_ITEMS.map(({ id, Icon }) => (
+              <ValueCard
+                key={id}
+                icon={<Icon />}
+                title={t(lang, `${id}Title`)}
+                body={t(lang, `${id}Body`)}
+              />
+            ))}
+          </ul>
+        </PageSection>
 
-      <section className="lp-band lp-reviews" id="reviews">
-        <div className="lp-reviews-inner">
-          <p className="lp-kicker">{t(lang, "lpReviewsKicker")}</p>
-          <h2 className="lp-section-title">{t(lang, "lpReviewsTitle")}</h2>
+        <PageSection
+          id="reviews"
+          className="lp-reviews"
+          kicker={t(lang, "lpReviewsKicker")}
+          title={t(lang, "lpReviewsTitle")}
+        >
           <ReviewCarousel />
-        </div>
-      </section>
+        </PageSection>
 
-      <section className="lp-about-close" id="about-close">
-        <div className="lp-hero-bg" aria-hidden="true">
-          <div className="lp-hero-grid" />
-          <div className="lp-hero-glow" />
-        </div>
-        <div className="lp-about-close-inner">
-          <p className="lp-kicker lp-kicker-line">{t(lang, "lpNavAbout")}</p>
-          <h2 className="lp-section-title">{t(lang, "lpAboutCounter")}</h2>
+        <PageSection
+          id="about-close"
+          className="lp-about-close"
+          kicker={t(lang, "lpNavAbout")}
+          kickerClassName="lp-kicker-line"
+          title={t(lang, "lpAboutCounter")}
+        >
           <div className="lp-about-grid">
-            <article className="lp-about-card">
+            <GlassPanel as="article" className="lp-about-card">
               <h3>{t(lang, "lpWhatWeDo")}</h3>
               <p>{t(lang, "lpWhatWeDoBody")}</p>
-            </article>
-            <article className="lp-about-card">
+            </GlassPanel>
+            <GlassPanel as="article" className="lp-about-card">
               <h3>{t(lang, "lpOurVision")}</h3>
               <p>{t(lang, "lpOurVisionBody")}</p>
-            </article>
-            <article className="lp-about-card">
+            </GlassPanel>
+            <GlassPanel as="article" className="lp-about-card">
               <h3>{t(lang, "lpOurMission")}</h3>
               <p>{t(lang, "lpOurMissionBody")}</p>
-            </article>
+            </GlassPanel>
           </div>
-        </div>
-      </section>
+        </PageSection>
+        <SectionWave className="lp-mid-wave" fill="#062117" />
+      </div>
 
       {SHOW_CLOSING_HERO ? (
       <section className="lp-hero" id="top">
@@ -138,16 +149,6 @@ export default function Landing() {
           <p className="lp-brand-mark">{t(lang, "brand")}</p>
           <h2 className="lp-hero-title">{t(lang, "heroTitle")}</h2>
           <p className="lp-hero-sub">{t(lang, "heroSub")}</p>
-          {!user ? (
-            <div className="lp-hero-ctas">
-              <Link to="/auth?mode=signup" className="lp-btn lp-btn-primary">
-                {t(lang, "lpSignUp")}
-              </Link>
-              <Link to="/auth?mode=login" className="lp-btn lp-btn-ghost">
-                {t(lang, "lpLogin")}
-              </Link>
-            </div>
-          ) : null}
         </div>
       </section>
       ) : null}
@@ -243,4 +244,3 @@ function ClipFeatIcon() {
     </svg>
   );
 }
-

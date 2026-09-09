@@ -16,7 +16,7 @@ export default function AuthLayout({ hideLogin = false, hideSignup = false, vari
 
   return (
     <div className={`login-page${variant === "setup" ? " is-setup" : ""}`}>
-      <SiteHeader hideLogin={hideLogin} hideSignup={hideSignup} />
+      <SiteHeader hideLogin={hideLogin} hideSignup={hideSignup} sticky />
       <div className="login">
         <div className="login-left">
           <div>

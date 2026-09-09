@@ -10,7 +10,7 @@ export default function InfoShell({ title, children }) {
 
   return (
     <div className="lp info-page">
-      <SiteHeader />
+      <SiteHeader sticky />
       <main className="info-main">
         <p className="info-draft">{t(lang, "legalDraftBanner")}</p>
         <h1 className="info-title">{title}</h1>

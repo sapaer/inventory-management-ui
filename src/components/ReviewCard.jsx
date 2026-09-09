@@ -1,3 +1,5 @@
+import "./GlassPanel.css";
+
 export default function ReviewCard({ review }) {
   const initials = review.authorName
     .split(/\s+/)
@@ -7,7 +9,7 @@ export default function ReviewCard({ review }) {
     .join("");
 
   return (
-    <article className="lp-review-card">
+    <article className="lp-review-card glass glass-light">
       <div className="lp-review-quote-mark" aria-hidden="true">
         ”
       </div>
