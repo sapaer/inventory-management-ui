@@ -27,6 +27,20 @@ export function formatDate(iso) {
   return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }
 
+/** Date + time, e.g. 9 Sep 2026, 4:30 PM */
+export function formatDateTime(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 export function initials(name) {
   if (!name) return "PN";
   const parts = name.trim().split(/\s+/);
