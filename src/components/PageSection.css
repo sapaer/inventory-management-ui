@@ -7,17 +7,17 @@
   width: 100%;
   max-width: 1120px;
   margin: 0 auto;
-  padding: clamp(48px, 8vh, 88px) clamp(20px, 5vw, 48px);
+  padding: 12px clamp(16px, 4vw, 48px);
   box-sizing: border-box;
 }
 
 .page-section-inner.is-compact {
-  padding-top: clamp(36px, 6vh, 64px);
-  padding-bottom: clamp(36px, 6vh, 64px);
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
 .page-section-kicker {
-  font-family: var(--lp-ui, "Plus Jakarta Sans", "Segoe UI", sans-serif);
+  font-family: var(--lp-ui, Fraunces, Georgia, serif);
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -27,7 +27,7 @@
 }
 
 .page-section-title {
-  font-family: var(--lp-heading, "Plus Jakarta Sans", "Segoe UI", sans-serif);
+  font-family: var(--lp-heading, Fraunces, Georgia, serif);
   font-size: clamp(1.6rem, 3.4vw, 2.4rem);
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -37,7 +37,7 @@
 }
 
 .page-section-body {
-  font-family: var(--lp-body, "Plus Jakarta Sans", "Segoe UI", sans-serif);
+  font-family: var(--lp-body, Fraunces, Georgia, serif);
   font-size: 1.02rem;
   line-height: 1.65;
   color: var(--lp-mute, #4d635a);
@@ -47,6 +47,6 @@
 
 @media (max-width: 640px) {
   .page-section-inner {
-    padding: 40px 16px;
+    padding: 8px 16px;
   }
 }

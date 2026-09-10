@@ -87,30 +87,28 @@ export default function SiteHeader({ hideLogin = false, hideSignup = false, stic
     const drawer = drawerRef.current;
     if (!drawer) return undefined;
 
-    function greenSection() {
-      const nodes = document.querySelectorAll(".lp-preview, .login-left");
-      for (const node of nodes) {
-        if (getComputedStyle(node).display === "none") continue;
-        const rect = node.getBoundingClientRect();
-        if (rect.height > 1) return rect;
-      }
-      return null;
+    function landingGreen() {
+      const preview = document.querySelector(".lp-preview");
+      if (!preview || getComputedStyle(preview).display === "none") return null;
+      const rect = preview.getBoundingClientRect();
+      return rect.height > 1 ? rect : null;
+    }
+
+    function halfPageBelowHeader() {
+      const header = document.querySelector(".site-header");
+      const top = header ? Math.round(header.getBoundingClientRect().bottom) : 58;
+      return { top, height: Math.round((window.innerHeight - top) / 2) };
     }
 
     function sync() {
-      const rect = greenSection();
-      if (!rect) {
-        drawer.style.removeProperty("top");
-        drawer.style.removeProperty("height");
-        return;
-      }
+      const rect = landingGreen() || halfPageBelowHeader();
       drawer.style.top = `${Math.round(rect.top)}px`;
       drawer.style.height = `${Math.round(rect.height)}px`;
     }
 
     sync();
     const ro = typeof ResizeObserver === "function" ? new ResizeObserver(sync) : null;
-    document.querySelectorAll(".lp-preview, .login-left").forEach((node) => ro?.observe(node));
+    document.querySelectorAll(".lp-preview, .site-header").forEach((node) => ro?.observe(node));
     window.addEventListener("resize", sync);
     window.addEventListener("scroll", sync, { passive: true });
     return () => {

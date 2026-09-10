@@ -18,7 +18,7 @@
 }
 
 .site-header-brand {
-  font-family: var(--lp-display, "Plus Jakarta Sans", "Segoe UI", sans-serif);
+  font-family: var(--lp-display, Fraunces, Georgia, serif);
   font-weight: 700;
   font-size: 1.15rem;
   letter-spacing: -0.03em;
@@ -184,7 +184,7 @@
   .site-header-drawer.is-guest {
     top: 58px;
     bottom: auto;
-    height: calc(100dvh - 58px);
+    height: calc((100dvh - 58px) / 2);
     max-height: none;
     width: min(148px, 50vw);
     padding: 10px 10px 12px;
@@ -244,7 +244,7 @@
     justify-content: center;
     min-width: 0;
     flex: 1;
-    font-family: var(--lp-display, "Plus Jakarta Sans", "Segoe UI", sans-serif);
+    font-family: var(--lp-display, Fraunces, Georgia, serif);
     font-weight: 700;
     font-size: 1.05rem;
     letter-spacing: -0.03em;
