@@ -5,6 +5,7 @@ import { useLang } from "../context/LangContext";
 import { t, vehicleLabel, VEHICLES } from "../i18n";
 import { formatPrice, formatDate, stockOf } from "../utils";
 import StatusBadge from "../components/StatusBadge";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import SetQuantityModal from "../components/SetQuantityModal";
 
 export default function Inventory() {
@@ -20,6 +21,7 @@ export default function Inventory() {
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
   const [qtyItem, setQtyItem] = useState(null);
+  const [deleteItem, setDeleteItem] = useState(null);
 
   async function load() {
     setError("");
@@ -71,14 +73,15 @@ export default function Inventory() {
     setStatus((prev) => (prev === "LOW_STOCK" ? "" : "LOW_STOCK"));
   }
 
-  async function removeItem(item) {
-    if (!confirm(t(lang, "confirmDelete"))) return;
-    setDeletingId(item.id);
+  async function removeItem() {
+    if (!deleteItem) return;
+    setDeletingId(deleteItem.id);
     setError("");
     try {
-      await inventoryApi.remove(item.id);
-      setItems((rows) => rows.filter((r) => r.id !== item.id));
-      setAllItems((rows) => rows.filter((r) => r.id !== item.id));
+      await inventoryApi.remove(deleteItem.id);
+      setItems((rows) => rows.filter((r) => r.id !== deleteItem.id));
+      setAllItems((rows) => rows.filter((r) => r.id !== deleteItem.id));
+      setDeleteItem(null);
     } catch (e) {
       setError(formatApiError(e));
     } finally {
@@ -177,7 +180,7 @@ export default function Inventory() {
                       className="act-btn act-delete"
                       aria-label={t(lang, "delete")}
                       disabled={deletingId === item.id}
-                      onClick={() => removeItem(item)}
+                      onClick={() => setDeleteItem(item)}
                     >
                       <TrashIcon />
                       <span>{t(lang, "delete")}</span>
@@ -251,7 +254,7 @@ export default function Inventory() {
                               type="button"
                               className="act-btn act-delete"
                               disabled={deletingId === item.id}
-                              onClick={() => removeItem(item)}
+                              onClick={() => setDeleteItem(item)}
                             >
                               <TrashIcon />
                               <span>{t(lang, "delete")}</span>
@@ -283,6 +286,20 @@ export default function Inventory() {
             setAllItems((rows) => rows.map((r) => (r.id === updated.id ? updated : r)));
             setQtyItem(null);
           }}
+        />
+      ) : null}
+      {deleteItem ? (
+        <ConfirmDeleteModal
+          title={t(lang, "confirmDeleteTitle")}
+          message={t(lang, "confirmDelete")}
+          itemName={deleteItem.partName}
+          cancelLabel={t(lang, "cancel")}
+          deleteLabel={deletingId ? t(lang, "deleting") : t(lang, "delete")}
+          busy={Boolean(deletingId)}
+          onCancel={() => {
+            if (!deletingId) setDeleteItem(null);
+          }}
+          onConfirm={removeItem}
         />
       ) : null}
     </div>

@@ -2834,6 +2834,24 @@ button.sidebar-acct-item:hover {
 .big-qty { width: 100%; font-size: 28px; font-weight: 700; text-align: center; padding: 12px; border: 1.5px solid var(--line); border-radius: 8px; margin: 12px 0; }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
 .qty-edit-modal { max-width: 340px; }
+.confirm-delete-modal { max-width: 340px; }
+.confirm-delete-msg {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.confirm-delete-name {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #f8faf9;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  word-break: break-word;
+}
 .qty-edit-product {
   margin: 10px 0 14px;
   padding: 10px 12px;

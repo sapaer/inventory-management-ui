@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { formatApiError, inventoryApi, uploadApi } from "../api";
 import CompatibleVehiclesEditor from "../components/CompatibleVehiclesEditor";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import FormField from "../components/FormField";
 import FormPanel from "../components/FormPanel";
 import MoneyInput from "../components/MoneyInput";
@@ -57,6 +58,7 @@ export default function PartForm() {
   const [toast, setToast] = useState("");
   const [history, setHistory] = useState([]);
   const [moreOpen, setMoreOpen] = useState(true);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (!editing) return;
@@ -172,7 +174,6 @@ export default function PartForm() {
   }
 
   async function remove() {
-    if (!confirm(t(lang, "confirmDelete"))) return;
     setBusy(true);
     try {
       await inventoryApi.remove(id);
@@ -180,6 +181,7 @@ export default function PartForm() {
     } catch (e) {
       setError(formatApiError(e));
       setBusy(false);
+      setConfirmDelete(false);
     }
   }
 
@@ -361,7 +363,7 @@ export default function PartForm() {
                   {t(lang, "saveAnother")}
                 </button>
               ) : (
-                <button type="button" className="btn btn-d part-form-delete" disabled={busy} onClick={remove}>
+                <button type="button" className="btn btn-d part-form-delete" disabled={busy} onClick={() => setConfirmDelete(true)}>
                   {t(lang, "delete")}
                 </button>
               )}
@@ -378,6 +380,20 @@ export default function PartForm() {
         </div>
       </div>
       {toast ? <div className="toast">{toast}</div> : null}
+      {confirmDelete ? (
+        <ConfirmDeleteModal
+          title={t(lang, "confirmDeleteTitle")}
+          message={t(lang, "confirmDelete")}
+          itemName={form.partName}
+          cancelLabel={t(lang, "cancel")}
+          deleteLabel={busy ? t(lang, "deleting") : t(lang, "delete")}
+          busy={busy}
+          onCancel={() => {
+            if (!busy) setConfirmDelete(false);
+          }}
+          onConfirm={remove}
+        />
+      ) : null}
     </div>
   );
 }
