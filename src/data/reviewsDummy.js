@@ -5,7 +5,7 @@ export const DUMMY_REVIEWS = {
     {
       id: "r1",
       rating: 5,
-      quote: "Finally, a system that fits our shop. Stock ka hisaab rakhna ab bahut easy hai.",
+      quote: "Finally, a system that fits our shop. Stock ka hisaab rakhna ab bahut easy hai",
       authorName: "Arun Singh",
       authorTitle: "Auto parts · Indore",
       avatarUrl: "https://i.pravatar.cc/96?img=12",
@@ -13,7 +13,7 @@ export const DUMMY_REVIEWS = {
     {
       id: "r2",
       rating: 5,
-      quote: "WhatsApp alerts save me from missed orders. Customers are happier now.",
+      quote: "WhatsApp alerts save me from missed orders. Customers are happier now",
       authorName: "Meera Patel",
       authorTitle: "Auto parts · Indore",
       avatarUrl: "https://i.pravatar.cc/96?img=32",
@@ -21,7 +21,7 @@ export const DUMMY_REVIEWS = {
     {
       id: "r3",
       rating: 5,
-      quote: "Low-stock reports help me plan better. No more last-minute stockouts.",
+      quote: "Low-stock reports help me plan better. No more last-minute stockouts",
       authorName: "Ramesh",
       authorTitle: "Auto parts · Indore",
       avatarUrl: "https://i.pravatar.cc/96?img=53",
@@ -29,7 +29,7 @@ export const DUMMY_REVIEWS = {
     {
       id: "r4",
       rating: 5,
-      quote: "Setup took one evening. The team updates quantity without leaving the counter.",
+      quote: "Setup took one evening. The team updates quantity without leaving the counter",
       authorName: "Kavita",
       authorTitle: "Service center · Pune",
       avatarUrl: "https://i.pravatar.cc/96?img=47",
@@ -37,7 +37,7 @@ export const DUMMY_REVIEWS = {
     {
       id: "r5",
       rating: 4,
-      quote: "We listed fast movers first. Alerts reach the person who actually buys parts.",
+      quote: "We listed fast movers first. Alerts reach the person who actually buys parts",
       authorName: "Sanjay Verma",
       authorTitle: "Garage · Jaipur",
       avatarUrl: "https://i.pravatar.cc/96?img=15",
@@ -45,7 +45,7 @@ export const DUMMY_REVIEWS = {
     {
       id: "r6",
       rating: 5,
-      quote: "Catalog used to live in a notebook. Now every part has a count we can trust.",
+      quote: "Catalog used to live in a notebook. Now every part has a count we can trust",
       authorName: "Farhan Ali",
       authorTitle: "Spare shop · Lucknow",
       avatarUrl: "https://i.pravatar.cc/96?img=68",

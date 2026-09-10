@@ -441,6 +441,8 @@ button { cursor: pointer; }
 
 /* Login */
 .login-page {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -473,6 +475,9 @@ button { cursor: pointer; }
 }
 /* Auth header glass lives on .site-header (GlassPanel). */
 .login-left {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   width: 46%;
   background: linear-gradient(160deg, var(--auth-accent) 0%, var(--auth-accent-deep) 100%);
   color: #fff;
@@ -482,6 +487,22 @@ button { cursor: pointer; }
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+.login-left::after {
+  content: "";
+  position: absolute;
+  width: min(55vw, 420px);
+  height: min(55vw, 420px);
+  right: -18%;
+  top: -12%;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(43, 188, 138, 0.35), transparent 68%);
+}
+.login-left > div {
+  position: relative;
+  z-index: 1;
 }
 .login-tag {
   font-size: 13px;
@@ -2130,6 +2151,7 @@ button.sidebar-acct-item:hover {
 /* ============================================================ My account */
 .account-content {
   padding: 0;
+  overflow-x: hidden;
   background: var(--sage);
   background:
     radial-gradient(760px 440px at 10% 0%, color-mix(in srgb, var(--auth-accent) 22%, #fff) 0%, transparent 58%),
@@ -2554,23 +2576,25 @@ button.sidebar-acct-item:hover {
   .account-body { grid-template-columns: 1fr; gap: 14px; }
   .account-nav-wrap {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
   }
   .account-nav {
     position: static;
     flex: 1;
     min-width: 0;
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 6px;
-    overflow-x: auto;
+    overflow: visible;
     padding: 8px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
   }
-  .account-nav::-webkit-scrollbar { display: none; }
   .account-nav-hd { display: none; }
-  .account-nav-item { width: auto; flex-shrink: 0; }
+  .account-nav-item {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+  }
   .account-nav-bell {
     display: block;
     flex-shrink: 0;

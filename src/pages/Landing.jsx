@@ -6,6 +6,7 @@ import GlassPanel from "../components/GlassPanel";
 import ValueCard from "../components/ValueCard";
 import ReviewCarousel from "../components/ReviewCarousel";
 import InventoryPreview from "../components/InventoryPreview";
+import LandingFontPicker, { landingFontVars, useLandingFont } from "../components/LandingFontPicker";
 import { t } from "../i18n";
 import "./Landing.css";
 
@@ -14,9 +15,10 @@ const SHOW_CLOSING_HERO = false;
 
 export default function Landing() {
   const { lang } = useLang();
+  const [fontId, setFontId] = useLandingFont();
 
   return (
-    <div className="lp">
+    <div className="lp" style={landingFontVars(fontId)}>
       <SiteHeader sticky />
 
       <section className="lp-preview" id="preview">
@@ -72,19 +74,9 @@ export default function Landing() {
         </PageSection>
 
         <PageSection
-          id="reviews"
-          className="lp-reviews"
-          kicker={t(lang, "lpReviewsKicker")}
-          title={t(lang, "lpReviewsTitle")}
-        >
-          <ReviewCarousel />
-        </PageSection>
-
-        <PageSection
           id="about-close"
           className="lp-about-close"
           kicker={t(lang, "lpNavAbout")}
-          kickerClassName="lp-kicker-line"
           title={t(lang, "lpAboutCounter")}
         >
           <div className="lp-about-grid">
@@ -101,6 +93,15 @@ export default function Landing() {
               <p>{t(lang, "lpOurMissionBody")}</p>
             </GlassPanel>
           </div>
+        </PageSection>
+
+        <PageSection
+          id="reviews"
+          className="lp-reviews"
+          kicker={t(lang, "lpReviewsKicker")}
+          title={t(lang, "lpReviewsTitle")}
+        >
+          <ReviewCarousel />
         </PageSection>
       </div>
 
@@ -133,6 +134,7 @@ export default function Landing() {
       ) : null}
 
       <SiteFooter />
+      <LandingFontPicker value={fontId} onChange={setFontId} />
     </div>
   );
 }

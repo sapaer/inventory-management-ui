@@ -13,6 +13,8 @@ export default function ReviewCarousel() {
   const [hovered, setHovered] = useState(false);
   const [tabHidden, setTabHidden] = useState(false);
   const jumpFrame = useRef(0);
+  const scroller = useRef(null);
+  const slideRef = useRef(0);
 
   useEffect(() => {
     let live = true;
@@ -41,20 +43,36 @@ export default function ReviewCarousel() {
     };
   }, []);
 
+  const isSwipe = perPage === 1;
   const total = payload ? payload.items.length : 0;
-  const pages = Math.max(1, Math.ceil(total / perPage));
+  const pages = Math.max(1, isSwipe ? total : Math.ceil(total / perPage));
+
+  useEffect(() => {
+    slideRef.current = slide;
+  }, [slide]);
 
   useEffect(() => {
     setSlide(0);
     setAnimate(true);
-  }, [perPage, total]);
+    if (isSwipe && scroller.current) {
+      scroller.current.scrollTo({ left: 0 });
+    }
+  }, [perPage, total, isSwipe]);
 
   useEffect(() => {
     if (hovered || tabHidden || pages < 2) return undefined;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
-    const id = window.setInterval(goNext, 5000);
+    const id = window.setInterval(() => {
+      if (isSwipe) {
+        const next = (slideRef.current + 1) % pages;
+        scrollToIndex(next);
+        return;
+      }
+      setAnimate(true);
+      setSlide((n) => (n >= pages ? 1 : n + 1));
+    }, 5000);
     return () => window.clearInterval(id);
-  }, [hovered, tabHidden, pages]);
+  }, [hovered, tabHidden, pages, isSwipe]);
 
   useEffect(() => {
     const onVisibility = () => setTabHidden(document.hidden);
@@ -65,6 +83,10 @@ export default function ReviewCarousel() {
   useEffect(() => () => window.cancelAnimationFrame(jumpFrame.current), []);
 
   function goTo(next) {
+    if (isSwipe) {
+      scrollToIndex(next);
+      return;
+    }
     setAnimate(true);
     setSlide(next);
   }
@@ -98,6 +120,34 @@ export default function ReviewCarousel() {
     setSlide(0);
   }
 
+  function scrollToIndex(index) {
+    const el = scroller.current;
+    if (!el) return;
+    const card = el.querySelectorAll(".lp-reviews-page")[index];
+    if (!card) return;
+    const left = card.offsetLeft - (el.clientWidth - card.offsetWidth) / 2;
+    el.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+    setSlide(index);
+  }
+
+  function onSwipeScroll(event) {
+    const el = event.currentTarget;
+    const cards = el.querySelectorAll(".lp-reviews-page");
+    if (!cards.length) return;
+    const mid = el.scrollLeft + el.clientWidth / 2;
+    let best = 0;
+    let bestDist = Infinity;
+    cards.forEach((card, i) => {
+      const center = card.offsetLeft + card.offsetWidth / 2;
+      const dist = Math.abs(center - mid);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = i;
+      }
+    });
+    if (best !== slideRef.current) setSlide(best);
+  }
+
   if (!payload) {
     return <p className="lp-reviews-status">{t(lang, "loading")}</p>;
   }
@@ -110,12 +160,12 @@ export default function ReviewCarousel() {
   const page = slide % pageCount;
   const pageItems = (n) =>
     Array.from({ length: Math.min(perPage, count) }, (_, i) => items[(n * perPage + i) % count]);
-  const slides = Array.from({ length: pageCount }, (_, n) => pageItems(n));
-  if (pageCount > 1) slides.push(pageItems(0));
+  const slides = Array.from({ length: isSwipe ? 0 : pageCount }, (_, n) => pageItems(n));
+  if (!isSwipe && pageCount > 1) slides.push(pageItems(0));
 
   return (
     <div
-      className="lp-reviews-wrap"
+      className={`lp-reviews-wrap${isSwipe ? " is-swipe" : ""}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onFocusCapture={() => setHovered(true)}
@@ -126,7 +176,7 @@ export default function ReviewCarousel() {
         <Stars value={Math.round(payload.averageRating)} />
       </div>
       <div className="lp-reviews-row">
-        {count > perPage ? (
+        {!isSwipe && count > perPage ? (
           <button
             type="button"
             className="lp-reviews-arrow"
@@ -136,24 +186,47 @@ export default function ReviewCarousel() {
             ‹
           </button>
         ) : null}
-        <div className="lp-reviews-viewport">
+        {isSwipe ? (
           <div
-            className={`lp-reviews-track${animate ? " is-animating" : ""}`}
-            style={{ transform: `translate3d(-${slide * 100}%, 0, 0)` }}
-            onTransitionEnd={handleTransitionEnd}
+            className="lp-reviews-viewport"
+            ref={scroller}
+            onScroll={onSwipeScroll}
+            onPointerDown={() => setHovered(true)}
+            onPointerUp={() => setHovered(false)}
+            onPointerCancel={() => setHovered(false)}
           >
-            {slides.map((group, n) => (
-              <div className="lp-reviews-page" key={n} aria-hidden={n !== slide}>
-                <div className="lp-reviews-grid">
-                  {group.map((item, i) => (
-                    <ReviewCard key={`${item.id}-${n}-${i}`} review={item} />
-                  ))}
+            <div className="lp-reviews-track">
+              {items.map((item, n) => (
+                <div
+                  className="lp-reviews-page"
+                  key={item.id}
+                  aria-hidden={n !== page}
+                >
+                  <ReviewCard review={item} />
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-        {count > perPage ? (
+        ) : (
+          <div className="lp-reviews-viewport">
+            <div
+              className={`lp-reviews-track${animate ? " is-animating" : ""}`}
+              style={{ transform: `translate3d(-${slide * 100}%, 0, 0)` }}
+              onTransitionEnd={handleTransitionEnd}
+            >
+              {slides.map((group, n) => (
+                <div className="lp-reviews-page" key={n} aria-hidden={n !== slide}>
+                  <div className="lp-reviews-grid">
+                    {group.map((item, i) => (
+                      <ReviewCard key={`${item.id}-${n}-${i}`} review={item} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {!isSwipe && count > perPage ? (
           <button
             type="button"
             className="lp-reviews-arrow"

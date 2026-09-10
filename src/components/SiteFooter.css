@@ -54,7 +54,7 @@
 }
 
 .lp-foot-brand {
-  font-family: var(--lp-display, "Syne", "Segoe UI", sans-serif);
+  font-family: var(--lp-display, "Plus Jakarta Sans", "Segoe UI", sans-serif);
   font-weight: 700;
   font-size: 1.05rem;
   color: #f4faf7;

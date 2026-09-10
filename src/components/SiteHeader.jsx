@@ -33,6 +33,7 @@ export default function SiteHeader({ hideLogin = false, hideSignup = false, stic
   const [acctOpen, setAcctOpen] = useState(false);
   const [lowCount, setLowCount] = useState(0);
   const acctRef = useRef(null);
+  const drawerRef = useRef(null);
   const drawerId = useId();
 
   useEffect(() => {
@@ -70,6 +71,8 @@ export default function SiteHeader({ hideLogin = false, hideSignup = false, stic
       .catch(() => setLowCount(0));
   }, [ready, user, location.pathname]);
 
+  const loggedIn = ready && Boolean(user);
+
   useEffect(() => {
     if (!acctOpen) return undefined;
     function onDoc(e) {
@@ -79,7 +82,46 @@ export default function SiteHeader({ hideLogin = false, hideSignup = false, stic
     return () => document.removeEventListener("mousedown", onDoc);
   }, [acctOpen]);
 
-  const loggedIn = ready && Boolean(user);
+  useEffect(() => {
+    if (loggedIn) return undefined;
+    const drawer = drawerRef.current;
+    if (!drawer) return undefined;
+
+    function greenSection() {
+      const nodes = document.querySelectorAll(".lp-preview, .login-left");
+      for (const node of nodes) {
+        if (getComputedStyle(node).display === "none") continue;
+        const rect = node.getBoundingClientRect();
+        if (rect.height > 1) return rect;
+      }
+      return null;
+    }
+
+    function sync() {
+      const rect = greenSection();
+      if (!rect) {
+        drawer.style.removeProperty("top");
+        drawer.style.removeProperty("height");
+        return;
+      }
+      drawer.style.top = `${Math.round(rect.top)}px`;
+      drawer.style.height = `${Math.round(rect.height)}px`;
+    }
+
+    sync();
+    const ro = typeof ResizeObserver === "function" ? new ResizeObserver(sync) : null;
+    document.querySelectorAll(".lp-preview, .login-left").forEach((node) => ro?.observe(node));
+    window.addEventListener("resize", sync);
+    window.addEventListener("scroll", sync, { passive: true });
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", sync);
+      window.removeEventListener("scroll", sync);
+      drawer.style.removeProperty("top");
+      drawer.style.removeProperty("height");
+    };
+  }, [loggedIn, location.pathname, menuOpen]);
+
   const acctSection =
     location.pathname === "/account" ? new URLSearchParams(location.search).get("section") || "profile" : null;
 
@@ -88,7 +130,7 @@ export default function SiteHeader({ hideLogin = false, hideSignup = false, stic
     setAcctOpen(false);
   }
 
-  const guestButtons = ready && !user ? (
+  const guestButtons = !user ? (
     <>
       <Link to="/auth?mode=login" className="site-header-btn site-header-btn-ghost" onClick={closeMenu}>
         {t(lang, "lpLogin")}
@@ -96,23 +138,6 @@ export default function SiteHeader({ hideLogin = false, hideSignup = false, stic
       <Link to="/auth?mode=signup" className="site-header-btn site-header-btn-solid" onClick={closeMenu}>
         {t(lang, "lpSignUp")}
       </Link>
-    </>
-  ) : null;
-
-  const desktopAccount = ready && user ? (
-    <UserMenu variant="landing" />
-  ) : ready ? (
-    <>
-      {!hideLogin ? (
-        <Link to="/auth?mode=login" className="site-header-btn site-header-btn-ghost">
-          {t(lang, "lpLogin")}
-        </Link>
-      ) : null}
-      {!hideSignup ? (
-        <Link to="/auth?mode=signup" className="site-header-btn site-header-btn-solid">
-          {t(lang, "lpSignUp")}
-        </Link>
-      ) : null}
     </>
   ) : null;
 
@@ -131,7 +156,7 @@ export default function SiteHeader({ hideLogin = false, hideSignup = false, stic
 
       <div className="site-header-actions">
         <LangSelect className="site-header-lang" />
-        {desktopAccount}
+        {user ? <UserMenu variant="landing" /> : guestButtons}
       </div>
 
       <button
@@ -154,6 +179,7 @@ export default function SiteHeader({ hideLogin = false, hideSignup = false, stic
       {createPortal(
         <div
           id={drawerId}
+          ref={drawerRef}
           className={`site-header-drawer${menuOpen ? " is-open" : ""}${loggedIn ? " is-authed" : " is-guest"}`}
           aria-hidden={!menuOpen}
           inert={menuOpen ? undefined : true}
@@ -253,10 +279,7 @@ export default function SiteHeader({ hideLogin = false, hideSignup = false, stic
                 <LangSelect className="site-header-lang" />
               </div>
               {guestButtons ? (
-                <>
-                  <div className="site-header-drawer-divider" />
-                  <div className="site-header-drawer-account">{guestButtons}</div>
-                </>
+                <div className="site-header-drawer-account">{guestButtons}</div>
               ) : null}
             </>
           )}
