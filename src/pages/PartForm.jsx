@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { formatApiError, inventoryApi, uploadApi } from "../api";
+import CompatibleVehiclesEditor from "../components/CompatibleVehiclesEditor";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import FormField from "../components/FormField";
 import FormPanel from "../components/FormPanel";
 import MoneyInput from "../components/MoneyInput";
@@ -19,12 +21,24 @@ const empty = {
   vehicleCategory: "FOUR_WHEELER",
   brand: "",
   model: "",
+  partNumber: "",
+  compatibleVehicles: [],
   quantity: 1,
   minQuantity: 2,
   sellingPrice: "",
   costPrice: "",
   images: [],
 };
+
+function normalizeCompat(list) {
+  if (!Array.isArray(list)) return [];
+  return list
+    .map((v) => ({
+      make: String(v?.make || "").trim(),
+      model: String(v?.model || "").trim(),
+    }))
+    .filter((v) => v.make || v.model);
+}
 
 export default function PartForm() {
   const { id } = useParams();
@@ -43,7 +57,8 @@ export default function PartForm() {
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
   const [history, setHistory] = useState([]);
-  const [moreOpen, setMoreOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(true);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (!editing) return;
@@ -58,15 +73,14 @@ export default function PartForm() {
           vehicleCategory: item.vehicleCategory || "FOUR_WHEELER",
           brand: item.brand || "",
           model: item.model || "",
+          partNumber: item.partNumber || "",
+          compatibleVehicles: normalizeCompat(item.compatibleVehicles),
           quantity: item.quantity ?? 1,
           minQuantity: item.minQuantity ?? 2,
           sellingPrice: item.sellingPrice ?? "",
           costPrice: "",
           images: item.images || [],
         });
-        const hasExtra =
-          item.localName || item.specification || item.brand || item.model || item.description;
-        if (hasExtra) setMoreOpen(true);
       })
       .catch((e) => setError(formatApiError(e)));
     inventoryApi
@@ -89,6 +103,8 @@ export default function PartForm() {
       vehicleCategory: form.vehicleCategory,
       brand: form.brand.trim() || undefined,
       model: form.model.trim() || undefined,
+      partNumber: form.partNumber.trim(),
+      compatibleVehicles: normalizeCompat(form.compatibleVehicles),
       minQuantity: Number(form.minQuantity) || 2,
       sellingPrice: form.sellingPrice === "" ? undefined : Number(form.sellingPrice),
       costPrice: form.costPrice === "" ? undefined : Number(form.costPrice),
@@ -144,7 +160,7 @@ export default function PartForm() {
       if (created?.isDuplicate) setToast(t(lang, "duplicateWarn"));
       if (addAnother) {
         setForm(empty);
-        setMoreOpen(false);
+        setMoreOpen(true);
         setToast(created?.isDuplicate ? t(lang, "duplicateWarn") : t(lang, "saved"));
         setTimeout(() => setToast(""), 2200);
       } else {
@@ -158,7 +174,6 @@ export default function PartForm() {
   }
 
   async function remove() {
-    if (!confirm(t(lang, "confirmDelete"))) return;
     setBusy(true);
     try {
       await inventoryApi.remove(id);
@@ -166,11 +181,12 @@ export default function PartForm() {
     } catch (e) {
       setError(formatApiError(e));
       setBusy(false);
+      setConfirmDelete(false);
     }
   }
 
   return (
-    <div className="content part-form-page">
+    <div className={`content part-form-page${viewOnly ? " is-view" : ""}`}>
       <div className="part-form">
         <header className="part-form-top">
           <button type="button" className="part-form-back" onClick={() => nav("/inventory")} aria-label={t(lang, "inventory")}>
@@ -236,12 +252,46 @@ export default function PartForm() {
         </div>
 
         <FormPanel className="part-form-more">
-          <button type="button" className="more-toggle" onClick={() => setMoreOpen((v) => !v)}>
-            {moreOpen ? t(lang, "hideMore") : t(lang, "showMore")}
+          <button
+            type="button"
+            className={`more-toggle${moreOpen ? " is-open" : ""}`}
+            onClick={() => setMoreOpen((v) => !v)}
+            aria-expanded={moreOpen}
+          >
+            <span className="more-toggle-label">{moreOpen ? t(lang, "hideMore") : t(lang, "showMore")}</span>
+            <span className="more-toggle-arrow" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </span>
           </button>
 
           {moreOpen ? (
             <div className="more-panel">
+              <FormField label={t(lang, "partNumber")}>
+                <input
+                  className="f-inp"
+                  value={form.partNumber}
+                  disabled={viewOnly}
+                  onChange={(e) => set("partNumber", e.target.value)}
+                  placeholder={t(lang, "partNumberPlaceholder")}
+                />
+              </FormField>
+
+              <FormField label={t(lang, "compatibleVehicles")}>
+                <CompatibleVehiclesEditor
+                  value={form.compatibleVehicles}
+                  disabled={viewOnly}
+                  onChange={(next) => set("compatibleVehicles", next)}
+                  makeLabel={t(lang, "vehicleMake")}
+                  modelLabel={t(lang, "vehicleModel")}
+                  addLabel={t(lang, "addVehicle")}
+                  emptyHint={t(lang, "compatibleVehiclesHint")}
+                  makePlaceholder={t(lang, "vehicleMakePlaceholder")}
+                  modelPlaceholder={t(lang, "vehicleModelPlaceholder")}
+                />
+              </FormField>
+
               <div className="part-form-row">
                 <FormField label={t(lang, "brandField")}>
                   <input className="f-inp" value={form.brand} disabled={viewOnly} onChange={(e) => set("brand", e.target.value)} />
@@ -300,18 +350,9 @@ export default function PartForm() {
 
         <div className="part-form-actions">
           {viewOnly ? (
-            <>
-              <button type="button" className="btn btn-g" onClick={() => nav("/inventory")}>
-                {t(lang, "cancel")}
-              </button>
-              <button
-                type="button"
-                className="btn btn-p"
-                onClick={() => nav(`/inventory/${id}/edit`, { replace: true, state: {} })}
-              >
-                {t(lang, "edit")}
-              </button>
-            </>
+            <button type="button" className="btn btn-p part-form-save" onClick={() => nav("/inventory")}>
+              {t(lang, "back")}
+            </button>
           ) : (
             <>
               <button type="button" className="btn btn-g part-form-cancel" onClick={() => nav("/inventory")}>
@@ -322,7 +363,7 @@ export default function PartForm() {
                   {t(lang, "saveAnother")}
                 </button>
               ) : (
-                <button type="button" className="btn btn-d part-form-delete" disabled={busy} onClick={remove}>
+                <button type="button" className="btn btn-d part-form-delete" disabled={busy} onClick={() => setConfirmDelete(true)}>
                   {t(lang, "delete")}
                 </button>
               )}
@@ -339,6 +380,20 @@ export default function PartForm() {
         </div>
       </div>
       {toast ? <div className="toast">{toast}</div> : null}
+      {confirmDelete ? (
+        <ConfirmDeleteModal
+          title={t(lang, "confirmDeleteTitle")}
+          message={t(lang, "confirmDelete")}
+          itemName={form.partName}
+          cancelLabel={t(lang, "cancel")}
+          deleteLabel={busy ? t(lang, "deleting") : t(lang, "delete")}
+          busy={busy}
+          onCancel={() => {
+            if (!busy) setConfirmDelete(false);
+          }}
+          onConfirm={remove}
+        />
+      ) : null}
     </div>
   );
 }

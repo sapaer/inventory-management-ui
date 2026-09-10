@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { formatApiError, inventoryApi } from "../api";
 import { useLang } from "../context/LangContext";
 import { t, vehicleLabel, VEHICLES } from "../i18n";
 import { formatPrice, formatDate, stockOf } from "../utils";
 import StatusBadge from "../components/StatusBadge";
-import EditChoiceModal from "../components/EditChoiceModal";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import SetQuantityModal from "../components/SetQuantityModal";
 
 export default function Inventory() {
@@ -20,8 +20,8 @@ export default function Inventory() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
-  const [editChoiceItem, setEditChoiceItem] = useState(null);
   const [qtyItem, setQtyItem] = useState(null);
+  const [deleteItem, setDeleteItem] = useState(null);
 
   async function load() {
     setError("");
@@ -73,19 +73,24 @@ export default function Inventory() {
     setStatus((prev) => (prev === "LOW_STOCK" ? "" : "LOW_STOCK"));
   }
 
-  async function removeItem(item) {
-    if (!confirm(t(lang, "confirmDelete"))) return;
-    setDeletingId(item.id);
+  async function removeItem() {
+    if (!deleteItem) return;
+    setDeletingId(deleteItem.id);
     setError("");
     try {
-      await inventoryApi.remove(item.id);
-      setItems((rows) => rows.filter((r) => r.id !== item.id));
-      setAllItems((rows) => rows.filter((r) => r.id !== item.id));
+      await inventoryApi.remove(deleteItem.id);
+      setItems((rows) => rows.filter((r) => r.id !== deleteItem.id));
+      setAllItems((rows) => rows.filter((r) => r.id !== deleteItem.id));
+      setDeleteItem(null);
     } catch (e) {
       setError(formatApiError(e));
     } finally {
       setDeletingId(null);
     }
+  }
+
+  function openProduct(item) {
+    nav(`/inventory/${item.id}/edit`, { state: { viewOnly: true } });
   }
 
   return (
@@ -130,111 +135,171 @@ export default function Inventory() {
           </button>
         </div>
       ) : (
-        <div className="card">
-          <div className="tbl-wrap">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>{t(lang, "partName")}</th>
-                  <th>{t(lang, "vehicle")}</th>
-                  <th>{t(lang, "quantity")}</th>
-                  <th>{t(lang, "price")}</th>
-                  <th>{t(lang, "status")}</th>
-                  <th>{t(lang, "updated")}</th>
-                  <th className="tbl-actions-hd">{t(lang, "actions")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => {
-                  const st = stockOf(item);
-                  return (
-                    <tr key={item.id}>
-                      <td>
-                        <div className="pname">{item.partName}</div>
-                        <div className="pspec">{item.specification || item.localName || item.brand || ""}</div>
-                      </td>
-                      <td>
-                        <span className={`badge ${item.vehicleCategory === "FOUR_WHEELER" ? "b-bl" : "b-gr"}`}>
-                          {vehicleLabel(item.vehicleCategory, lang)}
-                        </span>
-                      </td>
-                      <td>
-                        <span
-                          className={`qty-text${st === "LOW_STOCK" ? " low" : ""}${st === "OUT_OF_STOCK" ? " out" : ""}`}
-                        >
-                          {item.quantity}
-                        </span>
-                      </td>
-                      <td style={{ fontWeight: 600 }}>{formatPrice(item.sellingPrice)}</td>
-                      <td>
-                        <StatusBadge status={st} lang={lang} />
-                      </td>
-                      <td style={{ fontSize: 12, color: "#9ca3af" }}>{formatDate(item.updatedAt)}</td>
-                      <td>
-                        <div className="row-actions">
-                          <button
-                            type="button"
-                            className="act-btn act-view"
-                            onClick={() => nav(`/inventory/${item.id}/edit`, { state: { viewOnly: true } })}
-                          >
-                            <ViewIcon />
-                            <span>{t(lang, "view")}</span>
-                          </button>
-                          <button
-                            type="button"
-                            className="act-btn act-edit"
-                            onClick={() => setEditChoiceItem(item)}
-                          >
-                            <EditIcon />
-                            <span>{t(lang, "edit")}</span>
-                          </button>
-                          <button
-                            type="button"
-                            className="act-btn act-delete"
-                            disabled={deletingId === item.id}
-                            onClick={() => removeItem(item)}
-                          >
-                            <TrashIcon />
-                            <span>{t(lang, "delete")}</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        <>
+          <div className="inv-list" role="list">
+            {items.map((item) => {
+              const st = stockOf(item);
+              return (
+                <div key={item.id} className="inv-list-row" role="listitem">
+                  <button type="button" className="inv-list-body" onClick={() => openProduct(item)}>
+                    <div className="inv-list-main">
+                      <div className="inv-list-name">{item.partName}</div>
+                      <div className="inv-list-price">{formatPrice(item.sellingPrice)}</div>
+                      <span className="inv-list-cat">{vehicleLabel(item.vehicleCategory)}</span>
+                    </div>
+                    <div className="inv-list-right">
+                      <span
+                        className={`inv-list-qty${st === "LOW_STOCK" ? " low" : ""}${st === "OUT_OF_STOCK" ? " out" : ""}`}
+                      >
+                        {item.quantity}
+                      </span>
+                      <span className="inv-list-qty-lbl">{t(lang, "quantity")}</span>
+                    </div>
+                  </button>
+                  <div className="inv-list-actions">
+                    <button
+                      type="button"
+                      className="act-btn act-view"
+                      aria-label={t(lang, "view")}
+                      onClick={() => openProduct(item)}
+                    >
+                      <ViewIcon />
+                      <span>{t(lang, "view")}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="act-btn act-edit"
+                      aria-label={t(lang, "edit")}
+                      onClick={() => setQtyItem(item)}
+                    >
+                      <EditIcon />
+                      <span>{t(lang, "edit")}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="act-btn act-delete"
+                      aria-label={t(lang, "delete")}
+                      disabled={deletingId === item.id}
+                      onClick={() => setDeleteItem(item)}
+                    >
+                      <TrashIcon />
+                      <span>{t(lang, "delete")}</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+            <div className="inv-list-foot">{t(lang, "showing", items.length, allItems.length)}</div>
           </div>
-          <div className="tbl-foot">{t(lang, "showing", items.length, allItems.length)}</div>
-        </div>
+
+          <div className="card inv-table">
+            <div className="tbl-wrap">
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    <th>{t(lang, "partName")}</th>
+                    <th>{t(lang, "vehicle")}</th>
+                    <th>{t(lang, "quantity")}</th>
+                    <th>{t(lang, "price")}</th>
+                    <th>{t(lang, "status")}</th>
+                    <th>{t(lang, "updated")}</th>
+                    <th className="tbl-actions-hd">{t(lang, "actions")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item) => {
+                    const st = stockOf(item);
+                    return (
+                      <tr key={item.id}>
+                        <td>
+                          <div className="pname">{item.partName}</div>
+                          <div className="pspec">{item.specification || item.localName || item.brand || ""}</div>
+                        </td>
+                        <td>
+                          <span className={`badge ${item.vehicleCategory === "FOUR_WHEELER" ? "b-bl" : "b-gr"}`}>
+                            {vehicleLabel(item.vehicleCategory)}
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            className={`qty-text${st === "LOW_STOCK" ? " low" : ""}${st === "OUT_OF_STOCK" ? " out" : ""}`}
+                          >
+                            {item.quantity}
+                          </span>
+                        </td>
+                        <td style={{ fontWeight: 600 }}>{formatPrice(item.sellingPrice)}</td>
+                        <td>
+                          <StatusBadge status={st} lang={lang} />
+                        </td>
+                        <td style={{ fontSize: 12, color: "#9ca3af" }}>{formatDate(item.updatedAt)}</td>
+                        <td>
+                          <div className="row-actions">
+                            <button
+                              type="button"
+                              className="act-btn act-view"
+                              onClick={() => openProduct(item)}
+                            >
+                              <ViewIcon />
+                              <span>{t(lang, "view")}</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="act-btn act-edit"
+                              onClick={() => setQtyItem(item)}
+                            >
+                              <EditIcon />
+                              <span>{t(lang, "edit")}</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="act-btn act-delete"
+                              disabled={deletingId === item.id}
+                              onClick={() => setDeleteItem(item)}
+                            >
+                              <TrashIcon />
+                              <span>{t(lang, "delete")}</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div className="tbl-foot">{t(lang, "showing", items.length, allItems.length)}</div>
+          </div>
+        </>
       )}
-      {editChoiceItem ? (
-        <EditChoiceModal
-          item={editChoiceItem}
-          lang={lang}
-          t={t}
-          onClose={() => setEditChoiceItem(null)}
-          onEditQuantity={() => {
-            setQtyItem(editChoiceItem);
-            setEditChoiceItem(null);
-          }}
-          onEditDetails={() => {
-            const id = editChoiceItem.id;
-            setEditChoiceItem(null);
-            nav(`/inventory/${id}/edit`);
-          }}
-        />
-      ) : null}
       {qtyItem ? (
         <SetQuantityModal
           item={qtyItem}
           lang={lang}
           onClose={() => setQtyItem(null)}
+          onEditProduct={() => {
+            const id = qtyItem.id;
+            setQtyItem(null);
+            nav(`/inventory/${id}/edit`);
+          }}
           onSaved={(updated) => {
             setItems((rows) => rows.map((r) => (r.id === updated.id ? updated : r)));
             setAllItems((rows) => rows.map((r) => (r.id === updated.id ? updated : r)));
             setQtyItem(null);
           }}
+        />
+      ) : null}
+      {deleteItem ? (
+        <ConfirmDeleteModal
+          title={t(lang, "confirmDeleteTitle")}
+          message={t(lang, "confirmDelete")}
+          itemName={deleteItem.partName}
+          cancelLabel={t(lang, "cancel")}
+          deleteLabel={deletingId ? t(lang, "deleting") : t(lang, "delete")}
+          busy={Boolean(deletingId)}
+          onCancel={() => {
+            if (!deletingId) setDeleteItem(null);
+          }}
+          onConfirm={removeItem}
         />
       ) : null}
     </div>
