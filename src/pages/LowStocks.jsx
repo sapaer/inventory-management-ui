@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { formatApiError, inventoryApi } from "../api";
 import { useLang } from "../context/LangContext";
 import { t, vehicleLabel } from "../i18n";
@@ -8,6 +9,7 @@ import SetQuantityModal from "../components/SetQuantityModal";
 
 export default function LowStocks() {
   const { lang } = useLang();
+  const nav = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -125,6 +127,11 @@ export default function LowStocks() {
           item={modalItem}
           lang={lang}
           onClose={() => setModalItem(null)}
+          onEditProduct={() => {
+            const id = modalItem.id;
+            setModalItem(null);
+            nav(`/inventory/${id}/edit`);
+          }}
           onSaved={() => {
             setModalItem(null);
             load();
