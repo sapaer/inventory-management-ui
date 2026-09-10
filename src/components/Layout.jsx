@@ -1,7 +1,9 @@
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { inventoryApi } from "../api";
+import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
+import { useTheme } from "../context/ThemeContext";
 import { t } from "../i18n";
 import NotificationBell from "./NotificationBell";
 import BrandLogo from "./BrandLogo";
@@ -16,6 +18,7 @@ const NAV = [
 ];
 
 export default function Layout() {
+  const { signOut } = useAuth();
   const { lang } = useLang();
   const loc = useLocation();
   const nav = useNavigate();
@@ -23,6 +26,14 @@ export default function Layout() {
   const [query, setQuery] = useState("");
   const [acctOpen, setAcctOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  async function logout() {
+    setAcctOpen(false);
+    setDrawerOpen(false);
+    await signOut();
+    nav("/auth?mode=login", { replace: true });
+  }
+
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== "undefined" && window.matchMedia("(max-width: 900px)").matches,
   );
@@ -159,19 +170,19 @@ export default function Layout() {
           {acctOpen ? (
             <div className="sidebar-acct-menu" role="menu">
               <Link
-                to="/account?section=profile"
+                to="/account"
                 className={`sidebar-acct-item${acctSection === "profile" ? " active" : ""}`}
                 role="menuitem"
                 onClick={() => setAcctOpen(false)}
               >
                 <span className="nav-ic">
-                  <GearIcon />
+                  <UserIcon />
                 </span>
-                {t(lang, "profile")}
+                {t(lang, "basicDetails")}
               </Link>
               <Link
-                to="/account?section=store"
-                className={`sidebar-acct-item${acctSection === "store" ? " active" : ""}`}
+                to="/account?section=shop"
+                className={`sidebar-acct-item${acctSection === "shop" ? " active" : ""}`}
                 role="menuitem"
                 onClick={() => setAcctOpen(false)}
               >
@@ -183,6 +194,17 @@ export default function Layout() {
               <div className="sidebar-acct-item sidebar-acct-notif">
                 <NotificationBell label={t(lang, "notifications")} />
               </div>
+              <button
+                type="button"
+                className="sidebar-acct-item sidebar-acct-logout"
+                role="menuitem"
+                onClick={logout}
+              >
+                <span className="nav-ic">
+                  <LogoutIcon />
+                </span>
+                {t(lang, "logout")}
+              </button>
             </div>
           ) : null}
           <button
@@ -226,6 +248,10 @@ export default function Layout() {
                 />
               </form>
             ) : null}
+            <div className="topbar-bell">
+              <NotificationBell />
+            </div>
+            <ThemeToggle lang={lang} />
             <LangSelect className="topbar-lang" />
             <UserMenu />
             <BrandLogo className="topbar-brand" to="/welcome" />
@@ -246,6 +272,40 @@ export default function Layout() {
   );
 }
 
+function ThemeToggle({ lang }) {
+  const { theme, toggle } = useTheme();
+  const dark = theme === "dark";
+  const label = dark ? t(lang, "switchToLight") : t(lang, "switchToDark");
+  return (
+    <button
+      type="button"
+      className="theme-toggle icon-tip"
+      role="switch"
+      aria-checked={dark}
+      aria-label={label}
+      title={label}
+      data-tip={label}
+      onClick={toggle}
+    >
+      {dark ? <SunIcon /> : <MoonIcon />}
+    </button>
+  );
+}
+function SunIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </svg>
+  );
+}
+function MoonIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  );
+}
 function UserIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -321,11 +381,10 @@ function ChartIcon() {
     </svg>
   );
 }
-function GearIcon() {
+function LogoutIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <path d="M16 17l5-5-5-5M21 12H9M12 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6" />
     </svg>
   );
 }

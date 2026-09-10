@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, useSearchParams } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import Layout from "./components/Layout";
 import Loader from "./components/Loader";
@@ -9,7 +9,7 @@ import Inventory from "./pages/Inventory";
 import PartForm from "./pages/PartForm";
 import LowStocks from "./pages/LowStocks";
 import Insights from "./pages/Insights";
-import Settings from "./pages/Settings";
+import Account from "./pages/Account";
 import AccountSetup from "./pages/AccountSetup";
 import Help from "./pages/Help";
 import Contact from "./pages/Contact";
@@ -46,17 +46,6 @@ function Home() {
   if (!ready) return <Loader />;
   if (user) return <Navigate to="/dashboard" replace />;
   return <Landing />;
-}
-
-/**
- * Everything reached from the "My account" menu lives at /account; the section
- * is a query param (?section=profile | ?section=store) so the path never changes.
- */
-function AccountView() {
-  const [params] = useSearchParams();
-  const section = params.get("section");
-  if (section === "store") return <div className="content" />;
-  return <Settings />;
 }
 
 export default function App() {
@@ -99,9 +88,9 @@ export default function App() {
         <Route path="/inventory/:id/edit" element={<PartForm />} />
         <Route path="/low-stocks" element={<LowStocks />} />
         <Route path="/insights" element={<Insights />} />
-        <Route path="/account" element={<AccountView />} />
-        <Route path="/profile" element={<Navigate to="/account?section=profile" replace />} />
-        <Route path="/settings" element={<Navigate to="/account?section=profile" replace />} />
+        <Route path="/account" element={<Account />} />
+        <Route path="/profile" element={<Navigate to="/account" replace />} />
+        <Route path="/settings" element={<Navigate to="/account" replace />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

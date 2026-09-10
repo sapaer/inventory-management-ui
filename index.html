@@ -16,6 +16,14 @@
           var lang = localStorage.getItem("pn_lang");
           if (lang === "hi" || lang === "en") document.documentElement.lang = lang;
         } catch (e) {}
+        try {
+          var t = localStorage.getItem("pn_theme");
+          if (t !== "light" && t !== "dark") {
+            t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          }
+          document.documentElement.setAttribute("data-theme", t);
+          document.documentElement.style.colorScheme = t;
+        } catch (e) {}
       })();
     </script>
   </head>

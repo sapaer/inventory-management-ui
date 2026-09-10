@@ -4,7 +4,17 @@ import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
 import { locationLabel } from "../utils";
 
-export default function LocationPicker({ value, onChange, required = false, compact = false }) {
+export default function LocationPicker({
+  value,
+  onChange,
+  required = false,
+  compact = false,
+  // Force the map on even in compact mode.
+  showMap = !compact,
+  // When true, picking a place / using GPS updates the pin + locality but never
+  // overwrites the address textarea — the user types the address themselves.
+  keepAddress = false,
+}) {
   const { lang } = useLang();
   const [query, setQuery] = useState(locationLabel(value) || "");
   const [hits, setHits] = useState([]);
@@ -56,7 +66,7 @@ export default function LocationPicker({ value, onChange, required = false, comp
   }
 
   function applyPlace(loc) {
-    const nextAddress = loc.address || value?.address || "";
+    const nextAddress = keepAddress ? value?.address || "" : loc.address || value?.address || "";
     onChange({
       ...value,
       address: nextAddress,
@@ -218,7 +228,7 @@ export default function LocationPicker({ value, onChange, required = false, comp
         </div>
       ) : null}
 
-      {hasPin && !compact ? (
+      {hasPin && showMap ? (
         <iframe
           title={t(lang, "shopLocation")}
           className="loc-map"
