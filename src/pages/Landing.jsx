@@ -1,5 +1,3 @@
-import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
@@ -8,28 +6,18 @@ import GlassPanel from "../components/GlassPanel";
 import ValueCard from "../components/ValueCard";
 import ReviewCarousel from "../components/ReviewCarousel";
 import InventoryPreview from "../components/InventoryPreview";
-import SectionWave from "../components/SectionWave";
 import { t } from "../i18n";
-import { needsShopSetup } from "../utils";
 import "./Landing.css";
 
 /** Closing PartNear hero is parked for now — flip to true to bring it back. */
 const SHOW_CLOSING_HERO = false;
 
-const NAV_LINKS = [
-  { href: "#product", labelKey: "lpNavProduct" },
-  { href: "#reviews", labelKey: "lpNavReviews" },
-  { href: "#about-close", labelKey: "lpNavAbout" },
-];
-
 export default function Landing() {
-  const { user } = useAuth();
   const { lang } = useLang();
-  const dashboardTo = user && needsShopSetup(user) ? "/account-setup" : "/dashboard";
 
   return (
     <div className="lp">
-      <SiteHeader sticky links={NAV_LINKS} />
+      <SiteHeader sticky />
 
       <section className="lp-preview" id="preview">
         <div className="lp-preview-bg" aria-hidden="true">
@@ -43,13 +31,6 @@ export default function Landing() {
             </p>
             <h1 className="lp-hero-title">{t(lang, "heroTitle")}</h1>
             <p className="lp-hero-sub">{t(lang, "heroSub")}</p>
-            {user ? (
-              <div className="lp-hero-ctas">
-                <Link to={dashboardTo} className="lp-btn lp-btn-primary">
-                  {t(lang, "lpGoDashboard")}
-                </Link>
-              </div>
-            ) : null}
             <ul className="lp-preview-feats">
               <li className="glass glass-chip">
                 <BoxFeatIcon />
@@ -67,7 +48,6 @@ export default function Landing() {
           </div>
           <InventoryPreview />
         </div>
-        <SectionWave className="lp-preview-wave" />
       </section>
 
       <div className="lp-mid">
@@ -122,7 +102,6 @@ export default function Landing() {
             </GlassPanel>
           </div>
         </PageSection>
-        <SectionWave className="lp-mid-wave" fill="#062117" />
       </div>
 
       {SHOW_CLOSING_HERO ? (

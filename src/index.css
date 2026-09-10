@@ -1158,6 +1158,9 @@ a.sidebar-acct-item.active {
 .stat-note { font-size: 11px; margin-top: 4px; color: var(--muted); }
 
 .qa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+@media (min-width: 901px) {
+  .qa-grid { column-gap: 24px; }
+}
 .qa-card {
   background: #fff;
   border-radius: 12px;
@@ -2021,7 +2024,6 @@ a.sidebar-acct-item.active {
 
 @media (max-width: 540px) {
   /* Phone: drop the marketing panel, show only the form. */
-  .login-page .site-header { padding: 12px 16px; }
   .site-header-brand { font-size: 1.05rem; }
   .login { padding: 0; gap: 0; }
   .login-left { display: none; }
@@ -2075,7 +2077,7 @@ a.sidebar-acct-item.active {
     top: 0;
     right: 0;
     left: auto;
-    width: min(86vw, 340px);
+    width: min(60vw, 216px);
     height: 100vh;
     height: 100dvh;
     max-height: none;

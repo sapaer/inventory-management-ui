@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
 import { DUMMY_INVENTORY_PREVIEW } from "../data/inventoryPreviewDummy";
@@ -6,16 +7,21 @@ import "./GlassPanel.css";
 
 export default function InventoryPreview({ data = DUMMY_INVENTORY_PREVIEW }) {
   const { lang } = useLang();
+  const { user, ready } = useAuth();
   const { stats, chart, topParts } = data;
-  const inventoryTo = "/inventory";
+  const loggedIn = ready && Boolean(user);
 
   return (
     <div className="lp-inv glass glass-dark">
       <div className="lp-inv-head">
         <h3>{t(lang, "inventory")}</h3>
-        <Link to={inventoryTo} className="lp-inv-view">
-          {t(lang, "viewAll")}
-        </Link>
+        {loggedIn ? (
+          <Link to="/dashboard" className="lp-inv-view">
+            {t(lang, "viewAll")}
+          </Link>
+        ) : (
+          <span className="lp-inv-view is-static">{t(lang, "viewAll")}</span>
+        )}
       </div>
       <div className="lp-inv-stats">
         {stats.map((row) => (
