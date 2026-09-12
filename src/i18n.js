@@ -474,7 +474,6 @@ export const messages = {
   sortQtyLow: "Quantity (low first)",
   sortRecent: "Recently updated",
   skuLbl: "SKU",
-  marginPlus: (n) => `+${n} margin`,
   qtyMinLbl: (n) => `min ${n}`,
   marginLbl: "Margin",
   invalidPhone: "Enter a valid 10-digit Indian mobile number",

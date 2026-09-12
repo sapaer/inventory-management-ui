@@ -1507,35 +1507,9 @@ button.sidebar-acct-item:hover {
   width: 22px;
   height: 22px;
 }
-.inv-thumb-big { width: 56px; height: 56px; border-radius: 14px; }
-.inv-thumb-big.inv-thumb-ic svg { width: 26px; height: 26px; }
-.inv-thumb-wrap { position: relative; flex-shrink: 0; }
-.inv-thumb-qty {
-  position: absolute;
-  bottom: -6px;
-  right: -6px;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 5px;
-  border-radius: 999px;
-  border: 2px solid #fff;
-  background: var(--forest);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.inv-thumb-qty.low { background: #b45309; }
-.inv-thumb-qty.out { background: #b91c1c; }
 .inv-list-main {
   min-width: 0;
   flex: 1;
-}
-.inv-list-veh {
-  font-weight: 500;
-  color: var(--muted);
 }
 .inv-list-name {
   font-size: 15px;
@@ -1545,97 +1519,36 @@ button.sidebar-acct-item:hover {
   word-break: break-word;
 }
 .inv-list-price {
-  margin-top: 4px;
   font-size: 13px;
   color: #4b5563;
-  font-weight: 500;
-}
-.inv-list-margin {
-  margin-left: 6px;
-  font-size: 11.5px;
   font-weight: 600;
-  color: var(--forest);
-}
-.inv-list-sku {
-  margin-top: 2px;
-  font-size: 11px;
-  color: var(--muted);
-}
-.inv-list-right {
   flex-shrink: 0;
-  text-align: right;
-  padding-top: 2px;
 }
-.inv-list-qty {
-  display: block;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--ink);
-  line-height: 1.2;
-}
-.inv-list-qty.low { color: #b45309; }
-.inv-list-qty.out { color: #b91c1c; }
-.inv-list-qty-lbl {
-  display: block;
-  margin-top: 2px;
-  font-size: 10px;
-  color: var(--muted);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-/* "Minimal" card: status word instead of vehicle text, no min-qty caption. */
-.inv-list-status {
-  margin-top: 3px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #15803d;
-}
-.inv-list-status.low { color: #b45309; }
-.inv-list-status.out { color: #b91c1c; }
-
-/* "Image-forward" card: name+price share a line, everything else collapses
-   into one small meta line, quantity moves onto the thumbnail as a badge. */
+/* Name on the left, price pinned to the far right, same line. */
 .inv-list-name-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
 }
-.inv-list-name-row .inv-list-price { margin-top: 0; flex-shrink: 0; }
+/* Vehicle · status · quantity, all on one line below the name. */
 .inv-list-meta {
   margin-top: 4px;
-  font-size: 12px;
+  font-size: 12.5px;
   color: var(--muted);
 }
-
-/* DEV: card-design picker strip — remove once a layout is chosen. */
-.inv-dev-switches { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 10px; }
-.inv-dev-switch-label {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted);
-}
-.inv-dev-switch-btns { display: flex; flex-wrap: wrap; gap: 5px; }
-.inv-dev-chip {
-  padding: 4px 9px;
-  border-radius: 999px;
-  border: 1px dashed var(--line);
-  background: #fff;
-  color: var(--muted);
-  font-size: 10.5px;
+.inv-list-status {
   font-weight: 600;
-  cursor: pointer;
+  color: #15803d;
 }
-.inv-dev-chip.on {
-  border-style: solid;
-  border-color: var(--forest);
-  color: var(--forest);
-  background: color-mix(in srgb, var(--forest) 10%, #fff);
+.inv-list-status.low { color: #b45309; }
+.inv-list-status.out { color: #b91c1c; }
+.inv-list-meta-qty {
+  font-weight: 700;
+  color: var(--ink);
 }
+.inv-list-meta-qty.low { color: #b45309; }
+.inv-list-meta-qty.out { color: #b91c1c; }
 .inv-list-actions {
   display: flex;
   align-items: center;

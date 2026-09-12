@@ -43,33 +43,6 @@ function sortItems(items, sort) {
   return list.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
 }
 
-// DEV ONLY: three candidate mobile-card layouts, switchable live. Pick a
-// winner, then delete this picker plus the other two card bodies.
-const CARD_STYLES = [
-  { id: "minimal", label: "Minimal" },
-  { id: "balanced", label: "Balanced" },
-  { id: "imageForward", label: "Image-forward" },
-];
-
-function useDevStyle(storageKey, fallback) {
-  const [style, setStyle] = useState(() => {
-    try {
-      return localStorage.getItem(storageKey) || fallback;
-    } catch {
-      return fallback;
-    }
-  });
-  const update = (next) => {
-    setStyle(next);
-    try {
-      localStorage.setItem(storageKey, next);
-    } catch {
-      /* ignore */
-    }
-  };
-  return [style, update];
-}
-
 function statusText(lang, st) {
   if (st === "OUT_OF_STOCK") return t(lang, "outBadge");
   if (st === "LOW_STOCK") return t(lang, "lowBadge");
@@ -89,7 +62,6 @@ export default function Inventory() {
   const [deleteItem, setDeleteItem] = useState(null);
   const [seeding, setSeeding] = useState(false);
   const [sort, setSort] = useState("recent");
-  const [cardStyle, setCardStyle] = useDevStyle("pn_dev_invcard", "balanced");
 
   const sortedItems = useMemo(() => sortItems(items, sort), [items, sort]);
 
@@ -166,29 +138,12 @@ export default function Inventory() {
         </div>
       ) : (
         <>
-          <div className="inv-dev-switches">
-            <span className="inv-dev-switch-label">Card design (dev):</span>
-            <div className="inv-dev-switch-btns">
-              {CARD_STYLES.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  className={`inv-dev-chip${cardStyle === opt.id ? " on" : ""}`}
-                  onClick={() => setCardStyle(opt.id)}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
           <div className="inv-list" role="list">
             {sortedItems.map((item) => (
               <PartCard
                 key={item.id}
                 item={item}
                 lang={lang}
-                cardStyle={cardStyle}
                 deletingId={deletingId}
                 onView={() => setQtyItem(item)}
                 onEdit={() => openEdit(item)}
@@ -395,71 +350,24 @@ function CheckIcon() {
   );
 }
 
-/* DEV: three candidate card bodies sharing the same actions row — pick a
-   winner via the chip picker above the list, then delete the other two
-   branches and this comment. */
-function PartCard({ item, lang, cardStyle, deletingId, onView, onEdit, onDelete }) {
+function PartCard({ item, lang, deletingId, onView, onEdit, onDelete }) {
   const st = stockOf(item);
-  const margin = Number(item.costPrice) > 0 ? (Number(item.sellingPrice) || 0) - Number(item.costPrice) : null;
   const qtyCls = `${st === "LOW_STOCK" ? " low" : ""}${st === "OUT_OF_STOCK" ? " out" : ""}`;
 
   return (
     <div className="inv-list-row" role="listitem">
-      <button type="button" className={`inv-list-body inv-card-${cardStyle}`} onClick={onView}>
-        {cardStyle === "imageForward" ? (
-          <span className="inv-thumb-wrap">
-            <PartThumb item={item} big />
-            <span className={`inv-thumb-qty${qtyCls}`}>{item.quantity}</span>
-          </span>
-        ) : (
-          <PartThumb item={item} />
-        )}
-
-        {cardStyle === "minimal" ? (
-          <div className="inv-list-main">
-            <div className="inv-list-name">{item.partName}</div>
-            <div className={`inv-list-status${qtyCls}`}>{statusText(lang, st)}</div>
-            <div className="inv-list-price">{formatPrice(item.sellingPrice)}</div>
+      <button type="button" className="inv-list-body" onClick={onView}>
+        <PartThumb item={item} />
+        <div className="inv-list-main">
+          <div className="inv-list-name-row">
+            <span className="inv-list-name">{item.partName}</span>
+            <span className="inv-list-price">{formatPrice(item.sellingPrice)}</span>
           </div>
-        ) : cardStyle === "balanced" ? (
-          <div className="inv-list-main">
-            <div className="inv-list-name">
-              {item.partName} <span className="inv-list-veh">· {vehicleLabel(item.vehicleCategory)}</span>
-            </div>
-            {item.partNumber ? (
-              <div className="inv-list-sku">
-                {t(lang, "skuLbl")}: {item.partNumber}
-              </div>
-            ) : null}
-            <div className="inv-list-price">
-              {formatPrice(item.sellingPrice)}
-              {margin != null ? <span className="inv-list-margin">{t(lang, "marginPlus", formatPrice(margin))}</span> : null}
-            </div>
+          <div className="inv-list-meta">
+            {vehicleLabel(item.vehicleCategory)} · <span className={`inv-list-status${qtyCls}`}>{statusText(lang, st)}</span> ·{" "}
+            <span className={`inv-list-meta-qty${qtyCls}`}>{item.quantity}</span>
           </div>
-        ) : (
-          <div className="inv-list-main">
-            <div className="inv-list-name-row">
-              <span className="inv-list-name">{item.partName}</span>
-              <span className="inv-list-price">{formatPrice(item.sellingPrice)}</span>
-            </div>
-            <div className="inv-list-meta">
-              {vehicleLabel(item.vehicleCategory)} · {statusText(lang, st)} · {t(lang, "qtyMinLbl", item.minQuantity)}
-            </div>
-          </div>
-        )}
-
-        {cardStyle !== "imageForward" ? (
-          <div className="inv-list-right">
-            <span className={`inv-list-qty${qtyCls}`}>{item.quantity}</span>
-            {cardStyle === "balanced" ? (
-              <span className="inv-list-qty-lbl">
-                {t(lang, "quantity")} · {t(lang, "qtyMinLbl", item.minQuantity)}
-              </span>
-            ) : (
-              <span className="inv-list-qty-lbl">{t(lang, "quantity")}</span>
-            )}
-          </div>
-        ) : null}
+        </div>
       </button>
       <div className="inv-list-actions">
         <button type="button" className="act-btn act-view" aria-label={t(lang, "view")} onClick={onView}>
@@ -487,14 +395,13 @@ function PartCard({ item, lang, cardStyle, deletingId, onView, onEdit, onDelete 
 
 /* A part's own photo when it has one, otherwise a vehicle-category icon so
    rows never sit as bare text — cheap visual anchor for scanning a list. */
-function PartThumb({ item, big }) {
-  const cls = `inv-thumb${big ? " inv-thumb-big" : ""}`;
+function PartThumb({ item }) {
   if (item.images?.[0]) {
-    return <img className={cls} src={item.images[0]} alt="" />;
+    return <img className="inv-thumb" src={item.images[0]} alt="" />;
   }
   const Icon = VEHICLE_ICON[item.vehicleCategory] || CarIcon;
   return (
-    <span className={`${cls} inv-thumb-ic`}>
+    <span className="inv-thumb inv-thumb-ic">
       <Icon />
     </span>
   );
