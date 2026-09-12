@@ -143,6 +143,20 @@
   .site-header.is-authed .site-header-lang {
     display: none;
   }
+  /* Match the bell button to the profile-menu button next to it — same
+     size the signed-in app shell uses for both on phones. */
+  .site-header.is-authed .site-header-actions .bell-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+  .site-header.is-authed .site-header-actions .bell-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+  .site-header.is-authed .site-header-actions .bell-panel {
+    top: 50px;
+  }
   .site-header-btn {
     min-height: 36px;
     min-width: 0;

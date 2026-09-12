@@ -5,6 +5,7 @@ import { t } from "../i18n";
 import BrandLogo from "./BrandLogo";
 import LangSelect from "./LangSelect";
 import MobileAccountMenu from "./MobileAccountMenu";
+import NotificationBell from "./NotificationBell";
 import UserMenu from "./UserMenu";
 import "./GlassPanel.css";
 import "./SiteHeader.css";
@@ -58,6 +59,7 @@ export default function SiteHeader({ hideLogin = false, hideSignup = false, stic
         <LangSelect className="site-header-lang" />
         {user ? (
           <>
+            <NotificationBell />
             <UserMenu variant="landing" />
             <MobileAccountMenu />
           </>

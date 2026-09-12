@@ -811,35 +811,6 @@ button.sidebar-acct-item:hover {
   background: rgba(239, 68, 68, 0.16) !important;
   color: #ffd7d1;
 }
-.sidebar-acct-notif { padding: 0; }
-.sidebar-acct-notif .bell-wrap { width: 100%; }
-.sidebar-acct-notif .bell-btn {
-  width: 100%;
-  height: auto;
-  justify-content: flex-start;
-  gap: 8px;
-  padding: 9px 12px;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 13px;
-  font-weight: 500;
-}
-.sidebar-acct-notif .bell-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
-.sidebar-acct-notif .bell-btn svg { width: 16px; height: 16px; }
-.sidebar-acct-notif .bell-label { flex: 1; text-align: left; }
-.sidebar-acct-notif .bell-dot {
-  position: static;
-  margin-left: auto;
-}
-.sidebar-acct-notif .bell-panel {
-  left: calc(100% + 8px);
-  right: auto;
-  top: 0;
-  color: var(--ink);
-}
-
 /* Collapsed sidebar — icon-only mini rail */
 .nav-collapsed .sidebar { width: 62px; }
 .nav-collapsed .sidebar-head { padding: 0; justify-content: center; }
@@ -1340,6 +1311,35 @@ button.sidebar-acct-item:hover {
 .empty p { color: var(--muted); font-size: 14px; margin-bottom: 18px; }
 
 .chips { display: flex; gap: 6px; margin-bottom: 0; flex-wrap: wrap; flex: 1; min-width: 0; }
+
+/* Inventory's own search — the page's primary way to find a part, so it
+   gets a properly-sized field instead of the compact topbar .srch. */
+.inv-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 420px;
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+}
+.inv-search:focus-within { border-color: var(--cta); }
+.inv-search span { color: var(--muted); font-size: 16px; flex-shrink: 0; }
+.inv-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+  color: var(--ink);
+}
+@media (max-width: 640px) {
+  .inv-search { max-width: 100%; }
+}
+
 .inv-toolbar {
   display: flex;
   align-items: flex-start;
@@ -1350,9 +1350,26 @@ button.sidebar-acct-item:hover {
 .inv-add {
   flex-shrink: 0;
   white-space: nowrap;
-  padding: 8px 14px;
-  font-size: 13px;
+  padding: 13px 22px;
+  font-size: 15px;
+  border-radius: 10px;
 }
+/* DEV: one-tap sample catalog — same dashed dev-button treatment used on
+   the Insights and Update-stock pages. */
+.inv-dummy-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--forest);
+  background: #fff;
+  border: 1px dashed var(--line);
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+.inv-dummy-btn:hover { background: var(--sage); }
+.inv-dummy-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 @media (max-width: 640px) {
   .inv-toolbar {
     flex-direction: column;
@@ -2123,7 +2140,9 @@ button.sidebar-acct-item:hover {
   .part-form-page {
     padding-left: 12px;
     padding-right: 12px;
-    padding-bottom: 96px;
+    /* reserves exactly the fixed action bar's own height below, so it
+       never sits over the last of the form instead of past it */
+    padding-bottom: calc(var(--tabbar-clear) + 76px);
   }
   .part-form {
     gap: 12px;
@@ -2143,21 +2162,26 @@ button.sidebar-acct-item:hover {
     width: 100%;
   }
   .part-form-actions {
-    position: sticky;
-    /* sticks above the fixed .tabbar instead of sliding underneath it */
+    /* pinned just above the bottom tab bar instead of sitting in normal
+       flow, where it could otherwise land over content on a short page */
+    position: fixed;
+    left: 0;
+    right: 0;
     bottom: var(--tabbar-clear);
-    z-index: 5;
-    margin: 0 -12px;
+    z-index: 20;
     padding: 12px;
-    background: linear-gradient(180deg, rgba(240, 244, 242, 0), var(--sage) 28%);
+    background: color-mix(in srgb, #fff 92%, transparent);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border-top: 1px solid var(--line);
     justify-content: stretch;
   }
-  .part-form-page:not(.is-view) .part-form-cancel,
-  .part-form-page:not(.is-view) .part-form-another,
-  .part-form-page:not(.is-view) .part-form-delete {
+  .part-form-cancel,
+  .part-form-another,
+  .part-form-delete {
     display: none;
   }
-  .part-form-page .part-form-save {
+  .part-form-save {
     width: 100%;
     min-width: 0;
   }
@@ -3288,17 +3312,18 @@ button.sidebar-acct-item:hover {
 }
 .bell-view-all:hover { background: #f0faf5; }
 
-/* Bell button in the mobile top bar — sized to match the profile-menu
-   button (mobile-acct-btn) next to it. */
-.topbar-bell .bell-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-}
-.topbar-bell .bell-btn svg { width: 22px; height: 22px; }
-.topbar-bell .bell-panel { top: 50px; }
-
 @media (max-width: 900px) {
+  /* Bell button in the mobile top bar — sized to match the profile-menu
+     button (mobile-acct-btn) next to it. Desktop keeps the default,
+     smaller .bell-btn size already used in the sidebar. */
+  .topbar-bell .bell-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+  .topbar-bell .bell-btn svg { width: 22px; height: 22px; }
+  .topbar-bell .bell-panel { top: 50px; }
+
   .topbar {
     height: 58px;
     padding: 0 12px;

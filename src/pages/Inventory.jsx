@@ -1,45 +1,48 @@
-﻿import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { formatApiError, inventoryApi } from "../api";
 import { useLang } from "../context/LangContext";
-import { t, vehicleLabel, VEHICLES } from "../i18n";
+import { t, vehicleLabel } from "../i18n";
 import { formatPrice, formatDate, stockOf } from "../utils";
 import StatusBadge from "../components/StatusBadge";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import SetQuantityModal from "../components/SetQuantityModal";
+
+// DEV ONLY: one-tap sample catalog for trying the page out without adding
+// parts by hand. Creates real inventory rows via the normal add-part API.
+const DUMMY_PARTS = [
+  { partName: "Brake Pad Set — Front", vehicleCategory: "FOUR_WHEELER", quantity: 8, minQuantity: 4, costPrice: 480, sellingPrice: 650 },
+  { partName: "Engine Oil Filter", vehicleCategory: "TWO_WHEELER", quantity: 20, minQuantity: 8, costPrice: 90, sellingPrice: 150 },
+  { partName: "Clutch Plate", vehicleCategory: "TWO_WHEELER", quantity: 5, minQuantity: 4, costPrice: 620, sellingPrice: 850 },
+  { partName: "Headlight Assembly", vehicleCategory: "FOUR_WHEELER", quantity: 3, minQuantity: 3, costPrice: 1450, sellingPrice: 1950 },
+  { partName: "Battery 12V 35Ah", vehicleCategory: "FOUR_WHEELER", quantity: 6, minQuantity: 5, costPrice: 2400, sellingPrice: 3100 },
+  { partName: "Chain Sprocket Kit", vehicleCategory: "TWO_WHEELER", quantity: 12, minQuantity: 5, costPrice: 850, sellingPrice: 1150 },
+];
 
 export default function Inventory() {
   const { lang } = useLang();
   const nav = useNavigate();
   const [params] = useSearchParams();
   const [items, setItems] = useState([]);
-  const [allItems, setAllItems] = useState([]);
   const [q, setQ] = useState(() => params.get("q") || "");
-  const [vehicles, setVehicles] = useState([]);
-  const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
   const [qtyItem, setQtyItem] = useState(null);
   const [deleteItem, setDeleteItem] = useState(null);
+  const [seeding, setSeeding] = useState(false);
+  const [toast, setToast] = useState("");
+
+  function flash(msg) {
+    setToast(msg);
+    setTimeout(() => setToast(""), 1800);
+  }
 
   async function load() {
     setError("");
     try {
-      const listParams = { q: q.trim() || undefined };
-      const countRows = await inventoryApi.list(listParams);
-      const counted = Array.isArray(countRows) ? countRows : [];
-      setAllItems(counted);
-      if (vehicles.length || status) {
-        const filtered = await inventoryApi.list({
-          ...listParams,
-          vehicles: vehicles.length ? vehicles : undefined,
-          status: status || undefined,
-        });
-        setItems(Array.isArray(filtered) ? filtered : []);
-      } else {
-        setItems(counted);
-      }
+      const rows = await inventoryApi.list({ q: q.trim() || undefined });
+      setItems(Array.isArray(rows) ? rows : []);
     } catch (e) {
       setError(formatApiError(e));
     } finally {
@@ -51,26 +54,17 @@ export default function Inventory() {
     const id = setTimeout(load, q ? 250 : 0);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, vehicles, status]);
+  }, [q]);
 
-  const counts = useMemo(() => {
-    const c = { ALL: allItems.length };
-    for (const v of VEHICLES) c[v.id] = allItems.filter((i) => i.vehicleCategory === v.id).length;
-    c.LOW = allItems.filter((i) => stockOf(i) !== "IN_STOCK").length;
-    return c;
-  }, [allItems]);
-
-  function clearFilters() {
-    setVehicles([]);
-    setStatus("");
-  }
-
-  function toggleVehicle(id) {
-    setVehicles((prev) => (prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]));
-  }
-
-  function toggleLowStock() {
-    setStatus((prev) => (prev === "LOW_STOCK" ? "" : "LOW_STOCK"));
+  async function addDummyData() {
+    setSeeding(true);
+    try {
+      await Promise.allSettled(DUMMY_PARTS.map((p) => inventoryApi.add(p)));
+      await load();
+      flash(t(lang, "saved"));
+    } finally {
+      setSeeding(false);
+    }
   }
 
   async function removeItem() {
@@ -80,7 +74,6 @@ export default function Inventory() {
     try {
       await inventoryApi.remove(deleteItem.id);
       setItems((rows) => rows.filter((r) => r.id !== deleteItem.id));
-      setAllItems((rows) => rows.filter((r) => r.id !== deleteItem.id));
       setDeleteItem(null);
     } catch (e) {
       setError(formatApiError(e));
@@ -89,37 +82,20 @@ export default function Inventory() {
     }
   }
 
-  function openProduct(item) {
-    nav(`/inventory/${item.id}/edit`, { state: { viewOnly: true } });
+  function openEdit(item) {
+    nav(`/inventory/${item.id}/edit`);
   }
 
   return (
     <div className="content">
-      <div className="srch" style={{ marginBottom: 14, maxWidth: 320 }}>
+      <div className="inv-search">
         <span>⌕</span>
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t(lang, "search")} />
       </div>
       <div className="inv-toolbar">
-        <div className="chips">
-          <button className={`chip${!vehicles.length && !status ? " on" : ""}`} onClick={clearFilters}>
-            {t(lang, "all")} ({counts.ALL})
-          </button>
-          {VEHICLES.map((v) => (
-            <button
-              key={v.id}
-              className={`chip${vehicles.includes(v.id) ? " on" : ""}`}
-              onClick={() => toggleVehicle(v.id)}
-            >
-              {v.label} ({counts[v.id] || 0})
-            </button>
-          ))}
-          <button
-            className={`chip warn${status === "LOW_STOCK" ? " on" : ""}`}
-            onClick={toggleLowStock}
-          >
-            {t(lang, "lowBadge")} ({counts.LOW})
-          </button>
-        </div>
+        <button type="button" className="inv-dummy-btn" disabled={seeding} onClick={addDummyData}>
+          {seeding ? t(lang, "saving") : t(lang, "useDummyData")}
+        </button>
         <button type="button" className="btn btn-p inv-add" onClick={() => nav("/inventory/new")}>
           + {t(lang, "addPart")}
         </button>
@@ -129,10 +105,7 @@ export default function Inventory() {
         <div>Loading…</div>
       ) : items.length === 0 ? (
         <div className="empty">
-          <p>{t(lang, "noParts")}</p>
-          <button className="btn btn-p" onClick={() => nav("/inventory/new")}>
-            + {t(lang, "addPart")}
-          </button>
+          <p>{q.trim() ? t(lang, "noParts") : t(lang, "hintAdd")}</p>
         </div>
       ) : (
         <>
@@ -141,7 +114,7 @@ export default function Inventory() {
               const st = stockOf(item);
               return (
                 <div key={item.id} className="inv-list-row" role="listitem">
-                  <button type="button" className="inv-list-body" onClick={() => openProduct(item)}>
+                  <button type="button" className="inv-list-body" onClick={() => setQtyItem(item)}>
                     <div className="inv-list-main">
                       <div className="inv-list-name">{item.partName}</div>
                       <div className="inv-list-price">{formatPrice(item.sellingPrice)}</div>
@@ -161,7 +134,7 @@ export default function Inventory() {
                       type="button"
                       className="act-btn act-view"
                       aria-label={t(lang, "view")}
-                      onClick={() => openProduct(item)}
+                      onClick={() => setQtyItem(item)}
                     >
                       <ViewIcon />
                       <span>{t(lang, "view")}</span>
@@ -170,7 +143,7 @@ export default function Inventory() {
                       type="button"
                       className="act-btn act-edit"
                       aria-label={t(lang, "edit")}
-                      onClick={() => setQtyItem(item)}
+                      onClick={() => openEdit(item)}
                     >
                       <EditIcon />
                       <span>{t(lang, "edit")}</span>
@@ -189,7 +162,7 @@ export default function Inventory() {
                 </div>
               );
             })}
-            <div className="inv-list-foot">{t(lang, "showing", items.length, allItems.length)}</div>
+            <div className="inv-list-foot">{t(lang, "partsCount", items.length)}</div>
           </div>
 
           <div className="card inv-table">
@@ -237,7 +210,7 @@ export default function Inventory() {
                             <button
                               type="button"
                               className="act-btn act-view"
-                              onClick={() => openProduct(item)}
+                              onClick={() => setQtyItem(item)}
                             >
                               <ViewIcon />
                               <span>{t(lang, "view")}</span>
@@ -245,7 +218,7 @@ export default function Inventory() {
                             <button
                               type="button"
                               className="act-btn act-edit"
-                              onClick={() => setQtyItem(item)}
+                              onClick={() => openEdit(item)}
                             >
                               <EditIcon />
                               <span>{t(lang, "edit")}</span>
@@ -267,7 +240,7 @@ export default function Inventory() {
                 </tbody>
               </table>
             </div>
-            <div className="tbl-foot">{t(lang, "showing", items.length, allItems.length)}</div>
+            <div className="tbl-foot">{t(lang, "partsCount", items.length)}</div>
           </div>
         </>
       )}
@@ -283,7 +256,6 @@ export default function Inventory() {
           }}
           onSaved={(updated) => {
             setItems((rows) => rows.map((r) => (r.id === updated.id ? updated : r)));
-            setAllItems((rows) => rows.map((r) => (r.id === updated.id ? updated : r)));
             setQtyItem(null);
           }}
         />
@@ -302,6 +274,7 @@ export default function Inventory() {
           onConfirm={removeItem}
         />
       ) : null}
+      {toast ? <div className="toast">{toast}</div> : null}
     </div>
   );
 }

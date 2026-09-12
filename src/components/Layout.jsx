@@ -148,9 +148,6 @@ export default function Layout() {
                 </span>
                 {t(lang, "storeDetails")}
               </Link>
-              <div className="sidebar-acct-item sidebar-acct-notif">
-                <NotificationBell label={t(lang, "notifications")} />
-              </div>
               <button
                 type="button"
                 className="sidebar-acct-item sidebar-acct-logout"
@@ -207,12 +204,10 @@ export default function Layout() {
             ) : null}
             <LangSelect className="topbar-lang" />
             <UserMenu />
+            <span className="topbar-bell">
+              <NotificationBell />
+            </span>
             <BrandLogo className="topbar-brand" to="/welcome" />
-            {isMobile ? (
-              <span className="topbar-bell">
-                <NotificationBell />
-              </span>
-            ) : null}
             {isMobile ? <MobileAccountMenu /> : null}
           </div>
         </header>

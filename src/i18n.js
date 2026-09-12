@@ -216,7 +216,6 @@ export const messages = {
   navigation: "Navigation",
   // Single-word labels for the bottom tab bar — the fuller phrases (e.g.
   // "Low Stocks", "Basic details") are still used as page/section titles.
-  tabAlerts: "Alerts",
   tabInventory: "Inventory",
   tabProfile: "Profile",
   tabShop: "Shop",
@@ -468,8 +467,8 @@ export const messages = {
   confirmDelete: "Are you sure you want to delete this part?",
   confirmDeleteTitle: "Delete part",
   deleting: "Deleting…",
-  noParts: "No parts match these filters.",
-  showing: (n, total) => `Showing ${n} of ${total} parts`,
+  noParts: "No parts match your search.",
+  partsCount: (n) => `${n} part${n === 1 ? "" : "s"}`,
   invalidPhone: "Enter a valid 10-digit Indian mobile number",
   in: (s) => `in ${s}s`,
   tellAboutShop: "Tell us about your shop",
