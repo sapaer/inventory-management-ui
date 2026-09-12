@@ -17,9 +17,9 @@ export default function Terms() {
   return (
     <SupportLayout title={t(lang, "termsTitle")} lead={t(lang, "termsLead")} art={<TermsArt />}>
       <p className="support-meta">{t(lang, "termsUpdated")}</p>
-      <div className="support-list">
+      <div className="terms-cards">
         {SECTIONS.map(([title, body], i) => (
-          <section key={title} className="support-item">
+          <section key={title} className="terms-card">
             <span className="support-num">{i + 1}</span>
             <div>
               <h2>{t(lang, title)}</h2>
