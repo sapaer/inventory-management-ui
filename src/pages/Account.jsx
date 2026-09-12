@@ -855,6 +855,13 @@ function HelpSupportSection({ lang }) {
           <span>{t(lang, "help")}</span>
           <ChevronRightIcon />
         </Link>
+        <Link to="/help/faqs" className="support-link">
+          <span className="support-link-ic">
+            <HelpIcon />
+          </span>
+          <span>{t(lang, "faqs")}</span>
+          <ChevronRightIcon />
+        </Link>
         <Link to="/contact" className="support-link">
           <span className="support-link-ic">
             <ContactIcon />

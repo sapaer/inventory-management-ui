@@ -20,8 +20,8 @@ export default function SiteFooter({ variant = "dark" }) {
         <Link to="/help" className="lp-foot-link">
           {t(lang, "help")}
         </Link>
-        <Link to="/contact" className="lp-foot-link">
-          {t(lang, "contactUs")}
+        <Link to="/help/faqs" className="lp-foot-link">
+          {t(lang, "faqs")}
         </Link>
         <Link to="/terms" className="lp-foot-link">
           {t(lang, "terms")}
