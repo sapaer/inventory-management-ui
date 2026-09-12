@@ -113,6 +113,14 @@ p {
 .b-bl { background: #dbeafe; color: #1d4ed8; }
 .b-gr { background: #f3f4f6; color: #374151; }
 
+/* One tone per vehicle category — kept out of the b-g/b-a/b-r namespace so
+   a vehicle tag is never mistaken for a stock-status color. */
+.veh-2w { background: #e0f2fe; color: #0369a1; }
+.veh-4w { background: #ede9fe; color: #6d28d9; }
+.veh-3w { background: #ffedd5; color: #c2410c; }
+.veh-commercial { background: #f3f4f6; color: #374151; }
+.veh-ev { background: #ccfbf1; color: #0f766e; }
+
 .lang-toggle {
   display: inline-flex;
   border: 1px solid var(--line);
@@ -1347,6 +1355,23 @@ button.sidebar-acct-item:hover {
   gap: 12px;
   margin-bottom: 14px;
 }
+.inv-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.inv-sort {
+  padding: 8px 30px 8px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #374151;
+  background: #fff;
+  cursor: pointer;
+}
 .inv-add {
   flex-shrink: 0;
   white-space: nowrap;
@@ -1355,7 +1380,8 @@ button.sidebar-acct-item:hover {
   border-radius: 10px;
 }
 /* DEV: one-tap sample catalog — same dashed dev-button treatment used on
-   the Insights and Update-stock pages. */
+   the Insights and Update-stock pages. Muted at rest so it doesn't read
+   as a real feature next to "+ Add a part". */
 .inv-dummy-btn {
   flex-shrink: 0;
   white-space: nowrap;
@@ -1367,13 +1393,20 @@ button.sidebar-acct-item:hover {
   padding: 8px 14px;
   border-radius: 20px;
   cursor: pointer;
+  opacity: 0.75;
 }
-.inv-dummy-btn:hover { background: var(--sage); }
-.inv-dummy-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.inv-dummy-btn:hover { background: var(--sage); opacity: 1; }
+.inv-dummy-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 @media (max-width: 640px) {
   .inv-toolbar {
     flex-direction: column;
     align-items: stretch;
+  }
+  .inv-toolbar-left {
+    justify-content: space-between;
+  }
+  .inv-sort {
+    flex: 1;
   }
   .inv-add {
     width: 100%;
@@ -1412,6 +1445,20 @@ button.sidebar-acct-item:hover {
 .inv-list-body:active {
   opacity: 0.85;
 }
+/* Photo when the part has one, otherwise a vehicle-tinted icon — cheap
+   visual anchor so rows aren't just stacked text. */
+.inv-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+.inv-thumb-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 .inv-list-main {
   min-width: 0;
   flex: 1;
@@ -1429,15 +1476,20 @@ button.sidebar-acct-item:hover {
   color: #4b5563;
   font-weight: 500;
 }
-.inv-list-cat {
+.inv-list-margin {
+  margin-left: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--forest);
+}
+.inv-list-sku {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.inv-list-row .badge {
   display: inline-flex;
   margin-top: 8px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: #e8f6ef;
-  color: var(--forest);
-  font-size: 11px;
-  font-weight: 600;
 }
 .inv-list-right {
   flex-shrink: 0;
@@ -1521,6 +1573,9 @@ button.sidebar-acct-item:hover {
 .tbl tr:hover td { background: #fafcfb; }
 .pname { font-weight: 500; color: var(--ink); }
 .pspec { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.tbl-part { display: flex; align-items: center; gap: 10px; }
+.qty-min { font-size: 11px; color: var(--muted); font-weight: 500; }
+.tbl-margin { font-weight: 600; color: var(--forest); }
 .qty-row { display: flex; align-items: center; gap: 5px; }
 .qb {
   width: 22px; height: 22px; border-radius: 5px;
@@ -1544,9 +1599,8 @@ button.sidebar-acct-item:hover {
   align-items: center;
   gap: 6px;
   padding: 7px 12px;
-  border: none;
-  border-radius: 6px;
-  color: #fff;
+  border: 1px solid transparent;
+  border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
   line-height: 1;
@@ -1560,23 +1614,32 @@ button.sidebar-acct-item:hover {
   opacity: 0.55;
   cursor: not-allowed;
 }
+/* View/edit share the app's own palette (soft neutral / forest) instead of
+   flat blue pills; delete stays visually muted at rest so it doesn't sit
+   at equal weight with the two safe actions next to it. */
 .act-view {
-  background: #5dade2;
+  background: var(--soft, #f3f6f4);
+  color: #374151;
 }
 .act-view:hover:not(:disabled) {
-  background: #4a9bd4;
+  background: #e5e9ea;
 }
 .act-edit {
-  background: #2e86c1;
+  background: color-mix(in srgb, var(--forest) 12%, #fff);
+  color: var(--forest);
 }
 .act-edit:hover:not(:disabled) {
-  background: #2471a3;
+  background: color-mix(in srgb, var(--forest) 22%, #fff);
 }
 .act-delete {
-  background: #e74c3c;
+  background: transparent;
+  border-color: var(--line);
+  color: #9ca3af;
 }
 .act-delete:hover:not(:disabled) {
-  background: #cb4335;
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #b91c1c;
 }
 .qty-text {
   font-size: 14px;

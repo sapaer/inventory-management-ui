@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { formatApiError, inventoryApi } from "../api";
 import { useLang } from "../context/LangContext";
@@ -19,6 +19,38 @@ const DUMMY_PARTS = [
   { partName: "Chain Sprocket Kit", vehicleCategory: "TWO_WHEELER", quantity: 12, minQuantity: 5, costPrice: 850, sellingPrice: 1150 },
 ];
 
+// One badge tone per vehicle category — kept separate from the status
+// badge colors (green/amber/red) so a vehicle tag is never mistaken for a
+// stock-status one.
+const VEHICLE_BADGE = {
+  TWO_WHEELER: "veh-2w",
+  FOUR_WHEELER: "veh-4w",
+  THREE_WHEELER: "veh-3w",
+  COMMERCIAL: "veh-commercial",
+  EV: "veh-ev",
+};
+
+const VEHICLE_ICON = {
+  TWO_WHEELER: BikeIcon,
+  FOUR_WHEELER: CarIcon,
+  THREE_WHEELER: AutoIcon,
+  COMMERCIAL: TruckIcon,
+  EV: BoltIcon,
+};
+
+const SORTS = [
+  { id: "name", key: "sortName" },
+  { id: "qtyAsc", key: "sortQtyLow" },
+  { id: "recent", key: "sortRecent" },
+];
+
+function sortItems(items, sort) {
+  const list = [...items];
+  if (sort === "name") return list.sort((a, b) => a.partName.localeCompare(b.partName));
+  if (sort === "qtyAsc") return list.sort((a, b) => (Number(a.quantity) || 0) - (Number(b.quantity) || 0));
+  return list.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+}
+
 export default function Inventory() {
   const { lang } = useLang();
   const nav = useNavigate();
@@ -32,11 +64,14 @@ export default function Inventory() {
   const [deleteItem, setDeleteItem] = useState(null);
   const [seeding, setSeeding] = useState(false);
   const [toast, setToast] = useState("");
+  const [sort, setSort] = useState("recent");
 
   function flash(msg) {
     setToast(msg);
     setTimeout(() => setToast(""), 1800);
   }
+
+  const sortedItems = useMemo(() => sortItems(items, sort), [items, sort]);
 
   async function load() {
     setError("");
@@ -93,9 +128,23 @@ export default function Inventory() {
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t(lang, "search")} />
       </div>
       <div className="inv-toolbar">
-        <button type="button" className="inv-dummy-btn" disabled={seeding} onClick={addDummyData}>
-          {seeding ? t(lang, "saving") : t(lang, "useDummyData")}
-        </button>
+        <div className="inv-toolbar-left">
+          <select
+            className="inv-sort"
+            aria-label={t(lang, "sortBy")}
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+          >
+            {SORTS.map((s) => (
+              <option key={s.id} value={s.id}>
+                {t(lang, s.key)}
+              </option>
+            ))}
+          </select>
+          <button type="button" className="inv-dummy-btn" disabled={seeding} onClick={addDummyData}>
+            {seeding ? t(lang, "saving") : t(lang, "useDummyData")}
+          </button>
+        </div>
         <button type="button" className="btn btn-p inv-add" onClick={() => nav("/inventory/new")}>
           + {t(lang, "addPart")}
         </button>
@@ -110,15 +159,23 @@ export default function Inventory() {
       ) : (
         <>
           <div className="inv-list" role="list">
-            {items.map((item) => {
+            {sortedItems.map((item) => {
               const st = stockOf(item);
+              const margin = Number(item.costPrice) > 0 ? (Number(item.sellingPrice) || 0) - Number(item.costPrice) : null;
               return (
                 <div key={item.id} className="inv-list-row" role="listitem">
                   <button type="button" className="inv-list-body" onClick={() => setQtyItem(item)}>
+                    <PartThumb item={item} />
                     <div className="inv-list-main">
                       <div className="inv-list-name">{item.partName}</div>
-                      <div className="inv-list-price">{formatPrice(item.sellingPrice)}</div>
-                      <span className="inv-list-cat">{vehicleLabel(item.vehicleCategory)}</span>
+                      {item.partNumber ? <div className="inv-list-sku">{t(lang, "skuLbl")}: {item.partNumber}</div> : null}
+                      <div className="inv-list-price">
+                        {formatPrice(item.sellingPrice)}
+                        {margin != null ? <span className="inv-list-margin">{t(lang, "marginPlus", formatPrice(margin))}</span> : null}
+                      </div>
+                      <span className={`badge ${VEHICLE_BADGE[item.vehicleCategory] || "veh-4w"}`}>
+                        {vehicleLabel(item.vehicleCategory)}
+                      </span>
                     </div>
                     <div className="inv-list-right">
                       <span
@@ -126,7 +183,9 @@ export default function Inventory() {
                       >
                         {item.quantity}
                       </span>
-                      <span className="inv-list-qty-lbl">{t(lang, "quantity")}</span>
+                      <span className="inv-list-qty-lbl">
+                        {t(lang, "quantity")} · {t(lang, "qtyMinLbl", item.minQuantity)}
+                      </span>
                     </div>
                   </button>
                   <div className="inv-list-actions">
@@ -174,22 +233,31 @@ export default function Inventory() {
                     <th>{t(lang, "vehicle")}</th>
                     <th>{t(lang, "quantity")}</th>
                     <th>{t(lang, "price")}</th>
+                    <th>{t(lang, "marginLbl")}</th>
                     <th>{t(lang, "status")}</th>
                     <th>{t(lang, "updated")}</th>
                     <th className="tbl-actions-hd">{t(lang, "actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {items.map((item) => {
+                  {sortedItems.map((item) => {
                     const st = stockOf(item);
+                    const margin = Number(item.costPrice) > 0 ? (Number(item.sellingPrice) || 0) - Number(item.costPrice) : null;
                     return (
                       <tr key={item.id}>
                         <td>
-                          <div className="pname">{item.partName}</div>
-                          <div className="pspec">{item.specification || item.localName || item.brand || ""}</div>
+                          <div className="tbl-part">
+                            <PartThumb item={item} />
+                            <div>
+                              <div className="pname">{item.partName}</div>
+                              <div className="pspec">
+                                {item.partNumber ? `${t(lang, "skuLbl")}: ${item.partNumber}` : item.specification || ""}
+                              </div>
+                            </div>
+                          </div>
                         </td>
                         <td>
-                          <span className={`badge ${item.vehicleCategory === "FOUR_WHEELER" ? "b-bl" : "b-gr"}`}>
+                          <span className={`badge ${VEHICLE_BADGE[item.vehicleCategory] || "veh-4w"}`}>
                             {vehicleLabel(item.vehicleCategory)}
                           </span>
                         </td>
@@ -199,8 +267,10 @@ export default function Inventory() {
                           >
                             {item.quantity}
                           </span>
+                          <span className="qty-min"> · {t(lang, "qtyMinLbl", item.minQuantity)}</span>
                         </td>
                         <td style={{ fontWeight: 600 }}>{formatPrice(item.sellingPrice)}</td>
+                        <td className="tbl-margin">{margin != null ? formatPrice(margin) : "—"}</td>
                         <td>
                           <StatusBadge status={st} lang={lang} />
                         </td>
@@ -276,6 +346,68 @@ export default function Inventory() {
       ) : null}
       {toast ? <div className="toast">{toast}</div> : null}
     </div>
+  );
+}
+
+/* A part's own photo when it has one, otherwise a vehicle-category icon so
+   rows never sit as bare text — cheap visual anchor for scanning a list. */
+function PartThumb({ item }) {
+  const cls = VEHICLE_BADGE[item.vehicleCategory] || "veh-4w";
+  if (item.images?.[0]) {
+    return <img className="inv-thumb" src={item.images[0]} alt="" />;
+  }
+  const Icon = VEHICLE_ICON[item.vehicleCategory] || CarIcon;
+  return (
+    <span className={`inv-thumb inv-thumb-ic ${cls}`}>
+      <Icon />
+    </span>
+  );
+}
+
+function BikeIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="5.5" cy="17.5" r="3.5" />
+      <circle cx="18.5" cy="17.5" r="3.5" />
+      <path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm-9.5 11.5L9 10h4l3 4h3.5M9 10 7 6h3" />
+    </svg>
+  );
+}
+function CarIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 13l1.5-4.5A2 2 0 0 1 6.4 7h11.2a2 2 0 0 1 1.9 1.5L21 13" />
+      <path d="M3 13h18v4a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H6v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4Z" />
+      <circle cx="7.5" cy="14.5" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="16.5" cy="14.5" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+function AutoIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 16V9a1 1 0 0 1 1-1h6l4 4h4a1 1 0 0 1 1 1v3" />
+      <path d="M4 16h16" />
+      <circle cx="7" cy="18.3" r="1.7" />
+      <circle cx="17" cy="18.3" r="1.7" />
+    </svg>
+  );
+}
+function TruckIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 7h10v9H3z" />
+      <path d="M13 11h4l3 3v2h-7" />
+      <circle cx="7" cy="18" r="1.6" />
+      <circle cx="17" cy="18" r="1.6" />
+    </svg>
+  );
+}
+function BoltIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" />
+    </svg>
   );
 }
 
