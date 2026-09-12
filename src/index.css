@@ -113,13 +113,10 @@ p {
 .b-bl { background: #dbeafe; color: #1d4ed8; }
 .b-gr { background: #f3f4f6; color: #374151; }
 
-/* One tone per vehicle category — kept out of the b-g/b-a/b-r namespace so
-   a vehicle tag is never mistaken for a stock-status color. */
-.veh-2w { background: #e0f2fe; color: #0369a1; }
-.veh-4w { background: #ede9fe; color: #6d28d9; }
-.veh-3w { background: #ffedd5; color: #c2410c; }
-.veh-commercial { background: #f3f4f6; color: #374151; }
-.veh-ev { background: #ccfbf1; color: #0f766e; }
+/* Vehicle type is told apart by icon shape, not color — one neutral forest
+   tint for every category keeps color meaningful for stock status only
+   (green/amber/red) instead of spreading it across an arbitrary rainbow. */
+.b-veh { background: color-mix(in srgb, var(--forest) 12%, #fff); color: var(--forest); }
 
 .lang-toggle {
   display: inline-flex;
@@ -1362,8 +1359,15 @@ button.sidebar-acct-item:hover {
   flex-wrap: wrap;
   min-width: 0;
 }
-.inv-sort {
-  padding: 8px 30px 8px 12px;
+/* Custom sort dropdown — trigger + panel, same recipe as the account
+   page's shop-switch menu, instead of a native <select> (whose open list
+   can't be restyled and looks inconsistent with the rest of the app). */
+.inv-sort { position: relative; }
+.inv-sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
   border: 1.5px solid var(--line);
   border-radius: 20px;
   font-size: 12.5px;
@@ -1372,6 +1376,40 @@ button.sidebar-acct-item:hover {
   background: #fff;
   cursor: pointer;
 }
+.inv-sort-btn:hover { border-color: var(--forest); }
+.inv-sort-btn svg:first-child { color: var(--muted); flex-shrink: 0; }
+.inv-sort-btn svg:last-child { flex-shrink: 0; color: var(--muted); }
+.inv-sort-menu {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  min-width: 200px;
+  padding: 6px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: 0 16px 44px rgba(15, 61, 42, 0.18);
+}
+.inv-sort-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+.inv-sort-item:hover { background: var(--soft); }
+.inv-sort-item.on { color: var(--forest); font-weight: 600; }
+.inv-sort-item svg { flex-shrink: 0; color: var(--forest); }
 .inv-add {
   flex-shrink: 0;
   white-space: nowrap;
@@ -1407,6 +1445,10 @@ button.sidebar-acct-item:hover {
   }
   .inv-sort {
     flex: 1;
+  }
+  .inv-sort-btn {
+    width: 100%;
+    justify-content: space-between;
   }
   .inv-add {
     width: 100%;
@@ -1448,9 +1490,9 @@ button.sidebar-acct-item:hover {
 /* Photo when the part has one, otherwise a vehicle-tinted icon — cheap
    visual anchor so rows aren't just stacked text. */
 .inv-thumb {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
   flex-shrink: 0;
   object-fit: cover;
 }
@@ -1458,10 +1500,20 @@ button.sidebar-acct-item:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  background: color-mix(in srgb, var(--forest) 12%, #fff);
+  color: var(--forest);
+}
+.inv-thumb-ic svg {
+  width: 22px;
+  height: 22px;
 }
 .inv-list-main {
   min-width: 0;
   flex: 1;
+}
+.inv-list-veh {
+  font-weight: 500;
+  color: var(--muted);
 }
 .inv-list-name {
   font-size: 15px;

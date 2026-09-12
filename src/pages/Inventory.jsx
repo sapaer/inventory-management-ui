@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { formatApiError, inventoryApi } from "../api";
 import { useLang } from "../context/LangContext";
@@ -19,17 +19,9 @@ const DUMMY_PARTS = [
   { partName: "Chain Sprocket Kit", vehicleCategory: "TWO_WHEELER", quantity: 12, minQuantity: 5, costPrice: 850, sellingPrice: 1150 },
 ];
 
-// One badge tone per vehicle category — kept separate from the status
-// badge colors (green/amber/red) so a vehicle tag is never mistaken for a
-// stock-status one.
-const VEHICLE_BADGE = {
-  TWO_WHEELER: "veh-2w",
-  FOUR_WHEELER: "veh-4w",
-  THREE_WHEELER: "veh-3w",
-  COMMERCIAL: "veh-commercial",
-  EV: "veh-ev",
-};
-
+// Vehicle type is shown by icon shape, not color — one neutral forest tint
+// for all of them (`.b-veh` / `.inv-thumb-ic`), so color stays reserved for
+// stock status (green/amber/red) instead of a rainbow of category tags.
 const VEHICLE_ICON = {
   TWO_WHEELER: BikeIcon,
   FOUR_WHEELER: CarIcon,
@@ -129,18 +121,7 @@ export default function Inventory() {
       </div>
       <div className="inv-toolbar">
         <div className="inv-toolbar-left">
-          <select
-            className="inv-sort"
-            aria-label={t(lang, "sortBy")}
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-          >
-            {SORTS.map((s) => (
-              <option key={s.id} value={s.id}>
-                {t(lang, s.key)}
-              </option>
-            ))}
-          </select>
+          <SortMenu lang={lang} sort={sort} onChange={setSort} />
           <button type="button" className="inv-dummy-btn" disabled={seeding} onClick={addDummyData}>
             {seeding ? t(lang, "saving") : t(lang, "useDummyData")}
           </button>
@@ -167,15 +148,14 @@ export default function Inventory() {
                   <button type="button" className="inv-list-body" onClick={() => setQtyItem(item)}>
                     <PartThumb item={item} />
                     <div className="inv-list-main">
-                      <div className="inv-list-name">{item.partName}</div>
+                      <div className="inv-list-name">
+                        {item.partName} <span className="inv-list-veh">· {vehicleLabel(item.vehicleCategory)}</span>
+                      </div>
                       {item.partNumber ? <div className="inv-list-sku">{t(lang, "skuLbl")}: {item.partNumber}</div> : null}
                       <div className="inv-list-price">
                         {formatPrice(item.sellingPrice)}
                         {margin != null ? <span className="inv-list-margin">{t(lang, "marginPlus", formatPrice(margin))}</span> : null}
                       </div>
-                      <span className={`badge ${VEHICLE_BADGE[item.vehicleCategory] || "veh-4w"}`}>
-                        {vehicleLabel(item.vehicleCategory)}
-                      </span>
                     </div>
                     <div className="inv-list-right">
                       <span
@@ -257,9 +237,7 @@ export default function Inventory() {
                           </div>
                         </td>
                         <td>
-                          <span className={`badge ${VEHICLE_BADGE[item.vehicleCategory] || "veh-4w"}`}>
-                            {vehicleLabel(item.vehicleCategory)}
-                          </span>
+                          <span className="badge b-veh">{vehicleLabel(item.vehicleCategory)}</span>
                         </td>
                         <td>
                           <span
@@ -349,16 +327,90 @@ export default function Inventory() {
   );
 }
 
+/* Custom dropdown instead of a native <select> — the browser's own option
+   list can't be restyled and looks out of place next to the rest of the
+   app's own panel/menu design (same recipe as the shop-switch menu). */
+function SortMenu({ lang, sort, onChange }) {
+  const [open, setOpen] = useState(false);
+  const root = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e) => !root.current?.contains(e.target) && setOpen(false);
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+
+  const current = SORTS.find((s) => s.id === sort) || SORTS[0];
+
+  return (
+    <div className="inv-sort" ref={root}>
+      <button
+        type="button"
+        className="inv-sort-btn"
+        aria-label={t(lang, "sortBy")}
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <SortIcon />
+        <span>{t(lang, current.key)}</span>
+        <CaretDownIcon />
+      </button>
+      {open ? (
+        <div className="inv-sort-menu" role="menu">
+          {SORTS.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              role="menuitem"
+              className={`inv-sort-item${s.id === sort ? " on" : ""}`}
+              onClick={() => {
+                onChange(s.id);
+                setOpen(false);
+              }}
+            >
+              {t(lang, s.key)}
+              {s.id === sort ? <CheckIcon /> : null}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function SortIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <path d="M4 7h11M4 12h7M4 17h4" />
+      <path d="M18 6v13m0 0 3-3m-3 3-3-3" />
+    </svg>
+  );
+}
+function CaretDownIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+function CheckIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+      <path d="m5 13 4 4L19 7" />
+    </svg>
+  );
+}
+
 /* A part's own photo when it has one, otherwise a vehicle-category icon so
    rows never sit as bare text — cheap visual anchor for scanning a list. */
 function PartThumb({ item }) {
-  const cls = VEHICLE_BADGE[item.vehicleCategory] || "veh-4w";
   if (item.images?.[0]) {
     return <img className="inv-thumb" src={item.images[0]} alt="" />;
   }
   const Icon = VEHICLE_ICON[item.vehicleCategory] || CarIcon;
   return (
-    <span className={`inv-thumb inv-thumb-ic ${cls}`}>
+    <span className="inv-thumb inv-thumb-ic">
       <Icon />
     </span>
   );
