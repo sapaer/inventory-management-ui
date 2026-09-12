@@ -1507,6 +1507,28 @@ button.sidebar-acct-item:hover {
   width: 22px;
   height: 22px;
 }
+.inv-thumb-big { width: 56px; height: 56px; border-radius: 14px; }
+.inv-thumb-big.inv-thumb-ic svg { width: 26px; height: 26px; }
+.inv-thumb-wrap { position: relative; flex-shrink: 0; }
+.inv-thumb-qty {
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  background: var(--forest);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.inv-thumb-qty.low { background: #b45309; }
+.inv-thumb-qty.out { background: #b91c1c; }
 .inv-list-main {
   min-width: 0;
   flex: 1;
@@ -1539,10 +1561,6 @@ button.sidebar-acct-item:hover {
   font-size: 11px;
   color: var(--muted);
 }
-.inv-list-row .badge {
-  display: inline-flex;
-  margin-top: 8px;
-}
 .inv-list-right {
   flex-shrink: 0;
   text-align: right;
@@ -1565,6 +1583,58 @@ button.sidebar-acct-item:hover {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+/* "Minimal" card: status word instead of vehicle text, no min-qty caption. */
+.inv-list-status {
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #15803d;
+}
+.inv-list-status.low { color: #b45309; }
+.inv-list-status.out { color: #b91c1c; }
+
+/* "Image-forward" card: name+price share a line, everything else collapses
+   into one small meta line, quantity moves onto the thumbnail as a badge. */
+.inv-list-name-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.inv-list-name-row .inv-list-price { margin-top: 0; flex-shrink: 0; }
+.inv-list-meta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* DEV: card-design picker strip — remove once a layout is chosen. */
+.inv-dev-switches { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 10px; }
+.inv-dev-switch-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.inv-dev-switch-btns { display: flex; flex-wrap: wrap; gap: 5px; }
+.inv-dev-chip {
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px dashed var(--line);
+  background: #fff;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.inv-dev-chip.on {
+  border-style: solid;
+  border-color: var(--forest);
+  color: var(--forest);
+  background: color-mix(in srgb, var(--forest) 10%, #fff);
 }
 .inv-list-actions {
   display: flex;
