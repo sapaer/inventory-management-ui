@@ -208,6 +208,11 @@ export default function Layout() {
             <LangSelect className="topbar-lang" />
             <UserMenu />
             <BrandLogo className="topbar-brand" to="/welcome" />
+            {isMobile ? (
+              <span className="topbar-bell">
+                <NotificationBell />
+              </span>
+            ) : null}
             {isMobile ? <MobileAccountMenu /> : null}
           </div>
         </header>

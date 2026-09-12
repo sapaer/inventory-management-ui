@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
 import PartForm from "./pages/PartForm";
 import LowStocks from "./pages/LowStocks";
+import StockUpdate from "./pages/StockUpdate";
 import Insights from "./pages/Insights";
 import Account from "./pages/Account";
 import AccountSetup from "./pages/AccountSetup";
@@ -89,6 +90,7 @@ export default function App() {
           <Route path="/inventory/new" element={<PartForm />} />
           <Route path="/inventory/:id/edit" element={<PartForm />} />
           <Route path="/low-stocks" element={<LowStocks />} />
+          <Route path="/stock-update" element={<StockUpdate />} />
           <Route path="/insights" element={<Insights />} />
           <Route path="/account" element={<Account />} />
           <Route path="/profile" element={<Navigate to="/account" replace />} />

@@ -2821,21 +2821,6 @@ button.sidebar-acct-item:hover {
 .tabbar-ic { display: inline-flex; }
 .tabbar-ic svg { width: 23px; height: 23px; }
 .tabbar-item.active { color: var(--forest); }
-.tabbar-badge {
-  position: absolute;
-  top: 0;
-  right: calc(50% - 22px);
-  min-width: 15px;
-  height: 15px;
-  padding: 0 3px;
-  border-radius: 999px;
-  background: var(--red);
-  color: #fff;
-  font-size: 9px;
-  font-weight: 700;
-  line-height: 15px;
-  text-align: center;
-}
 
 @media (max-width: 900px) {
   .account-body { grid-template-columns: 1fr; gap: 14px; }
@@ -3283,7 +3268,7 @@ button.sidebar-acct-item:hover {
   background: #fff; border: 1px solid var(--line); border-radius: 10px;
   box-shadow: 0 12px 32px rgba(15,61,42,.12); z-index: 40;
 }
-.bell-hd { padding: 10px 14px; font-size: 13px; font-weight: 600; border-bottom: 1px solid #f3f6f4; }
+.bell-hd { padding: 10px 14px; font-size: 15px; font-weight: 700; border-bottom: 1px solid #f3f6f4; }
 .bell-row {
   width: 100%; text-align: left; background: none; border: none;
   display: flex; gap: 8px; padding: 10px 14px;
@@ -3291,6 +3276,27 @@ button.sidebar-acct-item:hover {
 }
 .bell-row.unread { background: #f0faf5; }
 .bell-row:hover { background: #fafcfb; }
+.bell-view-all {
+  width: 100%;
+  padding: 11px 14px;
+  border: none;
+  background: none;
+  color: var(--forest);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.bell-view-all:hover { background: #f0faf5; }
+
+/* Bell button in the mobile top bar — sized to match the profile-menu
+   button (mobile-acct-btn) next to it. */
+.topbar-bell .bell-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+}
+.topbar-bell .bell-btn svg { width: 22px; height: 22px; }
+.topbar-bell .bell-panel { top: 50px; }
 
 @media (max-width: 900px) {
   .topbar {
@@ -3352,10 +3358,11 @@ button.sidebar-acct-item:hover {
   .otp-box { height: 46px; font-size: 18px; }
 }
 
-/* Mobile / small screens: no sidebar at all — Home/Inventory/Alerts/Insights
-   live in the app-wide bottom tab bar (BottomTabBar.jsx) and every account
-   area is reachable from the profile-menu button in the top bar
-   (MobileAccountMenu.jsx), so there's nothing left for a drawer to hold. */
+/* Mobile / small screens: no sidebar at all — Home/Inventory/Update stock/
+   Insights live in the app-wide bottom tab bar (BottomTabBar.jsx), alerts
+   live behind the bell button, and every account area is reachable from the
+   profile-menu button in the top bar (MobileAccountMenu.jsx), so there's
+   nothing left for a drawer to hold. */
 @media (max-width: 900px) {
   .sidebar { display: none; }
 
@@ -3365,4 +3372,140 @@ button.sidebar-acct-item:hover {
   .topbar .srch,
   .topbar-lang,
   .topbar-r .user-menu { display: none; }
+}
+
+/* -------------------------------------------------------- stock update page */
+.stock-update-hd { justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.stock-dummy-btn {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--forest);
+  background: #fff;
+  border: 1px dashed var(--line);
+  padding: 7px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+.stock-dummy-btn:hover { background: var(--sage); }
+.stock-update-mode { margin-bottom: 14px; }
+
+.stock-search-panel { overflow: visible; }
+.stock-search-box { position: relative; }
+.stock-search-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  max-height: 280px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(15, 61, 42, 0.12);
+}
+.stock-search-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f3f6f4;
+  cursor: pointer;
+}
+.stock-search-row:last-child { border-bottom: none; }
+.stock-search-row:hover { background: #fafcfb; }
+.stock-search-row .pspec { margin-top: 2px; }
+.stock-search-empty { padding: 14px; font-size: 12.5px; color: var(--muted); text-align: center; }
+.stock-search-dummy-hint { margin-top: 8px; }
+
+.stock-rows-panel .form-panel-body { display: flex; flex-direction: column; gap: 10px; }
+.stock-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f3f6f4;
+}
+.stock-row:last-child { border-bottom: none; padding-bottom: 0; }
+.stock-row-main { flex: 1; min-width: 0; }
+/* Smaller than the default qty-stepper (used elsewhere with more room to
+   spare) — here it shares a tight row with the part name and remove button. */
+.stock-row .qty-stepper { flex-shrink: 0; width: 108px; }
+.stock-row .qty-stepper button { width: 30px; height: 30px; font-size: 15px; }
+.stock-row .qty-stepper input { font-size: 13.5px; padding: 6px 2px; }
+.stock-row-remove {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.stock-row-remove:hover { background: #fee2e2; border-color: #fecaca; color: #b91c1c; }
+.stock-update-hint { text-align: center; margin: 10px 0; }
+
+.stock-review-modal { max-width: 440px; max-height: 82vh; overflow-y: auto; }
+.stock-review-title { font-size: 17px; margin-bottom: 4px; }
+.stock-review-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
+.stock-review-group { margin-bottom: 14px; }
+.stock-review-group:last-of-type { margin-bottom: 0; }
+.stock-review-group-hd {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.stock-review-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f6f4;
+}
+.stock-review-row:last-child { border-bottom: none; }
+.stock-review-delta { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.stock-review-delta .qty-old { color: var(--muted); text-decoration: line-through; font-weight: 500; }
+.stock-review-delta .qty-new { color: var(--ink); }
+.stock-review-arrow { color: var(--muted); font-weight: 400; }
+.stock-review-actions { display: flex; gap: 8px; margin-top: 18px; }
+.stock-review-actions .btn { flex: 1 1 50%; min-width: 0; }
+
+/* Cancel/Review bar — only shown once there's something to act on, and
+   pinned just above the bottom tab bar instead of sitting inline in the
+   page (where it could land in the middle of content, above whatever
+   hadn't been scrolled to yet). */
+.stock-update-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.stock-update-actions .btn { padding: 11px 16px; min-height: 42px; }
+
+@media (max-width: 640px) {
+  .stock-update-actions {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: var(--tabbar-clear);
+    z-index: 20;
+    padding: 10px 14px;
+    background: color-mix(in srgb, #fff 92%, transparent);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border-top: 1px solid var(--line);
+  }
+  .stock-update-actions .btn { flex: 1 1 50%; min-width: 0; }
+  .stock-update-page.has-actions { padding-bottom: calc(var(--tabbar-clear) + 74px); }
 }

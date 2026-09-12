@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { inventoryApi } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
@@ -8,7 +7,7 @@ import { t } from "../i18n";
 const NAV = [
   { to: "/dashboard", tabKey: "home", icon: HomeIcon, end: true },
   { to: "/inventory", tabKey: "tabInventory", icon: BoxIcon },
-  { to: "/low-stocks", tabKey: "tabAlerts", icon: BellIcon, badge: true },
+  { to: "/stock-update", tabKey: "tabUpdate", icon: UpdateIcon },
   { to: "/insights", tabKey: "insights", icon: ChartIcon },
 ];
 
@@ -17,11 +16,12 @@ const HIDDEN_ON = ["/account-setup"];
 
 /**
  * App-wide bottom navigation for phones/small screens — the same four tabs
- * (Home/Inventory/Alerts/Insights) on every signed-in page, including
+ * (Home/Inventory/Update stock/Insights) on every signed-in page, including
  * standalone pages like Help/Contact/Terms and the Account page itself.
  * Account's own sections (Profile/Store/Notifications/Settings) are reached
- * from the profile-menu button in the top bar (MobileAccountMenu.jsx), not
- * from here — so this bar never changes shape depending on where you are.
+ * from the profile-menu button in the top bar (MobileAccountMenu.jsx), and
+ * alerts/notifications from the bell button next to it — so this bar never
+ * changes shape depending on where you are.
  */
 export default function BottomTabBar() {
   const { user } = useAuth();
@@ -30,7 +30,6 @@ export default function BottomTabBar() {
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== "undefined" && window.matchMedia("(max-width: 900px)").matches,
   );
-  const [lowCount, setLowCount] = useState(0);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 900px)");
@@ -39,14 +38,6 @@ export default function BottomTabBar() {
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
   }, []);
-
-  useEffect(() => {
-    if (!user) return;
-    inventoryApi
-      .lowStock()
-      .then((rows) => setLowCount(Array.isArray(rows) ? rows.length : 0))
-      .catch(() => setLowCount(0));
-  }, [user, loc.pathname]);
 
   if (!user || !isMobile || HIDDEN_ON.includes(loc.pathname)) return null;
 
@@ -63,7 +54,6 @@ export default function BottomTabBar() {
             <item.icon />
           </span>
           <span>{t(lang, item.tabKey)}</span>
-          {item.badge && lowCount > 0 ? <span className="tabbar-badge">{lowCount}</span> : null}
         </NavLink>
       ))}
     </nav>
@@ -84,11 +74,13 @@ function BoxIcon() {
     </svg>
   );
 }
-function BellIcon() {
+function UpdateIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 11A8 8 0 0 0 6 6.3L4 8" />
+      <path d="M4 4v4h4" />
+      <path d="M4 13a8 8 0 0 0 14 4.7l2-1.7" />
+      <path d="M20 20v-4h-4" />
     </svg>
   );
 }

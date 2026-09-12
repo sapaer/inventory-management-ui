@@ -1,10 +1,10 @@
-export default function QtyStepper({ value, onChange, min = 1, disabled = false }) {
+export default function QtyStepper({ value, onChange, min = 1, max = Infinity, disabled = false }) {
   const n = Number(value);
   const current = Number.isFinite(n) ? n : min;
 
   function bump(delta) {
     if (disabled) return;
-    onChange(Math.max(min, current + delta));
+    onChange(Math.min(max, Math.max(min, current + delta)));
   }
 
   function onType(raw) {
@@ -13,7 +13,7 @@ export default function QtyStepper({ value, onChange, min = 1, disabled = false 
       onChange("");
       return;
     }
-    onChange(Math.max(min, Number(digits)));
+    onChange(Math.min(max, Math.max(min, Number(digits))));
   }
 
   return (
@@ -29,7 +29,7 @@ export default function QtyStepper({ value, onChange, min = 1, disabled = false 
         disabled={disabled}
         onChange={(e) => onType(e.target.value)}
       />
-      <button type="button" aria-label="Increase" disabled={disabled} onClick={() => bump(1)}>
+      <button type="button" aria-label="Increase" disabled={disabled || current >= max} onClick={() => bump(1)}>
         +
       </button>
     </div>

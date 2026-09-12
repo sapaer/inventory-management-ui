@@ -50,6 +50,11 @@ export default function NotificationBell({ label }) {
     else if (itemId) nav(`/inventory/${itemId}/edit`);
   }
 
+  function viewAll() {
+    setOpen(false);
+    nav("/account?section=notifications");
+  }
+
   return (
     <div className={`bell-wrap${label ? " bell-wrap-labelled" : ""}`} ref={box}>
       <button
@@ -66,7 +71,7 @@ export default function NotificationBell({ label }) {
       </button>
       {open ? (
         <div className="bell-panel">
-          <div className="bell-hd">{t(lang, "alerts")}</div>
+          <div className="bell-hd">{t(lang, "notifications")}</div>
           {items.length === 0 ? (
             <div className="list-row muted">{t(lang, "noAlerts")}</div>
           ) : (
@@ -80,6 +85,9 @@ export default function NotificationBell({ label }) {
               </button>
             ))
           )}
+          <button type="button" className="bell-view-all" onClick={viewAll}>
+            {t(lang, "viewAll")}
+          </button>
         </div>
       ) : null}
     </div>
