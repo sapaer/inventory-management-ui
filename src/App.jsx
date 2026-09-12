@@ -14,6 +14,7 @@ import Insights from "./pages/Insights";
 import Account from "./pages/Account";
 import AccountSetup from "./pages/AccountSetup";
 import Help from "./pages/Help";
+import Faqs from "./pages/Faqs";
 import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 import { needsShopSetup } from "./utils";
@@ -57,6 +58,8 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/welcome" element={<Landing />} />
         <Route path="/help" element={<Help />} />
+        <Route path="/help/faqs" element={<Faqs />} />
+        <Route path="/faqs" element={<Navigate to="/help/faqs" replace />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/terms" element={<Terms />} />
         <Route
