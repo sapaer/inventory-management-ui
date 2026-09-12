@@ -33,220 +33,27 @@ body {
   --amber-tx: #92400e;
   --red: #ef4444;
   --radius: 10px;
+  /* .tabbar's real rendered height (6px+6px container padding, 7px+7px item
+     padding, 23px icon, 4px gap, ~14px label line) — keep this in sync if
+     that sizing changes. Every page derives its bottom clearance from this
+     ONE value plus the device's actual safe-area inset, instead of each
+     guessing its own pixel number. Flush by design — no added gap, since a
+     gap here just exposes bare page background between content and the bar. */
+  --tabbar-h: 67px;
+  --tabbar-clear: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px));
   --panel: #ffffff;
   color-scheme: light;
 }
-
-/* ---------------------------------------------------------------- dark mode
-   Soft charcoal-grey, not near-black; the green is an accent only.
-   Neutrals come from tokens; hard-coded #fff surfaces are remapped below. */
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --sage: #24272c;          /* app background — medium charcoal */
-  --soft: #30343b;          /* subtle raised fill */
-  --line: #424852;          /* borders — clearly visible */
-  --muted: #c7ced7;         /* secondary text — kept high-contrast on charcoal */
-  --ink: #f4f6f9;           /* primary text */
-  --panel: #2c3037;         /* cards / inputs / menus */
-  --panel-2: #363b45;       /* hover / nested fills */
-  --glass: rgba(46, 51, 59, 0.86);
-  --cta: #3ac795;           /* buttons + toggles — bright enough on dark */
-  --forest: #55c69b;        /* accent text + icons */
-  --forest-deep: #43ab84;
-  --amber-bg: #40331a;
-  --amber-bd: #7a5f28;
-  --amber-tx: #f2cf82;
-  --red: #f87171;
-}
-:root[data-theme="dark"] body { background: var(--sage); }
-
-/* frosted top bar */
-:root[data-theme="dark"] .topbar {
-  background: color-mix(in srgb, #232830 68%, transparent);
-  border-bottom-color: color-mix(in srgb, #ffffff 10%, transparent);
-}
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  :root[data-theme="dark"] .topbar { background: #232830; }
-}
-
-/* opaque surfaces */
-:root[data-theme="dark"] .card,
-:root[data-theme="dark"] .stat-card,
-:root[data-theme="dark"] .qa-card,
-:root[data-theme="dark"] .add-card,
-:root[data-theme="dark"] .modal,
-:root[data-theme="dark"] .form-panel,
-:root[data-theme="dark"] .reg-card,
-:root[data-theme="dark"] .empty,
-:root[data-theme="dark"] .tour-panel,
-:root[data-theme="dark"] .drawer-btn,
-:root[data-theme="dark"] .theme-toggle,
-:root[data-theme="dark"] .user-menu-drop,
-:root[data-theme="dark"] .bell-panel,
-:root[data-theme="dark"] .part-form-back,
-:root[data-theme="dark"] .tour-panel-back { background: var(--panel); color: var(--ink); }
-
-/* form controls */
-:root[data-theme="dark"] .inp,
-:root[data-theme="dark"] .f-inp,
-:root[data-theme="dark"] .big-qty,
-:root[data-theme="dark"] .lang-select-ctrl,
-:root[data-theme="dark"] .seg,
-:root[data-theme="dark"] .chip,
-:root[data-theme="dark"] .vp,
-:root[data-theme="dark"] .vchip,
-:root[data-theme="dark"] .vehicle-chip,
-:root[data-theme="dark"] .qty-stepper,
-:root[data-theme="dark"] .qty-stepper input,
-:root[data-theme="dark"] .photo-drop-btn,
-:root[data-theme="dark"] .photo-thumb,
-:root[data-theme="dark"] .account-picker-item,
-:root[data-theme="dark"] .edit-choice-card { background: var(--panel); color: var(--ink); }
-:root[data-theme="dark"] .inp::placeholder,
-:root[data-theme="dark"] .f-inp::placeholder,
-:root[data-theme="dark"] .loc-address::placeholder { color: color-mix(in srgb, var(--muted) 70%, transparent); }
-:root[data-theme="dark"] .seg { color: var(--muted); }
-
-/* hard-coded slate/grey text that would vanish on a dark ground */
-:root[data-theme="dark"] .field-lbl,
-:root[data-theme="dark"] .f-lbl,
-:root[data-theme="dark"] .form-field-lbl,
-:root[data-theme="dark"] .form-block-title,
-:root[data-theme="dark"] .tbl td,
-:root[data-theme="dark"] .qb,
-:root[data-theme="dark"] .b-gr,
-:root[data-theme="dark"] .qty-ctrl button,
-:root[data-theme="dark"] .qty-stepper button,
-:root[data-theme="dark"] .pz-title,
-:root[data-theme="dark"] .terms-check,
-:root[data-theme="dark"] .phone-prefix,
-:root[data-theme="dark"] .phone-inp:disabled,
-:root[data-theme="dark"] .account-toggle-ttl,
-:root[data-theme="dark"] .account-hero-sub { color: var(--ink); }
-:root[data-theme="dark"] .hint,
-:root[data-theme="dark"] .loc-hint,
-:root[data-theme="dark"] .loc-hint-soft,
-:root[data-theme="dark"] .legal-inline,
-:root[data-theme="dark"] .time,
-:root[data-theme="dark"] .pz-sub,
-:root[data-theme="dark"] .form-field-hint,
-:root[data-theme="dark"] .account-panel-desc,
-:root[data-theme="dark"] .account-toggle-sub,
-:root[data-theme="dark"] .account-tile-label,
-:root[data-theme="dark"] .notif-row-body,
-:root[data-theme="dark"] .notif-row-time { color: var(--muted); }
-:root[data-theme="dark"] .b-gr { background: var(--soft); }
-:root[data-theme="dark"] .legal-inline a { color: var(--forest); }
-
-/* notification bell + panel */
-:root[data-theme="dark"] .bell-btn { background: var(--panel); color: var(--ink); border-color: var(--line); }
-:root[data-theme="dark"] .bell-hd { border-bottom-color: var(--line); }
-:root[data-theme="dark"] .bell-row { border-bottom-color: var(--line); }
-:root[data-theme="dark"] .bell-row.unread { background: color-mix(in srgb, var(--cta) 14%, var(--panel)); }
-:root[data-theme="dark"] .bell-row:hover { background: var(--panel-2); }
-:root[data-theme="dark"] .bell-panel { box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5); }
-:root[data-theme="dark"] .seg.on {
-  background: color-mix(in srgb, var(--cta) 20%, var(--panel));
-  border-color: var(--forest);
-  color: var(--forest);
-}
-:root[data-theme="dark"] .vp.on,
-:root[data-theme="dark"] .vchip.on,
-:root[data-theme="dark"] .vehicle-chip.on { background: var(--forest); border-color: var(--forest); color: #10221b; }
-
-/* buttons */
-:root[data-theme="dark"] .btn-p { color: #0f1c17; }
-:root[data-theme="dark"] .btn-s { background: var(--soft); color: var(--ink); border-color: var(--line); }
-:root[data-theme="dark"] .btn-g { color: var(--muted); }
-:root[data-theme="dark"] .btn-d { background: color-mix(in srgb, var(--red) 22%, var(--panel)); color: #ffd7d7; }
-:root[data-theme="dark"] .bar-track { background: var(--soft); }
-:root[data-theme="dark"] .step-dot { background: var(--line); }
-:root[data-theme="dark"] .overlay { background: rgba(8, 10, 13, 0.62); }
-
-/* menus / dropdowns */
-:root[data-theme="dark"] .user-menu-item:hover,
-:root[data-theme="dark"] .loc-hit:hover,
-:root[data-theme="dark"] .account-picker-item:hover { background: var(--panel-2); }
-:root[data-theme="dark"] .user-menu-item.danger:hover { background: color-mix(in srgb, var(--red) 20%, var(--panel)); }
-:root[data-theme="dark"] .loc-picked,
-:root[data-theme="dark"] .notif-modal-body,
-:root[data-theme="dark"] .account-note { color: var(--muted); }
-:root[data-theme="dark"] .notif-row-time { color: color-mix(in srgb, var(--muted) 80%, transparent); }
-
-/* badges */
-:root[data-theme="dark"] .notif-badge { background: var(--soft); color: var(--muted); }
-:root[data-theme="dark"] .notif-badge-whatsapp { background: #16402f; color: #6fe0b6; }
-:root[data-theme="dark"] .notif-badge-sms { background: #24295a; color: #b3bdff; }
-:root[data-theme="dark"] .qa-card.warn { background: var(--amber-bg); border-color: var(--amber-bd); }
-
-/* sidebar — kept a touch darker than the page, green only on the accent */
-:root[data-theme="dark"] .sidebar { background: #1e2126; }
-:root[data-theme="dark"] .sidebar-add { color: #0f1c17; }
-:root[data-theme="dark"] .nav-item:hover,
-:root[data-theme="dark"] .nav-item.active { background: rgba(255, 255, 255, 0.09); }
-
-/* switch toggle */
-:root[data-theme="dark"] .switch { background: var(--line); }
-:root[data-theme="dark"] .switch.on { background: var(--cta); }
-
-/* ---- account page on dark ---- */
-:root[data-theme="dark"] .account-content {
-  background:
-    radial-gradient(760px 440px at 8% -4%, color-mix(in srgb, var(--forest) 16%, transparent) 0%, transparent 60%),
-    radial-gradient(720px 480px at 104% 4%, color-mix(in srgb, var(--cta) 12%, transparent) 0%, transparent 55%),
-    linear-gradient(180deg, #262a30 0%, #23262b 100%);
-}
-/* real frosted glass: translucent, lighter than the panels, blurred */
-:root[data-theme="dark"] .account-content .glass {
-  background: var(--glass);
-  backdrop-filter: blur(18px) saturate(1.2);
-  -webkit-backdrop-filter: blur(18px) saturate(1.2);
-  border: 1px solid color-mix(in srgb, #ffffff 12%, transparent);
-  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.38);
-}
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  :root[data-theme="dark"] .account-content .glass { background: #313640; }
-}
-:root[data-theme="dark"] .account-panel .form-panel {
-  background: color-mix(in srgb, #ffffff 5%, transparent);
-  border: 1px solid color-mix(in srgb, #ffffff 9%, transparent);
-}
-:root[data-theme="dark"] .account-nav-item { color: var(--muted); }
-:root[data-theme="dark"] .account-nav-item:hover { background: color-mix(in srgb, #ffffff 8%, transparent); color: var(--ink); }
-:root[data-theme="dark"] .account-nav-item.active {
-  background: color-mix(in srgb, #ffffff 12%, transparent);
-  border-color: color-mix(in srgb, var(--forest) 45%, transparent);
-  color: var(--forest);
-}
-:root[data-theme="dark"] .account-tile,
-:root[data-theme="dark"] .shop-switch-btn { background: color-mix(in srgb, #ffffff 8%, transparent); border-color: color-mix(in srgb, #ffffff 12%, transparent); }
-:root[data-theme="dark"] .account-tile:hover,
-:root[data-theme="dark"] .shop-switch-btn:hover { border-color: var(--forest); background: color-mix(in srgb, #ffffff 13%, transparent); }
-:root[data-theme="dark"] .shop-switch-menu { background: var(--panel); border-color: var(--line); box-shadow: 0 16px 44px rgba(0, 0, 0, 0.5); }
-:root[data-theme="dark"] .shop-switch-item:hover:not(:disabled) { background: var(--panel-2); }
-:root[data-theme="dark"] .photo-av { background: color-mix(in srgb, var(--forest) 22%, var(--panel)); border-color: color-mix(in srgb, #ffffff 12%, transparent); }
-:root[data-theme="dark"] .photo-av-edit { border-color: var(--panel); }
-:root[data-theme="dark"] .shop-photo-row { border-bottom-color: color-mix(in srgb, #ffffff 10%, transparent); }
-:root[data-theme="dark"] .notif-row { border-bottom-color: color-mix(in srgb, #ffffff 8%, transparent); }
-:root[data-theme="dark"] .notif-row:hover { background: color-mix(in srgb, #ffffff 6%, transparent); }
-:root[data-theme="dark"] .loc-map { border-color: var(--line); filter: brightness(0.9) contrast(1.05); }
-
-/* keep the public auth + marketing pages light regardless of app theme */
-:root[data-theme="dark"] .login-page {
-  --sage: #f0f4f2;
-  --soft: #f3f6f4;
-  --line: #e2e8e4;
-  --muted: #6b7280;
-  --ink: #111827;
-  --panel: #ffffff;
-  color-scheme: light;
-}
-:root[data-theme="dark"] .login-page .inp,
-:root[data-theme="dark"] .login-page .f-inp { background: #ffffff; color: #111827; }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body, #root { min-height: 100%; max-width: 100%; }
-html { overflow-x: hidden; }
+html {
+  overflow-x: hidden;
+  /* Elastic/rubber-band overscroll (trackpad on desktop, touch on phone)
+     reveals whatever is behind <body> — without this it's browser-default
+     white, which flashes as a stray white gap past the end of the page. */
+  background: var(--sage);
+}
 body {
   font-family: Inter, -apple-system, Segoe UI, sans-serif;
   color: var(--ink);
@@ -260,6 +67,17 @@ body {
 button, input, textarea, select { font-family: inherit; }
 a { color: inherit; text-decoration: none; }
 button { cursor: pointer; }
+
+/* Justified body copy site-wide. Paired with hyphenation so wrapped words
+   can break instead of stretching into wide gaps on narrow lines — the
+   usual downside of justify without it. A more specific text-align (e.g.
+   .legal-inline, .lp-foot-copy) still wins over this bare element rule. */
+p {
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
 
 .btn {
   padding: 8px 14px;
@@ -683,6 +501,10 @@ p.login-signup { text-align: center; margin-top: 14px; }
   gap: 8px;
 }
 .seg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   flex: 1;
   min-width: 96px;
   padding: 10px 12px;
@@ -699,6 +521,7 @@ p.login-signup { text-align: center; margin-top: 14px; }
   background: #f0faf5;
   color: var(--forest);
 }
+.seg svg { flex-shrink: 0; }
 .step-ind { display: flex; gap: 6px; margin-bottom: 14px; }
 .step-dot { width: 8px; height: 8px; border-radius: 50%; background: #d1d5db; }
 .step-dot.done { background: var(--cta); }
@@ -1112,84 +935,69 @@ button.sidebar-acct-item:hover {
   .topbar { background: #fff; }
 }
 .topbar-r { display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin-left: auto; }
-.topbar-bell { display: inline-flex; align-items: center; }
-.topbar-bell .bell-btn { width: 34px; height: 34px; }
 
-/* theme toggle in the topbar */
-.theme-toggle {
+/* Compact account dropdown from the top bar — the only mobile nav shell now
+   (see MobileAccountMenu.jsx / BottomTabBar.jsx). */
+.mobile-acct { position: relative; }
+.mobile-acct-btn {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: var(--panel, #fff);
-  color: var(--muted);
-  cursor: pointer;
-  transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
-}
-.theme-toggle:hover { color: var(--forest); border-color: var(--forest); }
-
-/* lightweight hover tooltip for icon-only buttons */
-.icon-tip { position: relative; }
-.icon-tip::after {
-  content: attr(data-tip);
-  position: absolute;
-  top: calc(100% + 7px);
-  right: 0;
-  padding: 5px 9px;
-  border-radius: 7px;
-  background: var(--ink);
-  color: var(--sage);
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-  opacity: 0;
-  transform: translateY(-3px);
-  pointer-events: none;
-  transition: opacity 0.12s ease, transform 0.12s ease;
-  z-index: 40;
-}
-.icon-tip:hover::after,
-.icon-tip:focus-visible::after { opacity: 1; transform: translateY(0); }
-
-/* Mobile drawer controls — hidden until the mobile breakpoint */
-.drawer-btn {
-  display: none;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: 50%;
   background: #fff;
-  color: var(--ink);
+  color: var(--forest);
   cursor: pointer;
 }
-.drawer-btn:hover { background: var(--sage); }
-.drawer-close {
-  display: none;
-  flex-shrink: 0;
+.mobile-acct-btn svg { width: 22px; height: 22px; }
+.mobile-acct-btn:hover { background: var(--sage); }
+.mobile-acct-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 190px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(16, 35, 28, 0.16);
+  padding: 6px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mobile-acct-item {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
   border-radius: 8px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.85);
+  background: none;
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
   cursor: pointer;
+  font: inherit;
 }
-.drawer-close:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
-.drawer-scrim { display: none; }
+.mobile-acct-item:hover { background: var(--soft); }
+.mobile-acct-item.active { color: var(--forest); font-weight: 600; background: color-mix(in srgb, var(--forest) 8%, transparent); }
+.mobile-acct-logout { color: #b91c1c; }
+.mobile-acct-logout:hover { background: #fee2e2; }
+
 .topbar-brand-m { display: none; }
-.sidebar-lang { display: none; }
+/* Desktop-sidebar-only (the sidebar itself is display:none on mobile, see
+   the max-width:900px block below, so no separate mobile override is needed). */
+.sidebar-lang { display: block; margin: 4px 8px 12px; }
+.sidebar-lang .lang-select { display: flex; width: 100%; }
+.sidebar-lang .lang-select-ctrl { width: 100%; }
 .topbar-brand,
 .topbar-brand-m {
   align-items: center;
@@ -1881,6 +1689,9 @@ button.sidebar-acct-item:hover {
 }
 .veh-pills, .veh-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 6px; }
 .vp, .vchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 6px 13px;
   border-radius: 20px;
   font-size: 12px;
@@ -1890,6 +1701,7 @@ button.sidebar-acct-item:hover {
   background: #fff;
 }
 .vp.on, .vchip.on { background: var(--forest); border-color: var(--forest); color: #fff; }
+.vp svg, .vchip svg { flex-shrink: 0; }
 .qty-ctrl { display: flex; align-items: center; border: 1.5px solid var(--line); border-radius: 8px; overflow: hidden; margin-top: 6px; }
 .qty-ctrl button { padding: 9px 16px; background: var(--soft); border: none; font-size: 16px; color: #374151; }
 .qty-ctrl input { flex: 1; border: none; outline: none; text-align: center; font-size: 15px; font-weight: 600; padding: 9px 0; }
@@ -2332,7 +2144,8 @@ button.sidebar-acct-item:hover {
   }
   .part-form-actions {
     position: sticky;
-    bottom: 0;
+    /* sticks above the fixed .tabbar instead of sliding underneath it */
+    bottom: var(--tabbar-clear);
     z-index: 5;
     margin: 0 -12px;
     padding: 12px;
@@ -2495,6 +2308,7 @@ button.sidebar-acct-item:hover {
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
+  flex: 1 1 320px;
 }
 .account-hero-tiles {
   display: flex;
@@ -2588,6 +2402,63 @@ button.sidebar-acct-item:hover {
   color: var(--ink);
 }
 
+/* ---- WhatsApp alerts tile: icon, label, On/Off on the right ---- */
+.wa-tile {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+.wa-icon { flex-shrink: 0; border-radius: 50%; }
+.wa-row {
+  min-width: 116px;
+  flex: 1 1 190px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--auth-accent) 12%, rgba(255, 255, 255, 0.6));
+  background: color-mix(in srgb, #fff 55%, transparent);
+  transition: border-color 0.12s ease, transform 0.12s ease;
+}
+.wa-row:hover { border-color: var(--forest); transform: translateY(-1px); }
+.wa-row-label { font-size: 13px; font-weight: 600; color: var(--ink); }
+.wa-row-value { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--muted); }
+.wa-row-value.on { color: #1da851; }
+
+/* ---- switch-shop trigger: full-width card, icon left / text / caret right ---- */
+.shop-switch { flex: 1 1 260px; }
+.shop-switch-card {
+  width: 100%;
+  max-width: none;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 16px 9px 9px;
+}
+.shop-switch-card-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--forest) 14%, #fff);
+  color: var(--forest);
+}
+.shop-switch-card-ic svg { width: 24px; height: 24px; }
+.shop-switch-card-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.shop-switch-card-lbl {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.shop-switch-card .shop-switch-name { font-size: 15px; }
+.shop-switch-card svg:last-child { flex-shrink: 0; color: var(--muted); }
+
 /* -------- body: rail + panel -------- */
 .account-body {
   display: grid;
@@ -2661,6 +2532,40 @@ button.sidebar-acct-item:hover {
 .account-grid .form-field { margin-bottom: 14px; }
 .account-grid-wide { grid-column: 1 / -1; }
 
+/* sub-section header inside a form panel — icon badge + short title,
+   used to break a long form (e.g. Shop details) into scannable groups */
+.account-subsec-hd {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.account-subsec-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--forest) 12%, #fff);
+  color: var(--forest);
+  flex-shrink: 0;
+}
+.account-subsec-ttl { font-size: 14px; font-weight: 700; color: var(--ink); }
+
+/* inline validity check inside a text field (e.g. GSTIN) */
+.field-check-wrap { position: relative; }
+.field-check-wrap .inp { padding-right: 34px; }
+.field-check {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  color: #1da851;
+  pointer-events: none;
+}
+
 .account-actions {
   display: flex;
   align-items: center;
@@ -2671,6 +2576,15 @@ button.sidebar-acct-item:hover {
 .account-btn,
 .account-actions .btn { min-width: 150px; }
 .account-note { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+.account-note-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.account-note-row .account-note { margin-bottom: 0; }
+.account-note-btn { flex-shrink: 0; white-space: nowrap; }
 .account-empty { font-size: 13px; color: var(--muted); padding: 8px 0; }
 .account-otp {
   max-width: 200px;
@@ -2686,6 +2600,90 @@ button.sidebar-acct-item:hover {
 .account-toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .account-toggle-ttl { font-size: 13px; font-weight: 600; }
 .account-toggle-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* Help & support: tappable rows instead of cramped inline text links */
+.support-links { display: flex; flex-direction: column; gap: 2px; }
+.support-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 8px;
+  border-radius: 10px;
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.support-link:not(:last-child) { border-bottom: 1px solid var(--line); }
+.support-link:hover { background: var(--soft); }
+.support-link svg:last-child { margin-left: auto; flex-shrink: 0; color: var(--muted); }
+.support-link-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--forest) 12%, #fff);
+  color: var(--forest);
+}
+
+/* Plain, low-emphasis logout — the real one-tap logout lives in the profile
+   menu; this is just a way out of Settings itself, not a card/action. */
+.account-logout-plain {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 14px 16px;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.account-logout-plain svg { width: 22px; height: 22px; flex-shrink: 0; }
+.account-logout-plain:hover { color: #b91c1c; background: #fee2e2; }
+.account-logout-center { justify-content: center; }
+
+@media (max-width: 620px) {
+  /* full-bleed, edge-to-edge on phones instead of an inset card button */
+  .account-logout-plain {
+    margin-left: -14px;
+    margin-right: -14px;
+    width: calc(100% + 28px);
+    border-radius: 0;
+    padding-left: 20px;
+    padding-right: 20px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+/* delete account — a single dull, light-red button (no card) */
+.account-delete-btn {
+  width: 100%;
+  margin-top: 2px;
+  padding: 13px;
+  border: 1px solid color-mix(in srgb, #ef4444 22%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, #ef4444 8%, #fff);
+  color: #b91c1c;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.account-delete-btn:hover { background: color-mix(in srgb, #ef4444 14%, #fff); }
+
+/* delete-account confirm popup */
+.delete-modal { max-width: 360px; text-align: center; }
+.delete-modal-text { font-size: 14px; line-height: 1.55; color: var(--ink); margin-bottom: 22px; }
+.delete-modal-actions { display: flex; gap: 10px; }
+.delete-modal-actions .btn { flex: 1 1 50%; min-width: 0; }
 .switch {
   flex-shrink: 0;
   width: 44px;
@@ -2783,43 +2781,66 @@ button.sidebar-acct-item:hover {
 .notif-badge-whatsapp { background: #e6f7f1; color: #0f7a5a; }
 .notif-badge-sms { background: #eef2ff; color: #4338ca; }
 
-/* nav rail on desktop is a plain grid cell; the wrapper only matters on mobile */
-.account-nav-wrap { display: contents; }
-.account-nav-bell { display: none; }
 .account-settings-stack { display: flex; flex-direction: column; gap: 16px; }
+
+/* ---- app-wide bottom tab bar (phones + small screens) ----
+   Lives in Layout.jsx above the hamburger breakpoint's old drawer nav; shows
+   the 4 main destinations everywhere, and the account page's own 4 sections
+   when you're on /account. */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  background: color-mix(in srgb, #fff 90%, transparent);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  border-top: 1px solid var(--line);
+  padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -8px 24px rgba(15, 61, 42, 0.1);
+}
+.tabbar-item {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 7px 2px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tabbar-ic { display: inline-flex; }
+.tabbar-ic svg { width: 23px; height: 23px; }
+.tabbar-item.active { color: var(--forest); }
+.tabbar-badge {
+  position: absolute;
+  top: 0;
+  right: calc(50% - 22px);
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--red);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+}
 
 @media (max-width: 900px) {
   .account-body { grid-template-columns: 1fr; gap: 14px; }
-  .account-nav-wrap {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  .account-nav {
-    position: static;
-    flex: 1;
-    min-width: 0;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    overflow: visible;
-    padding: 8px;
-  }
-  .account-nav-hd { display: none; }
-  .account-nav-item {
-    width: 100%;
-    min-width: 0;
-    justify-content: center;
-  }
-  .account-nav-bell {
-    display: block;
-    flex-shrink: 0;
-  }
-  .account-nav-bell .bell-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-  }
+  /* clear the fixed bottom tab bar */
+  .account-wrap { padding-bottom: var(--tabbar-clear); }
 }
 @media (max-width: 620px) {
   .account-grid { grid-template-columns: 1fr; gap: 0; }
@@ -3273,12 +3294,20 @@ button.sidebar-acct-item:hover {
 
 @media (max-width: 900px) {
   .topbar {
-    height: 48px;
-    padding: 0 10px;
+    height: 58px;
+    padding: 0 12px;
     gap: 8px;
   }
-  .topbar-r { gap: 6px; flex-wrap: nowrap; }
-  .content { padding: 12px 10px; }
+  .topbar-r { gap: 10px; flex-wrap: nowrap; }
+  /* mobile topbar is just brand (left) + hamburger (right) — search, lang
+     and the user avatar live in the drawer instead */
+  .topbar-brand-m .brand-logo-text,
+  .topbar-brand-m .brand-name { font-size: 18px; }
+  /* extra bottom padding clears the fixed .tabbar. Scoped with :not() so it
+     doesn't clobber .part-form-page's own (larger) bottom padding below,
+     regardless of which rule happens to come later in the file. */
+  .content:not(.part-form-page) { padding: 12px 10px var(--tabbar-clear); }
+  .toast { bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 10px); right: 14px; left: 14px; text-align: center; }
   .stat-row { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
   .qa-grid, .split { grid-template-columns: 1fr 1fr; gap: 8px; }
   .stat-card, .qa-card { padding: 10px; }
@@ -3323,61 +3352,17 @@ button.sidebar-acct-item:hover {
   .otp-box { height: 46px; font-size: 18px; }
 }
 
-/* Mobile / small screens: the sidebar becomes a slide-in drawer from the right */
+/* Mobile / small screens: no sidebar at all — Home/Inventory/Alerts/Insights
+   live in the app-wide bottom tab bar (BottomTabBar.jsx) and every account
+   area is reachable from the profile-menu button in the top bar
+   (MobileAccountMenu.jsx), so there's nothing left for a drawer to hold. */
 @media (max-width: 900px) {
-  .drawer-btn { display: inline-flex; }
-  .drawer-close { display: inline-flex; }
-  .nav-toggle { display: none; }
+  .sidebar { display: none; }
 
-  /* Strip the top bar down to brand (left) + hamburger (right) */
+  /* Strip the top bar down to brand (left) + profile menu (right) */
   .topbar-brand { display: none; }
   .topbar-brand-m { display: inline-flex; }
   .topbar .srch,
   .topbar-lang,
   .topbar-r .user-menu { display: none; }
-
-  /* Language switch moves into the drawer */
-  .sidebar-lang { display: block; margin: 2px 8px 12px; }
-  .sidebar-lang .lang-select { display: flex; width: 100%; }
-  .sidebar-lang .lang-select-ctrl { width: 100%; height: 40px; }
-
-  .drawer-scrim {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s ease;
-    z-index: 55;
-  }
-  .shell.drawer-open .drawer-scrim { opacity: 1; pointer-events: auto; }
-
-  .sidebar {
-    position: fixed;
-    top: 0;
-    right: 0;
-    left: auto;
-    width: min(60vw, 216px);
-    height: 100vh;
-    height: 100dvh;
-    max-height: none;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    transform: translateX(100%);
-    transition: transform 0.28s ease;
-    box-shadow: -20px 0 44px rgba(0, 0, 0, 0.32);
-    z-index: 60;
-  }
-  .shell.drawer-open .sidebar { transform: translateX(0); }
-
-  .sidebar-head {
-    height: 54px;
-    padding: 0 10px 0 18px;
-    justify-content: space-between;
-  }
-  .nav-item { padding: 11px 12px; font-size: 14px; }
-  .sidebar-add { font-size: 14px; padding: 12px 14px; }
-
-  .main { width: 100%; }
 }

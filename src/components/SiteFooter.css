@@ -87,3 +87,12 @@
     justify-content: center;
   }
 }
+
+/* Small screens drop the footer entirely — Help/Contact/Terms/Privacy are
+   already one tap away from the profile menu, and the footer's brand mark +
+   links just add scroll before reaching the bottom tab bar. */
+@media (max-width: 900px) {
+  .lp-foot {
+    display: none;
+  }
+}

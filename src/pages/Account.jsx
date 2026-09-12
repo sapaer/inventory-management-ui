@@ -7,7 +7,6 @@ import PasswordField from "../components/PasswordField";
 import LangSelect from "../components/LangSelect";
 import LocationPicker from "../components/LocationPicker";
 import NotificationModal from "../components/NotificationModal";
-import NotificationBell from "../components/NotificationBell";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import { BUSINESS_TYPES, t, VEHICLES } from "../i18n";
@@ -16,8 +15,8 @@ import { formatWhen, initials } from "../utils";
 const DESKTOP_SECTIONS = [
   { id: "profile", key: "basicDetails", Icon: UserIcon },
   { id: "shop", key: "storeDetails", Icon: StoreIcon },
-  { id: "security", key: "security", Icon: LockIcon },
   { id: "notifications", key: "notifications", Icon: BellIcon },
+  { id: "security", key: "security", Icon: LockIcon },
   { id: "preferences", key: "preferences", Icon: SlidersIcon },
 ];
 // On phones, Security + Preferences collapse into one "Settings" tab.
@@ -27,6 +26,17 @@ const MOBILE_SECTIONS = [
   { id: "notifications", key: "notifications", Icon: BellIcon },
   { id: "settings", key: "settingsNav", Icon: SlidersIcon },
 ];
+
+// Icons for the Shop details "What you deal in" pickers — looked up by the
+// id already coming out of i18n's BUSINESS_TYPES / VEHICLES data.
+const BUSINESS_TYPE_ICONS = { SHOP: StoreIcon, SERVICE_CENTER: WrenchIcon, BOTH: LayersIcon };
+const VEHICLE_ICONS = {
+  TWO_WHEELER: BikeIcon,
+  FOUR_WHEELER: CarIcon,
+  THREE_WHEELER: AutoIcon,
+  COMMERCIAL: TruckIcon,
+  EV: BoltIcon,
+};
 
 function useIsMobile() {
   const [mobile, setMobile] = useState(
@@ -87,17 +97,19 @@ export default function Account() {
       <div className="account-wrap">
         <IdentityHero
           user={user}
-          setUser={setUser}
           signIn={signIn}
           lang={lang}
-          flash={flash}
           accounts={accounts}
           waOn={waOn}
           onTile={go}
         />
 
         <div className="account-body">
-          <div className="account-nav-wrap">
+          {/* On phones, section switching lives in the profile-menu button in
+              the top bar (MobileAccountMenu.jsx) instead of a nav rendered
+              here — the bottom tab bar stays Home/Inventory/Alerts/Insights
+              on every page, including this one. */}
+          {!isMobile ? (
             <nav className="account-nav glass" aria-label={t(lang, "myAccount")}>
               <div className="account-nav-hd">{t(lang, "myAccount")}</div>
               {SECTIONS.map(({ id, key, Icon }) => (
@@ -115,12 +127,7 @@ export default function Account() {
                 </button>
               ))}
             </nav>
-            {isMobile ? (
-              <div className="account-nav-bell">
-                <NotificationBell />
-              </div>
-            ) : null}
-          </div>
+          ) : null}
 
           <div className="account-panel">
             <header className="account-panel-hd">
@@ -133,12 +140,18 @@ export default function Account() {
             {section === "security" && <SecuritySection {...shared} />}
             {section === "notifications" && <NotificationsSection lang={lang} />}
             {section === "preferences" && (
-              <PreferencesSection {...shared} signIn={signIn} signOut={signOut} nav={nav} accounts={accounts} />
+              <>
+                <PreferencesSection {...shared} />
+                <HelpSupportSection lang={lang} />
+                <AccountDangerZone lang={lang} flash={flash} signOut={signOut} nav={nav} />
+              </>
             )}
             {section === "settings" && (
               <div className="account-settings-stack">
+                <PreferencesSection {...shared} />
                 <SecuritySection {...shared} />
-                <PreferencesSection {...shared} signIn={signIn} signOut={signOut} nav={nav} accounts={accounts} />
+                <HelpSupportSection lang={lang} />
+                <AccountDangerZone lang={lang} flash={flash} signOut={signOut} nav={nav} />
               </div>
             )}
           </div>
@@ -151,23 +164,13 @@ export default function Account() {
 }
 
 /* --------------------------------------------------------------- hero card */
-function IdentityHero({ user, setUser, signIn, lang, flash, accounts, waOn, onTile }) {
+function IdentityHero({ user, signIn, lang, accounts, waOn, onTile }) {
   const name = user?.name || [user?.firstName, user?.lastName].filter(Boolean).join(" ") || t(lang, "yourAccount");
   const multi = (accounts?.length || 0) > 1;
 
   return (
     <section className="account-hero glass">
       <div className="account-hero-id">
-        <PhotoAvatar
-          url={user?.photoUrl}
-          fallback={initials(name)}
-          lang={lang}
-          onUploaded={async (photoUrl) => {
-            const updated = await authApi.updateProfile({ photoUrl });
-            setUser(updated);
-            flash(t(lang, "saved"));
-          }}
-        />
         <div className="account-hero-meta">
           <div className="account-hero-name">{name}</div>
           <div className="account-hero-sub">
@@ -180,16 +183,20 @@ function IdentityHero({ user, setUser, signIn, lang, flash, accounts, waOn, onTi
       <div className="account-hero-side">
         {multi ? <SwitchShopMenu accounts={accounts} user={user} signIn={signIn} lang={lang} /> : null}
         <div className="account-hero-tiles">
-          <button type="button" className="account-tile" onClick={() => onTile("preferences")}>
-            <span className="account-tile-label">{t(lang, "whatsappAlerts")}</span>
-            <span className="account-tile-value">
-              <span className={`account-status-dot${waOn ? " on" : ""}`} />
-              {waOn ? t(lang, "on") : t(lang, "off")}
-            </span>
-          </button>
+          <WhatsAppTile waOn={waOn} lang={lang} onClick={() => onTile("preferences")} />
         </div>
       </div>
     </section>
+  );
+}
+
+function WhatsAppTile({ waOn, lang, onClick }) {
+  return (
+    <button type="button" className="wa-tile wa-row" onClick={onClick}>
+      <WhatsAppIcon />
+      <span className="wa-row-label">{t(lang, "whatsappAlerts")}</span>
+      <span className={`wa-row-value${waOn ? " on" : ""}`}>{waOn ? t(lang, "on") : t(lang, "off")}</span>
+    </button>
   );
 }
 
@@ -216,11 +223,24 @@ function SwitchShopMenu({ accounts, user, signIn, lang }) {
     }
   }
 
+  const shopName = user?.shopName || t(lang, "currentShop");
+
   return (
     <div className="shop-switch" ref={root}>
-      <button type="button" className="shop-switch-btn" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-        <span className="shop-switch-name">{user?.shopName || t(lang, "currentShop")}</span>
-        <SwapIcon />
+      <button
+        type="button"
+        className="shop-switch-btn shop-switch-card"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span className="shop-switch-card-ic">
+          <StoreIcon />
+        </span>
+        <span className="shop-switch-card-text">
+          <span className="shop-switch-card-lbl">{t(lang, "currentShop")}</span>
+          <span className="shop-switch-name">{shopName}</span>
+        </span>
+        <CaretDownIcon />
       </button>
       {open ? (
         <div className="shop-switch-menu" role="menu">
@@ -420,96 +440,145 @@ function ShopSection({ user, setUser, lang, flash }) {
     }
   }
 
+  // Loose check, not enforced — just lets the field confirm a well-formed
+  // GSTIN as the shopkeeper types instead of staying silent either way.
+  const gstinValid = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(form.gstin);
+
   return (
-    <FormPanel className="glass">
-      <div className="shop-photo-row">
-        <PhotoAvatar
-          url={user?.shopPhotoUrl}
-          fallback={initials(form.shopName || "S")}
-          lang={lang}
-          shape="rounded"
-          onUploaded={async (shopPhotoUrl) => {
-            const updated = await authApi.updateProfile({ shopPhotoUrl });
-            setUser(updated);
-            flash(t(lang, "saved"));
-          }}
-        />
-        <div>
-          <div className="shop-photo-ttl">{t(lang, "shopPhoto")}</div>
-          <div className="shop-photo-sub">{t(lang, "shopPhotoHint")}</div>
+    <>
+      <FormPanel className="glass">
+        <div className="account-subsec-hd">
+          <span className="account-subsec-ic">
+            <StoreIcon />
+          </span>
+          <span className="account-subsec-ttl">{t(lang, "shopIdentityTitle")}</span>
         </div>
-      </div>
 
-      <div className="account-grid">
-        <FormField label={t(lang, "shopName")} className="account-grid-wide">
-          <input
-            className="inp"
-            value={form.shopName}
-            placeholder="Sharma Auto Parts"
-            onChange={(e) => set("shopName", e.target.value)}
+        <div className="shop-photo-row">
+          <PhotoAvatar
+            url={user?.shopPhotoUrl}
+            fallback={initials(form.shopName || "S")}
+            lang={lang}
+            shape="rounded"
+            onUploaded={async (shopPhotoUrl) => {
+              const updated = await authApi.updateProfile({ shopPhotoUrl });
+              setUser(updated);
+              flash(t(lang, "saved"));
+            }}
           />
+          <div>
+            <div className="shop-photo-ttl">{t(lang, "shopPhoto")}</div>
+            <div className="shop-photo-sub">{t(lang, "shopPhotoHint")}</div>
+          </div>
+        </div>
+
+        <div className="account-grid">
+          <FormField label={t(lang, "shopName")} className="account-grid-wide">
+            <input
+              className="inp"
+              value={form.shopName}
+              placeholder="Sharma Auto Parts"
+              onChange={(e) => set("shopName", e.target.value)}
+            />
+          </FormField>
+          <FormField label={t(lang, "gstin")} hint={t(lang, "gstinHint")} className="account-grid-wide">
+            <div className="field-check-wrap">
+              <input
+                className="inp"
+                value={form.gstin}
+                placeholder="22AAAAA0000A1Z5"
+                onChange={(e) => set("gstin", e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, "").slice(0, 15))}
+              />
+              {gstinValid ? (
+                <span className="field-check" aria-hidden="true">
+                  <CheckIcon />
+                </span>
+              ) : null}
+            </div>
+          </FormField>
+        </div>
+      </FormPanel>
+
+      <FormPanel className="glass">
+        <div className="account-subsec-hd">
+          <span className="account-subsec-ic">
+            <LayersIcon />
+          </span>
+          <span className="account-subsec-ttl">{t(lang, "shopBusinessTitle")}</span>
+        </div>
+
+        <FormField label={t(lang, "businessType")}>
+          <div className="seg-row">
+            {BUSINESS_TYPES.map((b) => {
+              const Icon = BUSINESS_TYPE_ICONS[b.id] || StoreIcon;
+              return (
+                <button
+                  key={b.id}
+                  type="button"
+                  className={`seg${form.businessType === b.id ? " on" : ""}`}
+                  onClick={() => set("businessType", b.id)}
+                >
+                  <Icon />
+                  {b.label}
+                </button>
+              );
+            })}
+          </div>
         </FormField>
-        <FormField label={t(lang, "gstin")} hint={t(lang, "gstinHint")} className="account-grid-wide">
-          <input
-            className="inp"
-            value={form.gstin}
-            placeholder="22AAAAA0000A1Z5"
-            onChange={(e) => set("gstin", e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, "").slice(0, 15))}
+
+        <FormField label={t(lang, "vehiclesDeal")}>
+          <div className="veh-chips">
+            {VEHICLES.map((v) => {
+              const Icon = VEHICLE_ICONS[v.id] || CarIcon;
+              return (
+                <button
+                  key={v.id}
+                  type="button"
+                  className={`vchip${form.vehicleCategories.includes(v.id) ? " on" : ""}`}
+                  onClick={() => toggleVehicle(v.id)}
+                >
+                  <Icon />
+                  {v.label}
+                </button>
+              );
+            })}
+          </div>
+        </FormField>
+      </FormPanel>
+
+      <FormPanel className="glass">
+        <div className="account-subsec-hd">
+          <span className="account-subsec-ic">
+            <PinIcon />
+          </span>
+          <span className="account-subsec-ttl">{t(lang, "shopLocationTitle")}</span>
+        </div>
+
+        <div className="form-field">
+          <LocationPicker
+            compact
+            showMap
+            keepAddress
+            value={form}
+            onChange={(loc) => {
+              setError("");
+              setForm((f) => ({ ...f, ...loc }));
+            }}
           />
-        </FormField>
-      </div>
-
-      <FormField label={t(lang, "businessType")}>
-        <div className="seg-row">
-          {BUSINESS_TYPES.map((b) => (
-            <button
-              key={b.id}
-              type="button"
-              className={`seg${form.businessType === b.id ? " on" : ""}`}
-              onClick={() => set("businessType", b.id)}
-            >
-              {b.label}
-            </button>
-          ))}
         </div>
-      </FormField>
 
-      <FormField label={t(lang, "vehiclesDeal")}>
-        <div className="veh-chips">
-          {VEHICLES.map((v) => (
-            <button
-              key={v.id}
-              type="button"
-              className={`vchip${form.vehicleCategories.includes(v.id) ? " on" : ""}`}
-              onClick={() => toggleVehicle(v.id)}
-            >
-              {v.label}
-            </button>
-          ))}
-        </div>
-      </FormField>
-
-      <div className="form-field">
-        <LocationPicker
-          compact
-          showMap
-          keepAddress
-          value={form}
-          onChange={(loc) => {
-            setError("");
-            setForm((f) => ({ ...f, ...loc }));
-          }}
-        />
-      </div>
-
-      <SaveRow busy={busy} error={error} onSave={save} lang={lang} />
-    </FormPanel>
+        <SaveRow busy={busy} error={error} onSave={save} lang={lang} />
+      </FormPanel>
+    </>
   );
 }
 
 /* ---------------------------------------------------------------- security */
 function SecuritySection({ user, setUser, lang, flash }) {
   const hasPassword = !!user?.hasPassword;
+  // Collapsed by default — most visits here are just to check the status,
+  // not to actually change the password. Expands into the form on request.
+  const [expanded, setExpanded] = useState(false);
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
   const [otp, setOtp] = useState("");
@@ -523,6 +592,11 @@ function SecuritySection({ user, setUser, lang, flash }) {
     setOtp("");
     setStage("form");
     setError("");
+  }
+
+  function collapse() {
+    reset();
+    setExpanded(false);
   }
 
   async function startVerification() {
@@ -561,7 +635,7 @@ function SecuritySection({ user, setUser, lang, flash }) {
     try {
       await authApi.changePassword(otp, pw);
       setUser({ ...user, hasPassword: true });
-      reset();
+      collapse();
       flash(t(lang, "passwordSaved"));
     } catch (e) {
       setError(formatApiError(e));
@@ -572,9 +646,16 @@ function SecuritySection({ user, setUser, lang, flash }) {
 
   return (
     <FormPanel className="glass">
-      <p className="account-note">{hasPassword ? t(lang, "passwordSet") : t(lang, "passwordNotSet")}</p>
+      <div className="account-note-row">
+        <p className="account-note">{hasPassword ? t(lang, "passwordSet") : t(lang, "passwordNotSet")}</p>
+        {!expanded ? (
+          <button type="button" className="btn btn-s account-note-btn" onClick={() => setExpanded(true)}>
+            {hasPassword ? t(lang, "changePassword") : t(lang, "createPassword")}
+          </button>
+        ) : null}
+      </div>
 
-      {stage === "form" ? (
+      {!expanded ? null : stage === "form" ? (
         <>
           <div className="account-grid">
             <FormField label={t(lang, "newPassword")} hint={t(lang, "passwordRule")}>
@@ -602,6 +683,9 @@ function SecuritySection({ user, setUser, lang, flash }) {
           <div className="account-actions">
             <button type="button" className="btn btn-p account-btn" disabled={busy} onClick={startVerification}>
               {busy ? t(lang, "sending") : hasPassword ? t(lang, "changePassword") : t(lang, "createPassword")}
+            </button>
+            <button type="button" className="link" disabled={busy} onClick={collapse}>
+              {t(lang, "cancel")}
             </button>
           </div>
         </>
@@ -707,7 +791,7 @@ function NotificationsSection({ lang }) {
 }
 
 /* ------------------------------------------------------------- preferences */
-function PreferencesSection({ user, setUser, lang, flash, signIn, signOut, nav, accounts }) {
+function PreferencesSection({ user, setUser, lang, flash }) {
   const [busy, setBusy] = useState(false);
   const waOn = user?.whatsappAlertsEnabled !== false;
 
@@ -724,24 +808,6 @@ function PreferencesSection({ user, setUser, lang, flash, signIn, signOut, nav, 
     } finally {
       setBusy(false);
     }
-  }
-
-  async function addShop() {
-    setBusy(true);
-    try {
-      const data = await authApi.createAccount();
-      signIn(data);
-      window.location.href = "/account-setup";
-    } catch (e) {
-      flash(formatApiError(e));
-      setBusy(false);
-      return;
-    }
-  }
-
-  async function logout() {
-    await signOut();
-    nav("/auth?mode=login", { replace: true });
   }
 
   return (
@@ -774,39 +840,90 @@ function PreferencesSection({ user, setUser, lang, flash, signIn, signOut, nav, 
           <LangSelect />
         </FormField>
       </FormPanel>
+    </>
+  );
+}
 
-      <FormPanel title={t(lang, "yourShops")} className="glass">
-        <div className="account-toggle-row">
-          <div>
-            <div className="account-toggle-ttl">{user?.shopName || t(lang, "currentShop")}</div>
-            <div className="account-toggle-sub">
-              {accounts == null
-                ? t(lang, "loading")
-                : accounts.length > 1
-                  ? t(lang, "shopsOnNumber", accounts.length)
-                  : t(lang, "oneShopOnNumber")}
+function HelpSupportSection({ lang }) {
+  return (
+    <FormPanel title={t(lang, "helpSupport")} className="glass">
+      <div className="support-links">
+        <Link to="/help" className="support-link">
+          <span className="support-link-ic">
+            <HelpIcon />
+          </span>
+          <span>{t(lang, "help")}</span>
+          <ChevronRightIcon />
+        </Link>
+        <Link to="/contact" className="support-link">
+          <span className="support-link-ic">
+            <ContactIcon />
+          </span>
+          <span>{t(lang, "contact")}</span>
+          <ChevronRightIcon />
+        </Link>
+        <Link to="/terms" className="support-link">
+          <span className="support-link-ic">
+            <TermsIcon />
+          </span>
+          <span>{t(lang, "terms")}</span>
+          <ChevronRightIcon />
+        </Link>
+      </div>
+    </FormPanel>
+  );
+}
+
+/* -------------------------------------------------- logout + delete account
+   Always the last thing on the page — after Security, not sandwiched
+   between Help & Support and Change password. */
+function AccountDangerZone({ lang, flash, signOut, nav }) {
+  const [busy, setBusy] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+
+  async function logout() {
+    await signOut();
+    nav("/auth?mode=login", { replace: true });
+  }
+
+  async function deleteAccount() {
+    setBusy(true);
+    try {
+      await authApi.deleteAccount();
+      await signOut();
+      nav("/auth?mode=login", { replace: true });
+    } catch (e) {
+      flash(formatApiError(e));
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <button type="button" className="account-logout-plain account-logout-center" onClick={logout}>
+        <LogoutIcon />
+        <span>{t(lang, "logout")}</span>
+      </button>
+
+      <button type="button" className="account-delete-btn" onClick={() => setConfirming(true)}>
+        {t(lang, "deleteAccount")}
+      </button>
+
+      {confirming ? (
+        <div className="overlay" onClick={() => !busy && setConfirming(false)}>
+          <div className="modal delete-modal" onClick={(e) => e.stopPropagation()}>
+            <p className="delete-modal-text">{t(lang, "deleteAccountWarning")}</p>
+            <div className="delete-modal-actions">
+              <button type="button" className="btn btn-g" disabled={busy} onClick={() => setConfirming(false)}>
+                {t(lang, "no")}
+              </button>
+              <button type="button" className="btn btn-d" disabled={busy} onClick={deleteAccount}>
+                {busy ? t(lang, "saving") : t(lang, "yes")}
+              </button>
             </div>
           </div>
-          <button type="button" className="btn btn-s" disabled={busy} onClick={addShop}>
-            + {t(lang, "addShop")}
-          </button>
         </div>
-      </FormPanel>
-
-      <FormPanel title={t(lang, "account")} className="glass">
-        <div className="legal-inline" style={{ textAlign: "left", marginBottom: 14 }}>
-          <Link to="/help">{t(lang, "help")}</Link>
-          {" · "}
-          <Link to="/contact">{t(lang, "contact")}</Link>
-          {" · "}
-          <Link to="/terms">{t(lang, "terms")}</Link>
-        </div>
-        <div className="account-actions">
-          <button type="button" className="btn btn-d account-btn" onClick={logout}>
-            {t(lang, "logout")}
-          </button>
-        </div>
-      </FormPanel>
+      ) : null}
     </>
   );
 }
@@ -826,17 +943,35 @@ function SaveRow({ busy, disabled, error, onSave, lang }) {
 }
 
 /* ------------------------------------------------------------------- icons */
-function SwapIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <path d="M7 4 3 8l4 4M3 8h13M17 20l4-4-4-4M21 16H8" />
-    </svg>
-  );
-}
 function CheckIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
       <path d="m5 13 4 4L19 7" />
+    </svg>
+  );
+}
+function CaretDownIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+/* Recognisable WhatsApp glyph on its brand-green circle — filled, not an
+   outline icon, so it reads as "WhatsApp" at a glance like the rest of the
+   set doesn't need to. */
+function WhatsAppIcon() {
+  return (
+    <svg width="30" height="30" viewBox="0 0 32 32" className="wa-icon" aria-hidden="true">
+      <circle cx="16" cy="16" r="16" fill="#25D366" />
+      <path
+        fill="#fff"
+        d="M16 7.5a8.47 8.47 0 0 0-7.24 12.86L7.5 24.5l4.27-1.2A8.47 8.47 0 1 0 16 7.5zm0 1.6a6.87 6.87 0 1 1-3.7 12.66l-.27-.17-2.53.7.7-2.44-.18-.28A6.87 6.87 0 0 1 16 9.1z"
+      />
+      <path
+        fill="#fff"
+        d="M13.2 12.1c-.17-.38-.35-.39-.51-.4h-.44c-.15 0-.4.06-.61.3-.21.24-.8.78-.8 1.9s.82 2.2.93 2.35c.12.15 1.58 2.5 3.9 3.4 1.93.76 2.32.61 2.74.57.42-.04 1.35-.55 1.54-1.08.19-.53.19-.98.13-1.08-.06-.1-.21-.15-.44-.27-.23-.11-1.35-.67-1.56-.74-.21-.08-.36-.11-.51.11-.15.23-.58.74-.71.89-.13.15-.26.17-.49.06-.23-.11-.96-.35-1.82-1.13-.67-.6-1.13-1.34-1.26-1.57-.13-.23-.01-.35.1-.47.1-.1.23-.26.35-.4.11-.13.15-.23.23-.38.08-.15.04-.28-.02-.4-.06-.11-.5-1.26-.7-1.71z"
+      />
     </svg>
   );
 }
@@ -879,6 +1014,113 @@ function SlidersIcon() {
       <path d="M4 8h10M18 8h2M4 16h4M12 16h8" />
       <circle cx="16" cy="8" r="2" />
       <circle cx="10" cy="16" r="2" />
+    </svg>
+  );
+}
+function WrenchIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14.5 6.5a3.5 3.5 0 1 1-5 5L4 17l3 3 5.5-5.5a3.5 3.5 0 1 0 5-5l-1.8 1.8-2-.7-.7-2z" />
+    </svg>
+  );
+}
+function LayersIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m12 3 9 5-9 5-9-5 9-5Z" />
+      <path d="m3 13 9 5 9-5" />
+    </svg>
+  );
+}
+function BikeIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="5.5" cy="17.5" r="3.5" />
+      <circle cx="18.5" cy="17.5" r="3.5" />
+      <path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm-9.5 11.5L9 10h4l3 4h3.5M9 10 7 6h3" />
+    </svg>
+  );
+}
+function CarIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 13l1.5-4.5A2 2 0 0 1 6.4 7h11.2a2 2 0 0 1 1.9 1.5L21 13" />
+      <path d="M3 13h18v4a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H6v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4Z" />
+      <circle cx="7.5" cy="14.5" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="16.5" cy="14.5" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+function AutoIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 16V9a1 1 0 0 1 1-1h6l4 4h4a1 1 0 0 1 1 1v3" />
+      <path d="M4 16h16" />
+      <circle cx="7" cy="18.3" r="1.7" />
+      <circle cx="17" cy="18.3" r="1.7" />
+    </svg>
+  );
+}
+function TruckIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 7h10v9H3z" />
+      <path d="M13 11h4l3 3v2h-7" />
+      <circle cx="7" cy="18" r="1.6" />
+      <circle cx="17" cy="18" r="1.6" />
+    </svg>
+  );
+}
+function BoltIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" />
+    </svg>
+  );
+}
+function PinIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 21s7-6.5 7-11a7 7 0 1 0-14 0c0 4.5 7 11 7 11Z" />
+      <circle cx="12" cy="10" r="2.5" />
+    </svg>
+  );
+}
+function HelpIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 2-2.4 3.5" />
+      <circle cx="12" cy="16.6" r="0.1" fill="currentColor" />
+    </svg>
+  );
+}
+function ContactIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 5h16v12H8l-4 4V5z" />
+    </svg>
+  );
+}
+function TermsIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7 3h8l4 4v14H7z" />
+      <path d="M15 3v4h4M9 12h6M9 16h6" />
+    </svg>
+  );
+}
+function ChevronRightIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m9 6 6 6-6 6" />
+    </svg>
+  );
+}
+function LogoutIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <path d="M16 17l5-5-5-5M21 12H9M12 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6" />
     </svg>
   );
 }

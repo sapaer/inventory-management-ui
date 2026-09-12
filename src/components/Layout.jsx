@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { inventoryApi } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
-import { useTheme } from "../context/ThemeContext";
 import { t } from "../i18n";
+import MobileAccountMenu from "./MobileAccountMenu";
 import NotificationBell from "./NotificationBell";
 import BrandLogo from "./BrandLogo";
 import UserMenu from "./UserMenu";
@@ -25,11 +25,9 @@ export default function Layout() {
   const [lowCount, setLowCount] = useState(0);
   const [query, setQuery] = useState("");
   const [acctOpen, setAcctOpen] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   async function logout() {
     setAcctOpen(false);
-    setDrawerOpen(false);
     await signOut();
     nav("/auth?mode=login", { replace: true });
   }
@@ -54,7 +52,6 @@ export default function Layout() {
     }
   }, [collapsed]);
 
-  // Track the mobile breakpoint so the sidebar can act as a slide-in drawer.
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 900px)");
     const sync = () => setIsMobile(mq.matches);
@@ -62,29 +59,6 @@ export default function Layout() {
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
   }, []);
-
-  // Close the mobile drawer on route change or when leaving the mobile view.
-  useEffect(() => {
-    setDrawerOpen(false);
-  }, [loc.pathname, loc.search]);
-
-  useEffect(() => {
-    if (!isMobile) setDrawerOpen(false);
-  }, [isMobile]);
-
-  // Escape closes the mobile drawer; lock body scroll while it's open.
-  useEffect(() => {
-    if (!drawerOpen) return;
-    function onKey(e) {
-      if (e.key === "Escape") setDrawerOpen(false);
-    }
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [drawerOpen]);
 
   useEffect(() => {
     if (!acctOpen) return;
@@ -107,12 +81,7 @@ export default function Layout() {
     loc.pathname === "/account" ? new URLSearchParams(loc.search).get("section") || "profile" : null;
 
   return (
-    <div
-      className={`shell${!isMobile && collapsed ? " nav-collapsed" : ""}${
-        drawerOpen ? " drawer-open" : ""
-      }`}
-    >
-      <div className="drawer-scrim" onClick={() => setDrawerOpen(false)} aria-hidden="true" />
+    <div className={`shell${!isMobile && collapsed ? " nav-collapsed" : ""}`}>
       <aside className="sidebar">
         <div className="sidebar-head">
           <BrandLogo className="brand" showTagline taglineClassName="brand-tag" to="/welcome" />
@@ -126,14 +95,6 @@ export default function Layout() {
           >
             <ToggleIcon />
           </button>
-          <button
-            type="button"
-            className="drawer-close"
-            aria-label={t(lang, "closeMenu")}
-            onClick={() => setDrawerOpen(false)}
-          >
-            <CloseIcon />
-          </button>
         </div>
         <nav className="nav">
           {NAV.map((item) => (
@@ -143,7 +104,6 @@ export default function Layout() {
               end={item.end}
               aria-label={t(lang, item.key)}
               data-tip={t(lang, item.key)}
-              onClick={() => setDrawerOpen(false)}
               className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}
             >
               <span className="nav-ic">
@@ -158,10 +118,7 @@ export default function Layout() {
           className="sidebar-add"
           aria-label={t(lang, "addPart")}
           data-tip={t(lang, "addPart")}
-          onClick={() => {
-            setDrawerOpen(false);
-            nav("/inventory/new");
-          }}
+          onClick={() => nav("/inventory/new")}
         >
           <span className="sidebar-add-ic">+</span>
           <span className="nav-txt">{t(lang, "addPart")}</span>
@@ -248,83 +205,25 @@ export default function Layout() {
                 />
               </form>
             ) : null}
-            <div className="topbar-bell">
-              <NotificationBell />
-            </div>
-            <ThemeToggle lang={lang} />
             <LangSelect className="topbar-lang" />
             <UserMenu />
             <BrandLogo className="topbar-brand" to="/welcome" />
-            <button
-              type="button"
-              className="drawer-btn"
-              aria-label={t(lang, "openMenu")}
-              aria-expanded={drawerOpen}
-              onClick={() => setDrawerOpen(true)}
-            >
-              <MenuIcon />
-            </button>
+            {isMobile ? <MobileAccountMenu /> : null}
           </div>
         </header>
         <Outlet />
+        {/* Bottom tab bar for phones is rendered app-wide by BottomTabBar.jsx
+            (mounted in App.jsx), not per-page here. */}
       </div>
     </div>
   );
 }
 
-function ThemeToggle({ lang }) {
-  const { theme, toggle } = useTheme();
-  const dark = theme === "dark";
-  const label = dark ? t(lang, "switchToLight") : t(lang, "switchToDark");
-  return (
-    <button
-      type="button"
-      className="theme-toggle icon-tip"
-      role="switch"
-      aria-checked={dark}
-      aria-label={label}
-      title={label}
-      data-tip={label}
-      onClick={toggle}
-    >
-      {dark ? <SunIcon /> : <MoonIcon />}
-    </button>
-  );
-}
-function SunIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-    </svg>
-  );
-}
-function MoonIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-    </svg>
-  );
-}
 function UserIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <circle cx="12" cy="8" r="4" />
       <path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5" />
-    </svg>
-  );
-}
-function MenuIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <path d="M4 7h16M4 12h16M4 17h16" />
-    </svg>
-  );
-}
-function CloseIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <path d="M6 6l12 12M18 6 6 18" />
     </svg>
   );
 }

@@ -1,0 +1,273 @@
+/* Insights — glass cards on the forest-tinted grid, matching the landing
+   page's .lp-value-card recipe (Landing.css) rather than the flat cards
+   used elsewhere in the app. Scoped so it never leaks into other pages. */
+
+.insights-page {
+  --ins-glass: color-mix(in srgb, var(--forest) 5%, rgba(255, 255, 255, 0.5));
+  --ins-glass-2: color-mix(in srgb, var(--forest) 5%, rgba(255, 255, 255, 0.8));
+  --ins-border: rgba(20, 92, 69, 0.12);
+  --ins-border-h: rgba(20, 92, 69, 0.32);
+  --ins-shadow: 0 10px 26px rgba(20, 92, 69, 0.07);
+  --ins-line: rgba(20, 92, 69, 0.09);
+  --ins-track: rgba(20, 92, 69, 0.08);
+  --ins-mark: #33403a;
+  --ins-radius: 14px;
+  position: relative;
+  isolation: isolate;
+  /* .content sets overflow-y:auto, which computes overflow-x to auto too —
+     without this the decorative glow bleeding past the edge below would
+     add a horizontal scrollbar to the page. */
+  overflow-x: hidden;
+}
+
+/* forest grid + soft glow, same pattern as the landing page's product section.
+   Positioned from the top of .content's own box (never a negative offset) —
+   .content scrolls, and anything placed above its origin would be clipped. */
+.insights-page::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -22px;
+  right: -22px;
+  height: 640px;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.8;
+  background-image:
+    linear-gradient(rgba(20, 92, 69, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 92, 69, 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+}
+.insights-page::after {
+  content: "";
+  position: absolute;
+  width: min(52vw, 560px);
+  height: min(52vw, 560px);
+  right: -10%;
+  top: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(38, 168, 126, 0.14), transparent 68%);
+}
+
+.ins-hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+.ins-hd-id { min-width: 0; }
+.ins-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: Fraunces, Georgia, serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--forest);
+  margin-bottom: 8px;
+}
+.ins-kicker-lg {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  letter-spacing: -0.02em;
+  text-transform: none;
+  color: var(--ink);
+  margin-bottom: 0;
+}
+.ins-sample-badge {
+  font-family: system-ui, sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: #b45309;
+  background: #faedd2;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+.ins-preview-btn {
+  flex-shrink: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--forest);
+  background: var(--ins-glass);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px dashed var(--ins-border-h);
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.ins-preview-btn:hover { background: var(--forest); border-style: solid; color: #fff; }
+
+.ins-chips { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; }
+.ins-chip {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--ins-glass);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid var(--ins-border);
+  padding: 7px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.ins-chip:hover { border-color: var(--ins-border-h); color: var(--ink); }
+.ins-chip.on { background: var(--forest); border-color: var(--forest); color: #fff; }
+
+.ins-sec { margin-bottom: 22px; }
+.ins-sec-hd { margin-bottom: 10px; }
+.ins-sec-ttl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: Fraunces, Georgia, serif;
+  font-size: 16.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.ins-card {
+  background: var(--ins-glass);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  border: 1px solid var(--ins-border);
+  border-radius: var(--ins-radius);
+  box-shadow: var(--ins-shadow);
+}
+
+.ins-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(20, 92, 69, 0.1);
+  color: var(--forest);
+  flex-shrink: 0;
+}
+.ins-ic.crit { background: #fbe4e1; color: #c0392b; }
+.ins-ic.warn { background: #faedd2; color: #b45309; }
+.ins-ic.dead { background: #e9ebea; color: #667a72; }
+
+.ins-money-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.ins-tile {
+  background: var(--ins-glass);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  border: 1px solid var(--ins-border);
+  border-radius: var(--ins-radius);
+  padding: 16px;
+  box-shadow: var(--ins-shadow);
+  min-width: 0;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+/* Reserve two lines' worth of height regardless of whether this card's
+   label actually wraps — otherwise a longer label (e.g. "Restock cost
+   needed") pushes its value down further than its neighbours', and the
+   four cards stop lining up with each other. */
+.ins-tile-lbl {
+  min-height: 28px;
+  display: flex;
+  align-items: flex-end;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--muted);
+}
+.ins-tile-val-row { display: flex; align-items: center; gap: 8px; margin-top: auto; }
+.ins-tile-val { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; color: var(--ink); font-variant-numeric: proportional-nums; }
+.ins-tile-val.ins-num-blue { color: #1d6fd6; }
+
+.ins-trend {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ins-trend-green { background: #dcf5e6; color: #16a34a; }
+.ins-trend-grey { background: #e9ebea; color: #667a72; }
+
+.ins-attn-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--ins-line); }
+.ins-attn-row:last-child { border-bottom: none; }
+.ins-attn-body { flex: 1; min-width: 0; }
+.ins-attn-ttl { font-family: Fraunces, Georgia, serif; font-size: 14.5px; font-weight: 600; color: var(--ink); }
+.ins-attn-meta { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+.ins-attn-right { text-align: right; flex-shrink: 0; }
+.ins-attn-cost { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
+.ins-attn-cost-lbl { font-size: 10.5px; color: var(--muted); }
+.ins-attn-empty { padding: 18px 16px; font-size: 13px; color: var(--muted); text-align: center; }
+
+.ins-rank-row {
+  display: grid;
+  grid-template-columns: 20px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ins-line);
+  transition: background .12s ease;
+}
+.ins-rank-row:last-child { border-bottom: none; }
+.ins-rank-row:hover { background: var(--ins-glass-2); }
+.ins-rank-n { font-family: Fraunces, Georgia, serif; font-size: 12px; font-weight: 700; color: var(--forest); }
+.ins-rank-main { min-width: 0; overflow: hidden; }
+.ins-rank-name { font-family: Fraunces, Georgia, serif; font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ins-rank-meta { font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+.ins-rank-track { height: 5px; border-radius: 3px; background: var(--ins-track); margin-top: 7px; overflow: hidden; }
+.ins-rank-fill { height: 100%; border-radius: 3px; background: var(--ins-mark); }
+.ins-rank-val { text-align: right; }
+.ins-rank-val-n { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
+.ins-rank-val-lbl { font-size: 10px; color: var(--muted); }
+
+.ins-veh-row { padding: 12px 16px; border-bottom: 1px solid var(--ins-line); }
+.ins-veh-row:last-child { border-bottom: none; }
+.ins-veh-top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 7px; gap: 8px; }
+.ins-veh-name { font-family: Fraunces, Georgia, serif; font-size: 14px; font-weight: 600; color: var(--ink); }
+.ins-veh-val { font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--muted); flex-shrink: 0; }
+.ins-veh-track { height: 8px; border-radius: 4px; background: var(--ins-track); overflow: hidden; }
+.ins-veh-fill { height: 100%; border-radius: 4px; background: var(--ins-mark); }
+
+.ins-meter-wrap { padding: 18px 16px 16px; }
+.ins-meter { display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: var(--ins-line); }
+.ins-meter span { height: 100%; }
+.ins-meter .seg-good { background: #16a34a; }
+.ins-meter .seg-warn { background: #b45309; }
+.ins-meter .seg-crit { background: #c0392b; }
+.ins-meter-key { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; }
+.ins-meter-key-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink); }
+.ins-meter-key-item .sw { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+.ins-meter-key-item b { font-variant-numeric: tabular-nums; }
+.ins-meter-key-item span.pct { color: var(--muted); }
+
+.ins-foot-note {
+  text-align: center;
+  font-family: Fraunces, Georgia, serif;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 26px;
+  line-height: 1.6;
+}
+
+.ins-revenue { padding: 18px 16px; }
+.ins-revenue-chart { width: 100%; height: 100px; display: block; overflow: visible; }
+.ins-revenue-area { fill: color-mix(in srgb, var(--forest) 16%, transparent); stroke: none; }
+.ins-revenue-line { fill: none; stroke: var(--forest); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.ins-revenue-dot { fill: var(--forest); }
+.ins-revenue-total { margin-top: 10px; font-size: 18px; font-weight: 700; letter-spacing: -0.3px; color: var(--ink); font-variant-numeric: proportional-nums; }
+
+@media (min-width: 720px) {
+  .ins-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  .ins-money-grid { grid-template-columns: repeat(4, 1fr); }
+}

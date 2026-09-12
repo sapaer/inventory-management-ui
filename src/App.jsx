@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
+import BottomTabBar from "./components/BottomTabBar";
 import Layout from "./components/Layout";
 import Loader from "./components/Loader";
 import Landing from "./pages/Landing";
@@ -50,49 +51,55 @@ function Home() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/welcome" element={<Landing />} />
-      <Route path="/help" element={<Help />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="/terms" element={<Terms />} />
-      <Route
-        path="/auth"
-        element={
-          <PublicOnly>
-            <Auth />
-          </PublicOnly>
-        }
-      />
-      <Route path="/login" element={<Navigate to="/auth?mode=login" replace />} />
-      <Route path="/signup" element={<Navigate to="/auth?mode=signup" replace />} />
-      <Route
-        path="/account-setup"
-        element={
-          <SetupGate>
-            <AccountSetup />
-          </SetupGate>
-        }
-      />
-      <Route path="/setup" element={<Navigate to="/account-setup" replace />} />
-      <Route
-        element={
-          <Gate>
-            <Layout />
-          </Gate>
-        }
-      >
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/inventory" element={<Inventory />} />
-        <Route path="/inventory/new" element={<PartForm />} />
-        <Route path="/inventory/:id/edit" element={<PartForm />} />
-        <Route path="/low-stocks" element={<LowStocks />} />
-        <Route path="/insights" element={<Insights />} />
-        <Route path="/account" element={<Account />} />
-        <Route path="/profile" element={<Navigate to="/account" replace />} />
-        <Route path="/settings" element={<Navigate to="/account" replace />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/welcome" element={<Landing />} />
+        <Route path="/help" element={<Help />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route
+          path="/auth"
+          element={
+            <PublicOnly>
+              <Auth />
+            </PublicOnly>
+          }
+        />
+        <Route path="/login" element={<Navigate to="/auth?mode=login" replace />} />
+        <Route path="/signup" element={<Navigate to="/auth?mode=signup" replace />} />
+        <Route
+          path="/account-setup"
+          element={
+            <SetupGate>
+              <AccountSetup />
+            </SetupGate>
+          }
+        />
+        <Route path="/setup" element={<Navigate to="/account-setup" replace />} />
+        <Route
+          element={
+            <Gate>
+              <Layout />
+            </Gate>
+          }
+        >
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/inventory/new" element={<PartForm />} />
+          <Route path="/inventory/:id/edit" element={<PartForm />} />
+          <Route path="/low-stocks" element={<LowStocks />} />
+          <Route path="/insights" element={<Insights />} />
+          <Route path="/account" element={<Account />} />
+          <Route path="/profile" element={<Navigate to="/account" replace />} />
+          <Route path="/settings" element={<Navigate to="/account" replace />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      {/* Global, signed-in-only bottom nav for phones — lives outside <Routes>
+          so it stays mounted (and covers standalone pages like Help/Contact/
+          Terms too, not just the ones wrapped in Layout). */}
+      <BottomTabBar />
+    </>
   );
 }

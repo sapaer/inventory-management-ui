@@ -11,6 +11,12 @@
   flex-direction: column;
 }
 
+@media (max-width: 900px) {
+  /* clears the fixed .tabbar shown to signed-in users on phones — derived
+     from the shared --tabbar-clear token (index.css), not a guessed number */
+  .info-page { padding-bottom: var(--tabbar-clear); }
+}
+
 .info-draft {
   display: inline-block;
   margin: 0 0 14px;

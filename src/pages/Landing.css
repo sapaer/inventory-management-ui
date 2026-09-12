@@ -24,6 +24,13 @@
   overflow-x: hidden;
 }
 
+@media (max-width: 900px) {
+  /* clears the fixed .tabbar shown to signed-in users on phones (this page
+     is reachable at /welcome even while signed in) so the footer isn't
+     covered. Derived from the shared --tabbar-clear token (index.css). */
+  .lp { padding-bottom: var(--tabbar-clear); }
+}
+
 .lp a { color: inherit; text-decoration: none; }
 
 .lp-font-picker {

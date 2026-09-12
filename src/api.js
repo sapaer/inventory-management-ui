@@ -160,6 +160,10 @@ export const authApi = {
   listAccounts: () => api("/api/v1/auth/accounts"),
   createAccount: () => api("/api/v1/auth/accounts", { method: "POST" }),
   switchAccount: (accountId) => api("/api/v1/auth/accounts/switch", { method: "POST", body: { accountId } }),
+  // Soft delete: server marks the account PENDING_DELETION and revokes the
+  // current session immediately. Signing back in within the grace period
+  // (returned as purgeAfter) cancels it; after that it's purged for good.
+  deleteAccount: () => api("/api/v1/auth/account", { method: "DELETE" }),
 };
 
 export const inventoryApi = {
