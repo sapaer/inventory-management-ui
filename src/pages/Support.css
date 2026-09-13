@@ -300,10 +300,10 @@
   color: #6b7280;
 }
 
-.contact-cards {
+.contact-hero-row {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .contact-card {
@@ -368,6 +368,92 @@
   background: #fff;
   color: var(--lp-forest, #145c45);
   border: 1px solid var(--lp-forest, #145c45);
+}
+
+/* WhatsApp is the channel this audience actually uses most, so it gets a
+   larger highlighted card; Email and Contact us are a compact secondary
+   pair beside/below it. */
+.contact-hero-card {
+  padding: 26px 22px;
+  gap: 12px;
+  background: linear-gradient(135deg, #e8f4ee, #d7eee3);
+  border-color: #cfe6da;
+}
+
+.contact-hero-ic {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--lp-forest, #145c45);
+  color: #fff;
+}
+
+.contact-hero-card strong {
+  font-family: var(--lp-heading, Fraunces, Georgia, serif);
+  font-size: 1.25rem;
+}
+
+.contact-hero-card > span:not(.contact-card-ic) {
+  font-size: 1rem;
+  color: #3f5b50;
+}
+
+.contact-hero-btn {
+  margin-top: 4px;
+  width: 100%;
+  min-height: 44px;
+  font-size: 0.9rem;
+}
+
+/* Hero illustration — one rounded tile instead of the old pair of
+   disconnected mockup-card shapes. */
+.contact-hero-tile {
+  width: 104px;
+  height: 104px;
+  border-radius: 24px;
+  background: linear-gradient(160deg, #1a6b52, #0f3d2e);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 14px 28px rgba(20, 92, 69, 0.2);
+}
+
+.contact-hero-tile svg {
+  width: 44px;
+  height: 44px;
+}
+
+.contact-secondary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.contact-card-sm {
+  padding: 16px 14px;
+  gap: 6px;
+}
+
+.contact-card-ic-sm {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+.contact-card-sm strong {
+  font-size: 0.92rem;
+}
+
+.contact-card-sm > span:not(.contact-card-ic) {
+  font-size: 0.78rem;
+  word-break: break-word;
+}
+
+.contact-card-sm .contact-card-btn {
+  width: 100%;
+  min-height: 36px;
+  padding: 7px 10px;
+  font-size: 0.78rem;
 }
 
 .contact-note {
@@ -452,15 +538,21 @@
     height: 100%;
   }
 
-  .contact-cards {
+  .contact-hero-row {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 20px;
     align-items: stretch;
   }
 
-  .contact-card {
-    min-height: 240px;
+  .contact-secondary {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .contact-card-sm {
+    flex: 1;
   }
 
   .contact-card-btn {
