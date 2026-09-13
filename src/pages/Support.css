@@ -1,7 +1,6 @@
 .support-page {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  /* height/display/flex/overflow come from .lp (Landing.css) — this just
+     overrides the background for support pages specifically. */
   background: #f4f7f6;
 }
 
@@ -606,8 +605,8 @@
   }
 }
 
-@media (max-width: 900px) {
-  .support-page {
-    padding-bottom: var(--tabbar-clear, 0);
-  }
-}
+/* Bottom clearance for the fixed .tabbar now lives on .lp-scroll
+   (Landing.css) — the actual scrolling element since .lp/.support-page
+   became a fixed, clipped shell. Padding here on the outer shell itself
+   would just shrink the frame instead of reserving space at the end of
+   the scrollable content. */

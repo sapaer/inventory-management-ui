@@ -19,6 +19,7 @@ export default function Landing() {
     <div className="lp">
       <SiteHeader sticky />
 
+      <div className="lp-scroll">
       <section className="lp-preview" id="preview">
         <div className="lp-preview-bg" aria-hidden="true">
           <div className="lp-hero-grid" />
@@ -132,6 +133,7 @@ export default function Landing() {
       ) : null}
 
       <SiteFooter />
+      </div>
     </div>
   );
 }
