@@ -24,6 +24,10 @@ body {
   --auth-accent: #1a5c46;
   --auth-accent-deep: #0f3d2a;
   --sage: #f0f4f2;
+  /* Visibly tinted (not just barely-off-white like --sage) — this is what
+     shows during elastic/rubber-band overscroll bounce past the end of a
+     page, so it needs to read as a deliberate color, not a blank flash. */
+  --overscroll-bg: #dcece4;
   --line: #e2e8e4;
   --muted: #6b7280;
   --ink: #111827;
@@ -50,14 +54,15 @@ html, body, #root { min-height: 100%; max-width: 100%; }
 html {
   overflow-x: hidden;
   /* Elastic/rubber-band overscroll (trackpad on desktop, touch on phone)
-     reveals whatever is behind <body> — without this it's browser-default
-     white, which flashes as a stray white gap past the end of the page. */
-  background: var(--sage);
+     reveals whatever is behind <body> — --sage is so close to white it
+     still read as a blank flash, so this uses the more visibly tinted
+     --overscroll-bg instead. */
+  background: var(--overscroll-bg);
 }
 body {
   font-family: Inter, -apple-system, Segoe UI, sans-serif;
   color: var(--ink);
-  background: var(--sage);
+  background: var(--overscroll-bg);
   top: 0 !important;
   overflow-x: hidden;
   width: 100%;
