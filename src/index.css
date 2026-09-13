@@ -54,9 +54,11 @@ html, body, #root { min-height: 100%; max-width: 100%; }
 html {
   overflow-x: hidden;
   /* Elastic/rubber-band overscroll (trackpad on desktop, touch on phone)
-     reveals whatever is behind <body> — --sage is so close to white it
-     still read as a blank flash, so this uses the more visibly tinted
-     --overscroll-bg instead. */
+     reveals whatever is behind <body> — --sage was too close to white to
+     read as intentional, so this uses the more visibly tinted
+     --overscroll-bg instead. (overscroll-behavior:none was tried to
+     suppress the bounce itself, but it breaks normal scrolling entirely —
+     confirmed twice now — so don't reintroduce it here.) */
   background: var(--overscroll-bg);
 }
 body {
