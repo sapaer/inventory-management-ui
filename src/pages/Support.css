@@ -408,19 +408,19 @@
 /* Hero illustration — one rounded tile instead of the old pair of
    disconnected mockup-card shapes. */
 .contact-hero-tile {
-  width: 150px;
-  height: 150px;
-  border-radius: 32px;
+  width: 104px;
+  height: 104px;
+  border-radius: 24px;
   background: linear-gradient(160deg, #1a6b52, #0f3d2e);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 20px 40px rgba(20, 92, 69, 0.22);
+  box-shadow: 0 14px 28px rgba(20, 92, 69, 0.2);
 }
 
 .contact-hero-tile svg {
-  width: 64px;
-  height: 64px;
+  width: 44px;
+  height: 44px;
 }
 
 .contact-secondary {
