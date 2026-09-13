@@ -51,8 +51,12 @@ export default function MobileAccountMenu() {
 
   async function logout() {
     setOpen(false);
+    // Navigate off the protected route BEFORE clearing the session — signOut
+    // flips the auth-context user to null, and if this page is still Gate-
+    // wrapped and mounted when that happens, Gate's own redirect to /auth
+    // wins the race and overrides this one.
+    nav("/welcome", { replace: true });
     await signOut();
-    nav("/auth?mode=login", { replace: true });
   }
 
   return (

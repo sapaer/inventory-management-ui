@@ -8,12 +8,11 @@ import MobileAccountMenu from "./MobileAccountMenu";
 import NotificationBell from "./NotificationBell";
 import BrandLogo from "./BrandLogo";
 import UserMenu from "./UserMenu";
-import LangSelect from "./LangSelect";
 
 const NAV = [
   { to: "/dashboard", key: "home", icon: HomeIcon, end: true },
   { to: "/inventory", key: "inventory", icon: BoxIcon },
-  { to: "/low-stocks", key: "lowStocks", icon: BellIcon },
+  { to: "/stock-update", key: "updateStock", icon: UpdateIcon },
   { to: "/insights", key: "insights", icon: ChartIcon },
 ];
 
@@ -22,14 +21,18 @@ export default function Layout() {
   const { lang } = useLang();
   const loc = useLocation();
   const nav = useNavigate();
-  const [lowCount, setLowCount] = useState(0);
   const [query, setQuery] = useState("");
   const [acctOpen, setAcctOpen] = useState(false);
+  const [lowCount, setLowCount] = useState(0);
 
   async function logout() {
     setAcctOpen(false);
+    // Navigate off the protected route BEFORE clearing the session — signOut
+    // flips the auth-context user to null, and if this Gate-wrapped page is
+    // still mounted when that happens, Gate's own redirect to /auth wins the
+    // race and overrides this one.
+    nav("/welcome", { replace: true });
     await signOut();
-    nav("/auth?mode=login", { replace: true });
   }
 
   const [isMobile, setIsMobile] = useState(
@@ -110,10 +113,24 @@ export default function Layout() {
                 <item.icon />
               </span>
               <span className="nav-txt">{t(lang, item.key)}</span>
-              {item.key === "lowStocks" && lowCount > 0 ? <span className="nav-badge">{lowCount}</span> : null}
             </NavLink>
           ))}
         </nav>
+        <button
+          type="button"
+          className={`sidebar-lowstock${lowCount > 0 ? " has-alerts" : ""}`}
+          aria-label={lowCount > 0 ? t(lang, "sidebarLowStock", lowCount) : t(lang, "sidebarLowStockOk")}
+          data-tip={lowCount > 0 ? t(lang, "sidebarLowStock", lowCount) : t(lang, "sidebarLowStockOk")}
+          onClick={() => nav("/low-stocks")}
+        >
+          <span className="nav-ic">
+            <AlertIcon />
+          </span>
+          <span className="sidebar-lowstock-txt nav-txt">
+            {lowCount > 0 ? t(lang, "sidebarLowStock", lowCount) : t(lang, "sidebarLowStockOk")}
+          </span>
+          {lowCount > 0 ? <span className="nav-badge">{lowCount}</span> : null}
+        </button>
         <button
           className="sidebar-add"
           aria-label={t(lang, "addPart")}
@@ -178,9 +195,6 @@ export default function Layout() {
             </span>
           </button>
         </div>
-        <div className="sidebar-lang">
-          <LangSelect />
-        </div>
       </aside>
       <div className="main">
         <header className="topbar">
@@ -194,7 +208,9 @@ export default function Layout() {
                   nav(query.trim() ? `/inventory?q=${encodeURIComponent(query.trim())}` : "/inventory");
                 }}
               >
-                <span>⌕</span>
+                <span className="srch-ic">
+                  <SearchIcon />
+                </span>
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
@@ -202,12 +218,10 @@ export default function Layout() {
                 />
               </form>
             ) : null}
-            <LangSelect className="topbar-lang" />
             <UserMenu />
             <span className="topbar-bell">
               <NotificationBell />
             </span>
-            <BrandLogo className="topbar-brand" to="/welcome" />
             {isMobile ? <MobileAccountMenu /> : null}
           </div>
         </header>
@@ -221,7 +235,7 @@ export default function Layout() {
 
 function UserIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <circle cx="12" cy="8" r="4" />
       <path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5" />
     </svg>
@@ -237,7 +251,7 @@ function ToggleIcon() {
 }
 function StoreIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M4 9V7l1.5-3h13L20 7v2a2.5 2.5 0 0 1-4.5 1.5A2.5 2.5 0 0 1 12 11a2.5 2.5 0 0 1-3.5-.5A2.5 2.5 0 0 1 4 9z" />
       <path d="M5 11v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8" />
       <path d="M10 20v-5h4v5" />
@@ -253,36 +267,55 @@ function CaretIcon() {
 }
 function HomeIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5z" />
     </svg>
   );
 }
 function BoxIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
     </svg>
   );
 }
-function BellIcon() {
+function UpdateIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 11A8 8 0 0 0 6 6.3L4 8" />
+      <path d="M4 4v4h4" />
+      <path d="M4 13a8 8 0 0 0 14 4.7l2-1.7" />
+      <path d="M20 20v-4h-4" />
+    </svg>
+  );
+}
+function AlertIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m12 3 9.5 17H2.5L12 3Z" />
+      <path d="M12 10v4" />
+      <circle cx="12" cy="17.2" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+function SearchIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="7" />
+      <path d="m21 21-4.3-4.3" />
     </svg>
   );
 }
 function ChartIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M18 20V10M12 20V4M6 20v-6" />
     </svg>
   );
 }
 function LogoutIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
       <path d="M16 17l5-5-5-5M21 12H9M12 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6" />
     </svg>
   );

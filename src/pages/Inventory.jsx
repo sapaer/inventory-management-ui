@@ -6,7 +6,7 @@ import { t, vehicleLabel } from "../i18n";
 import { formatPrice, formatDate, stockOf } from "../utils";
 import StatusBadge from "../components/StatusBadge";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
-import SetQuantityModal from "../components/SetQuantityModal";
+import ViewPartModal from "../components/ViewPartModal";
 
 // DEV ONLY: one-tap sample catalog for trying the page out without adding
 // parts by hand. Creates real inventory rows via the normal add-part API.
@@ -58,7 +58,7 @@ export default function Inventory() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
-  const [qtyItem, setQtyItem] = useState(null);
+  const [viewItem, setViewItem] = useState(null);
   const [deleteItem, setDeleteItem] = useState(null);
   const [seeding, setSeeding] = useState(false);
   const [sort, setSort] = useState("recent");
@@ -145,7 +145,7 @@ export default function Inventory() {
                 item={item}
                 lang={lang}
                 deletingId={deletingId}
-                onView={() => setQtyItem(item)}
+                onView={() => setViewItem(item)}
                 onEdit={() => openEdit(item)}
                 onDelete={() => setDeleteItem(item)}
               />
@@ -207,7 +207,7 @@ export default function Inventory() {
                             <button
                               type="button"
                               className="act-btn act-view"
-                              onClick={() => setQtyItem(item)}
+                              onClick={() => setViewItem(item)}
                             >
                               <ViewIcon />
                               <span>{t(lang, "view")}</span>
@@ -241,19 +241,21 @@ export default function Inventory() {
           </div>
         </>
       )}
-      {qtyItem ? (
-        <SetQuantityModal
-          item={qtyItem}
+      {viewItem ? (
+        <ViewPartModal
+          item={viewItem}
           lang={lang}
-          onClose={() => setQtyItem(null)}
-          onEditProduct={() => {
-            const id = qtyItem.id;
-            setQtyItem(null);
+          thumb={<PartThumb item={viewItem} />}
+          onClose={() => setViewItem(null)}
+          onHistory={() => {
+            const id = viewItem.id;
+            setViewItem(null);
             nav(`/inventory/${id}/edit`);
           }}
-          onSaved={(updated) => {
-            setItems((rows) => rows.map((r) => (r.id === updated.id ? updated : r)));
-            setQtyItem(null);
+          onEdit={() => {
+            const id = viewItem.id;
+            setViewItem(null);
+            nav(`/inventory/${id}/edit`);
           }}
         />
       ) : null}

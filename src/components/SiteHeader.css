@@ -131,17 +131,13 @@
     gap: 8px;
   }
   /* Signed-in phones get the compact profile menu instead of the full
-     user-menu dropdown; language moves into Account > Settings, matching
-     the signed-in app shell. Guests keep both, since they have no account
-     page to reach it from. */
+     user-menu dropdown; language lives in Account > Settings, matching
+     the signed-in app shell. */
   .site-header.is-authed .site-header-actions .user-menu {
     display: none;
   }
   .site-header.is-authed .site-header-actions .mobile-acct {
     display: inline-flex;
-  }
-  .site-header.is-authed .site-header-lang {
-    display: none;
   }
   /* Match the bell button to the profile-menu button next to it — same
      size the signed-in app shell uses for both on phones. */

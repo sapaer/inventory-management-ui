@@ -24,10 +24,12 @@ body {
   --auth-accent: #1a5c46;
   --auth-accent-deep: #0f3d2a;
   --sage: #f0f4f2;
-  /* Visibly tinted (not just barely-off-white like --sage) — this is what
-     shows during elastic/rubber-band overscroll bounce past the end of a
-     page, so it needs to read as a deliberate color, not a blank flash. */
-  --overscroll-bg: #dcece4;
+  /* The brand's own dark tone — what shows during elastic/rubber-band
+     overscroll bounce past the end of a page. A pale tint here (tried
+     first) still read as a mismatched, broken-looking flash against
+     Landing's dark hero at the top; this deep forest instead reads as a
+     deliberate frame around the content on every page, dark or light. */
+  --overscroll-bg: var(--forest-deep);
   --line: #e2e8e4;
   --muted: #6b7280;
   --ink: #111827;
@@ -694,21 +696,22 @@ p.login-signup { text-align: center; margin-top: 14px; }
 .nav-item .nav-txt,
 .sidebar-acct-btn .nav-txt { flex: 1; text-align: left; }
 .brand-logo { text-decoration: none; color: inherit; cursor: pointer; }
-.nav { padding: 10px 8px; flex: 1; min-height: 0; }
+.nav { padding: 14px 10px; flex: 1; min-height: 0; }
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 9px 10px;
-  border-radius: 8px;
-  font-size: 13px;
+  gap: 11px;
+  padding: 13px 12px;
+  border-radius: 10px;
+  font-size: 13.5px;
   font-weight: 500;
   color: rgba(255,255,255,.62);
-  margin-bottom: 2px;
+  margin-bottom: 6px;
 }
 .nav-item:hover { background: rgba(255,255,255,.1); color: #fff; }
 .nav-item.active { background: rgba(255,255,255,.18); color: #fff; }
 .nav-ic { width: 18px; text-align: center; display: inline-flex; }
+.sidebar .nav-ic { width: 22px; }
 .nav-badge {
   margin-left: auto;
   background: #ef4444;
@@ -716,7 +719,35 @@ p.login-signup { text-align: center; margin-top: 14px; }
   font-size: 10px;
   padding: 1px 6px;
   border-radius: 10px;
+  flex-shrink: 0;
 }
+
+/* Quick-glance low-stock card — sits between the main nav and "Add part",
+   doubling as the way to reach the low-stock list now that it's not a
+   full nav row of its own (redundant with the bell's alert badge). */
+.sidebar-lowstock {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 8px 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.05);
+  color: rgba(255,255,255,.68);
+  font-size: 12.5px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+.sidebar-lowstock:hover { background: rgba(255,255,255,.09); color: #fff; }
+.sidebar-lowstock.has-alerts {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fde9c2;
+}
+.sidebar-lowstock.has-alerts:hover { background: rgba(245, 158, 11, 0.24); }
+.sidebar-lowstock-txt { flex: 1; line-height: 1.3; }
 .sidebar-add {
   margin: 0 8px 8px;
   background: var(--cta);
@@ -837,11 +868,18 @@ button.sidebar-acct-item:hover {
   padding-right: 0;
   justify-content: center;
 }
-.nav-collapsed .nav-badge {
+.nav-collapsed .sidebar-lowstock {
+  margin: 0 6px 10px;
+  padding: 10px 0;
+  gap: 0;
+  justify-content: center;
+  position: relative;
+}
+.nav-collapsed .sidebar-lowstock .nav-badge {
   position: absolute;
   margin: 0;
   top: 2px;
-  right: 6px;
+  right: 10px;
 }
 .nav-collapsed .sidebar-add {
   padding: 10px 0;
@@ -871,6 +909,7 @@ button.sidebar-acct-item:hover {
 .nav-collapsed .sidebar-acct-btn { position: relative; }
 .nav-collapsed .nav-item[data-tip]::after,
 .nav-collapsed .nav-toggle[data-tip]::after,
+.nav-collapsed .sidebar-lowstock[data-tip]::after,
 .nav-collapsed .sidebar-add[data-tip]::after,
 .nav-collapsed .sidebar-acct-btn[data-tip]::after {
   content: attr(data-tip);
@@ -895,6 +934,7 @@ button.sidebar-acct-item:hover {
 }
 .nav-collapsed .nav-item:hover::after,
 .nav-collapsed .nav-toggle:hover::after,
+.nav-collapsed .sidebar-lowstock:hover::after,
 .nav-collapsed .sidebar-add:hover::after,
 .nav-collapsed .sidebar-acct-btn:hover::after { opacity: 1; }
 
@@ -903,14 +943,14 @@ button.sidebar-acct-item:hover {
   background: color-mix(in srgb, #fff 72%, transparent);
   backdrop-filter: blur(16px) saturate(1.4);
   -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  padding: 0 22px;
-  height: 54px;
+  padding: 0 24px;
+  height: 66px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
-  gap: 12px;
+  gap: 14px;
   position: relative;
   z-index: 5;
 }
@@ -927,8 +967,8 @@ button.sidebar-acct-item:hover {
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   padding: 0;
   border: 1px solid var(--line);
   border-radius: 50%;
@@ -936,7 +976,7 @@ button.sidebar-acct-item:hover {
   color: var(--forest);
   cursor: pointer;
 }
-.mobile-acct-btn svg { width: 22px; height: 22px; }
+.mobile-acct-btn svg { width: 24px; height: 24px; }
 .mobile-acct-btn:hover { background: var(--sage); }
 .mobile-acct-menu {
   position: absolute;
@@ -975,50 +1015,35 @@ button.sidebar-acct-item:hover {
 .mobile-acct-logout { color: #b91c1c; }
 .mobile-acct-logout:hover { background: #fee2e2; }
 
-.topbar-brand-m { display: none; }
-/* Desktop-sidebar-only (the sidebar itself is display:none on mobile, see
-   the max-width:900px block below, so no separate mobile override is needed). */
-.sidebar-lang { display: block; margin: 4px 8px 12px; }
-.sidebar-lang .lang-select { display: flex; width: 100%; }
-.sidebar-lang .lang-select-ctrl { width: 100%; }
-.topbar-brand,
 .topbar-brand-m {
+  display: none;
   align-items: center;
   white-space: nowrap;
   text-decoration: none;
 }
-.topbar-brand { display: inline-flex; }
-.topbar-brand .brand-logo-text,
-.topbar-brand .brand-name,
 .topbar-brand-m .brand-logo-text,
 .topbar-brand-m .brand-name {
   color: var(--forest);
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.3px;
-}
-.topbar-brand-m .brand-logo-text,
-.topbar-brand-m .brand-name { font-size: 16px; }
-.topbar-lang .lang-select-ctrl {
-  max-width: 112px;
-  height: 34px;
-  padding: 0 24px 0 8px;
 }
 .srch {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 9px;
   background: var(--soft);
   border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 6px 12px;
+  border-radius: 10px;
+  padding: 9px 14px;
 }
-.srch input { border: none; outline: none; background: transparent; font-size: 12px; width: 180px; }
+.srch-ic { display: inline-flex; flex-shrink: 0; color: var(--muted); }
+.srch input { border: none; outline: none; background: transparent; font-size: 13.5px; width: 200px; }
 .av {
-  width: 31px; height: 31px; border-radius: 50%;
+  width: 38px; height: 38px; border-radius: 50%;
   background: var(--forest);
   display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 700; color: #fff;
+  font-size: 13px; font-weight: 700; color: #fff;
 }
 .user-menu { position: relative; }
 .user-menu-btn {
@@ -3300,6 +3325,154 @@ button.sidebar-acct-item:hover {
     max-width: 100%;
   }
 }
+
+.part-view-modal {
+  max-width: 440px;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 18px 48px rgba(15, 61, 42, 0.22);
+  max-height: min(84vh, 640px);
+  display: flex;
+  flex-direction: column;
+}
+.part-view-modal .qty-edit-hd {
+  flex-shrink: 0;
+}
+.part-view-hd-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.part-view-icon-btn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 10px;
+  background: var(--soft);
+  color: var(--muted);
+  cursor: pointer;
+}
+.part-view-icon-btn:hover {
+  background: #e8eee9;
+  color: var(--ink);
+}
+.part-view-x {
+  width: 38px;
+  height: 38px;
+  font-size: 28px;
+}
+.part-view-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 18px 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f4faf7 0%, #eef6f1 100%);
+  border: 1px solid #d7e8df;
+  flex-shrink: 0;
+}
+.part-view-summary .inv-thumb {
+  width: 52px;
+  height: 52px;
+}
+.part-view-summary-copy {
+  min-width: 0;
+}
+.part-view-name {
+  font-size: 16px;
+  font-weight: 750;
+  color: var(--ink);
+  line-height: 1.3;
+  word-break: break-word;
+}
+.part-view-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.part-view-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 18px;
+}
+.part-view-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+  padding: 14px 18px 0;
+}
+.part-view-field {
+  min-width: 0;
+}
+.part-view-field-lbl {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+.part-view-field-val {
+  display: block;
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--ink);
+  word-break: break-word;
+}
+.part-view-block {
+  padding: 14px 18px 0;
+}
+.part-view-desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #4b5563;
+}
+
+@media (max-width: 640px) {
+  .part-view-modal {
+    max-width: 100%;
+    max-height: min(82vh, 600px);
+    border-radius: 14px;
+    box-shadow: 0 8px 28px rgba(15, 61, 42, 0.2);
+  }
+  .part-view-summary {
+    margin: 10px 12px 0;
+    padding: 8px 10px;
+  }
+  .part-view-name {
+    font-size: 14px;
+  }
+  .part-view-icon-btn {
+    width: 28px;
+    height: 28px;
+  }
+  .part-view-x {
+    width: 34px;
+    height: 34px;
+    font-size: 24px;
+  }
+  .part-view-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 12px;
+    padding: 10px 12px 0;
+  }
+  .part-view-field-val {
+    font-size: 13px;
+  }
+  .part-view-block {
+    padding: 10px 12px 0;
+  }
+}
+
 .edit-choice-modal { max-width: 440px; }
 .edit-choice-sub {
   margin: 0 0 14px;
@@ -3380,11 +3553,12 @@ button.sidebar-acct-item:hover {
 
 .bell-wrap { position: relative; }
 .bell-btn {
-  width: 34px; height: 34px; border-radius: 8px;
+  width: 40px; height: 40px; border-radius: 10px;
   border: 1px solid var(--line); background: #fff;
   display: inline-flex; align-items: center; justify-content: center;
   color: #374151; position: relative;
 }
+.bell-btn svg { width: 20px; height: 20px; }
 .bell-dot {
   position: absolute; top: -4px; right: -4px;
   background: #ef4444; color: #fff; font-size: 9px; font-weight: 700;
@@ -3422,23 +3596,21 @@ button.sidebar-acct-item:hover {
      button (mobile-acct-btn) next to it. Desktop keeps the default,
      smaller .bell-btn size already used in the sidebar. */
   .topbar-bell .bell-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
   }
-  .topbar-bell .bell-btn svg { width: 22px; height: 22px; }
-  .topbar-bell .bell-panel { top: 50px; }
+  .topbar-bell .bell-btn svg { width: 24px; height: 24px; }
+  .topbar-bell .bell-panel { top: 54px; }
 
   .topbar {
-    height: 58px;
-    padding: 0 12px;
+    height: 64px;
+    padding: 0 14px;
     gap: 8px;
   }
   .topbar-r { gap: 10px; flex-wrap: nowrap; }
-  /* mobile topbar is just brand (left) + hamburger (right) — search, lang
-     and the user avatar live in the drawer instead */
-  .topbar-brand-m .brand-logo-text,
-  .topbar-brand-m .brand-name { font-size: 18px; }
+  /* mobile topbar is just the bell + profile menu on the right — search,
+     lang and the user avatar live behind the profile menu instead */
   /* extra bottom padding clears the fixed .tabbar. Scoped with :not() so it
      doesn't clobber .part-form-page's own (larger) bottom padding below,
      regardless of which rule happens to come later in the file. */
@@ -3497,10 +3669,8 @@ button.sidebar-acct-item:hover {
   .sidebar { display: none; }
 
   /* Strip the top bar down to brand (left) + profile menu (right) */
-  .topbar-brand { display: none; }
   .topbar-brand-m { display: inline-flex; }
   .topbar .srch,
-  .topbar-lang,
   .topbar-r .user-menu { display: none; }
 }
 

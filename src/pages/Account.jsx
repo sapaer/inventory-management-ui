@@ -889,16 +889,20 @@ function AccountDangerZone({ lang, flash, signOut, nav }) {
   const [confirming, setConfirming] = useState(false);
 
   async function logout() {
+    // Navigate off the protected route BEFORE clearing the session — signOut
+    // flips the auth-context user to null, and if this Gate-wrapped page is
+    // still mounted when that happens, Gate's own redirect to /auth wins the
+    // race and overrides this one.
+    nav("/welcome", { replace: true });
     await signOut();
-    nav("/auth?mode=login", { replace: true });
   }
 
   async function deleteAccount() {
     setBusy(true);
     try {
       await authApi.deleteAccount();
+      nav("/welcome", { replace: true });
       await signOut();
-      nav("/auth?mode=login", { replace: true });
     } catch (e) {
       flash(formatApiError(e));
       setBusy(false);

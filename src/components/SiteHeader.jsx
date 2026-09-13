@@ -3,7 +3,6 @@ import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
 import BrandLogo from "./BrandLogo";
-import LangSelect from "./LangSelect";
 import MobileAccountMenu from "./MobileAccountMenu";
 import NotificationBell from "./NotificationBell";
 import UserMenu from "./UserMenu";
@@ -56,7 +55,6 @@ export default function SiteHeader({ hideLogin = false, hideSignup = false, stic
       ) : null}
 
       <div className="site-header-actions">
-        <LangSelect className="site-header-lang" />
         {user ? (
           <>
             <NotificationBell />

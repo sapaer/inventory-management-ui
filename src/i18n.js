@@ -212,7 +212,7 @@ export const messages = {
   tour3Body: "Find parts and update quantity from the counter.",
   tour4Title: "Low Stocks",
   tour4Body: "Parts at or below minimum show up here to reorder.",
-  home: "Home",
+  home: "Dashboard",
   navigation: "Navigation",
   // Single-word labels for the bottom tab bar — the fuller phrases (e.g.
   // "Low Stocks", "Basic details") are still used as page/section titles.
@@ -230,6 +230,8 @@ export const messages = {
   inventory: "My Inventory",
   lowStocks: "Low Stocks",
   insights: "Insights",
+  sidebarLowStock: (n) => `${n} ${n === 1 ? "item" : "items"} low on stock`,
+  sidebarLowStockOk: "All parts well stocked",
   settings: "Profile",
   profile: "Profile",
   addPart: "Add a Part",
