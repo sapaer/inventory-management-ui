@@ -11,7 +11,12 @@
  * own to handle it.
  */
 export function restrictOverscroll() {
-  let touchStartY = 0;
+  // Tracks the PREVIOUS touch position, not the gesture's starting position
+  // — direction has to be judged move-to-move. Using the start position for
+  // the whole gesture misjudges direction once a finger reverses mid-touch
+  // (e.g. pull-past-top then back down without lifting), letting a native
+  // bounce sneak through right at that reversal.
+  let lastTouchY = 0;
 
   function hasOwnScroller(target) {
     let el = target instanceof Element ? target : target?.parentElement;
@@ -40,12 +45,14 @@ export function restrictOverscroll() {
   }
 
   function onTouchStart(e) {
-    touchStartY = e.touches[0]?.clientY ?? 0;
+    lastTouchY = e.touches[0]?.clientY ?? 0;
   }
 
   function onTouchMove(e) {
     if (e.touches.length !== 1 || hasOwnScroller(e.target)) return;
-    const dy = touchStartY - e.touches[0].clientY; // > 0 = finger moving up = page scrolling down
+    const currentY = e.touches[0].clientY;
+    const dy = lastTouchY - currentY; // > 0 = finger moved up since last event = page scrolling down
+    lastTouchY = currentY;
     if ((dy < 0 && atTop()) || (dy > 0 && atBottom())) {
       e.preventDefault();
     }
