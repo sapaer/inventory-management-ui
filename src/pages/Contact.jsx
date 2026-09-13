@@ -47,15 +47,14 @@ export default function Contact() {
 
 function ContactArt() {
   return (
-    <svg viewBox="0 0 220 160" fill="none">
-      <circle cx="168" cy="48" r="32" fill="#e8f4ee" />
-      <rect x="132" y="70" width="72" height="52" rx="16" fill="#145c45" />
-      <path d="M146 90h44M146 102h30" stroke="#e8f4ee" strokeWidth="4" strokeLinecap="round" />
-      <rect x="20" y="42" width="96" height="78" rx="14" fill="#d7eee3" />
-      <circle cx="50" cy="74" r="14" fill="#145c45" />
-      <rect x="72" y="66" width="32" height="6" rx="3" fill="#145c45" />
-      <rect x="72" y="80" width="24" height="6" rx="3" fill="#9cc9b4" />
-    </svg>
+    <div className="contact-hero-tile">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#eafaf1" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 13v-1a8 8 0 0 1 16 0v1" />
+        <rect x="2.5" y="13" width="5" height="7" rx="2" />
+        <rect x="16.5" y="13" width="5" height="7" rx="2" />
+        <path d="M20 20v.5a3.5 3.5 0 0 1-3.5 3.5H13" />
+      </svg>
+    </div>
   );
 }
 
