@@ -199,6 +199,7 @@ export default function Layout() {
       <div className="main">
         <header className="topbar">
           <BrandLogo className="topbar-brand-m" to="/welcome" />
+          <BrandLogo className="topbar-brand" to="/welcome" />
           <div className="topbar-r">
             {isHome ? (
               <form
@@ -218,10 +219,10 @@ export default function Layout() {
                 />
               </form>
             ) : null}
-            <UserMenu />
             <span className="topbar-bell">
               <NotificationBell />
             </span>
+            <UserMenu />
             {isMobile ? <MobileAccountMenu /> : null}
           </div>
         </header>

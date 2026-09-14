@@ -398,6 +398,15 @@
   opacity: 0.16;
 }
 
+.lp .site-header {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+.lp .lp-foot {
+  padding-left: max(clamp(16px, 4vw, 48px), calc((100% - 1120px) / 2 + clamp(16px, 4vw, 48px)));
+  padding-right: max(clamp(16px, 4vw, 48px), calc((100% - 1120px) / 2 + clamp(16px, 4vw, 48px)));
+}
+
 .lp-preview-inner {
   position: relative;
   z-index: 1;
@@ -406,7 +415,7 @@
   gap: clamp(32px, 6vw, 88px);
   align-items: center;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1120px;
   margin: 0 auto;
   min-height: 0;
   min-width: 0;
@@ -442,8 +451,28 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  text-align: left;
   padding-right: clamp(8px, 2vw, 24px);
+}
+
+.lp .page-section-body,
+.lp .lp-hero-sub,
+.lp .lp-value-copy span,
+.lp .lp-about-card p,
+.lp .lp-review-quote {
+  text-align: justify;
+  text-align-last: start;
+  text-justify: inter-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.lp .page-section-title,
+.lp .lp-hero-title,
+.lp .lp-brand-mark,
+.lp .lp-value-copy strong,
+.lp .lp-about-card h3,
+.lp .page-section-kicker {
+  text-align: start;
 }
 
 .lp-preview-copy .lp-brand-mark {
@@ -764,11 +793,13 @@
 .lp-product .page-section-title {
   font-size: clamp(1.5rem, 3.2vw, 2.2rem);
   margin-bottom: 16px;
+  max-width: none;
 }
 
 .lp-product .page-section-body {
   font-size: 1rem;
   margin-bottom: 8px;
+  max-width: none;
 }
 
 .lp-value-list {
@@ -815,6 +846,7 @@
   display: grid;
   gap: 6px;
   min-width: 0;
+  width: 100%;
 }
 
 .lp-value-copy strong {
@@ -1069,7 +1101,7 @@
 
 .lp-reviews .page-section-title {
   color: var(--lp-ink);
-  max-width: 18ch;
+  max-width: none;
 }
 
 .lp-reviews-status {
@@ -1300,7 +1332,7 @@
 .lp-about-close .page-section-title,
 .lp-about-close .lp-section-title {
   color: var(--lp-ink);
-  max-width: 16ch;
+  max-width: none;
   margin-bottom: 12px;
 }
 
@@ -1308,9 +1340,11 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
+  align-items: stretch;
 }
 
 .lp-about-card {
+  height: 100%;
   padding: 22px 20px 24px;
   border-radius: 14px;
 }
@@ -1412,12 +1446,25 @@
   .lp-nav-links { display: none; }
   .lp-support-row { grid-template-columns: 1fr; }
   .lp-inv-body { grid-template-columns: 1fr; }
-  .lp-preview-feats { flex-direction: column; align-items: flex-start; margin-top: 18px; }
+  .lp-preview-feats { flex-direction: column; align-items: stretch; margin-top: 18px; }
+  .lp-preview-feats li { width: 100%; max-width: 280px; }
   .lp-value-card { padding: 16px; gap: 10px; height: auto; }
   .lp-reviews-row { gap: 6px; }
   .lp-reviews-arrow { width: 36px; height: 36px; font-size: 1.25rem; }
   .lp-review-card { min-height: 0; }
   .lp-hero { min-height: auto; }
+}
+
+@media (max-width: 720px) {
+  .lp .page-section-body,
+  .lp .lp-hero-sub,
+  .lp .lp-value-copy span,
+  .lp .lp-about-card p,
+  .lp .lp-review-quote {
+    text-align: start;
+    text-align-last: start;
+    hyphens: manual;
+  }
 }
 
 @media (max-width: 640px) {
@@ -1464,13 +1511,13 @@
   .lp-reviews-wrap.is-swipe .lp-reviews-track {
     transform: none !important;
     will-change: auto;
-    gap: 12px;
-    padding-inline: 2px 20px;
+    gap: 0;
+    padding-inline: 0;
   }
 
   .lp-reviews-wrap.is-swipe .lp-reviews-page {
-    flex: 0 0 86%;
-    min-width: 86%;
+    flex: 0 0 100%;
+    min-width: 100%;
     scroll-snap-align: start;
     scroll-snap-stop: always;
   }
