@@ -125,8 +125,7 @@ export default function ReviewCarousel() {
     if (!el) return;
     const card = el.querySelectorAll(".lp-reviews-page")[index];
     if (!card) return;
-    const left = card.offsetLeft - (el.clientWidth - card.offsetWidth) / 2;
-    el.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+    el.scrollTo({ left: card.offsetLeft, behavior: "smooth" });
     setSlide(index);
   }
 
