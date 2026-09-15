@@ -6,9 +6,11 @@ import App from "./App";
 import { AuthProvider } from "./context/AuthContext";
 import { LangProvider } from "./context/LangContext";
 import { restrictOverscroll } from "./restrictOverscroll";
+import { initPullToRefresh } from "./pullToRefresh";
 import "./index.css";
 
 restrictOverscroll();
+initPullToRefresh();
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>

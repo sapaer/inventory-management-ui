@@ -77,6 +77,36 @@ button, input, textarea, select { font-family: inherit; }
 a { color: inherit; text-decoration: none; }
 button { cursor: pointer; }
 
+/* Pull-to-refresh indicator (pullToRefresh.js) — a plain DOM node the JS
+   module creates and positions itself, since the gesture it's replacing
+   (native browser pull-to-refresh) worked the same way: independent of
+   whichever page/scroller is currently mounted. */
+.ptr-indicator {
+  position: fixed;
+  top: 64px;
+  left: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: 0 6px 18px rgba(15, 61, 42, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--forest);
+  opacity: 0;
+  z-index: 200;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+.ptr-indicator.ptr-spin .ptr-ic {
+  animation: ptr-rotate 0.7s linear infinite;
+}
+@keyframes ptr-rotate {
+  to { transform: rotate(360deg); }
+}
+
 /* Justified body copy site-wide. Paired with hyphenation so wrapped words
    can break instead of stretching into wide gaps on narrow lines — the
    usual downside of justify without it. A more specific text-align (e.g.
