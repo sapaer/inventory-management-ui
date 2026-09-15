@@ -14,6 +14,10 @@
  * and lands past 0 in the same event), so the clamp has to be computed
  * ahead of time, not reacted to after the fact. Every other tick is left
  * completely untouched, so normal scrolling stays native and smooth.
+ *
+ * Also re-clamps after the page's own content changes shape (collapsing an
+ * accordion row while scrolled near the bottom, etc.) — see clampToContent
+ * below for why that needs a separate mechanism from the gesture clamping.
  */
 export function restrictOverscroll() {
   // Tracks the PREVIOUS touch position, not the gesture's starting position
@@ -75,4 +79,38 @@ export function restrictOverscroll() {
   window.addEventListener("wheel", onWheel, { passive: false });
   window.addEventListener("touchstart", onTouchStart, { passive: true });
   window.addEventListener("touchmove", onTouchMove, { passive: false });
+
+  // Wheel/touch only clamps the position DURING a scroll gesture — it does
+  // nothing when the page's own content changes shape instead (collapsing
+  // an accordion row, closing a card, anything that shrinks scrollHeight
+  // while already scrolled near the bottom). Nothing re-clamps scrollTop on
+  // its own when that happens, so the viewport can end up parked past the
+  // new (shorter) end of content — blank space below the footer that's no
+  // longer there to fill it. Re-check after every DOM change, on whichever
+  // of the app's two root scrollers (the signed-in shell's `.content`, or
+  // the public pages' `.lp-scroll`) is currently mounted.
+  function clampToContent() {
+    const scroller = document.querySelector(".content, .lp-scroll");
+    if (!scroller) return;
+    const max = getMax(scroller);
+    if (getPos(scroller) > max) setPos(scroller, max);
+  }
+
+  let scheduled = false;
+  function scheduleClamp() {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(() => {
+      scheduled = false;
+      clampToContent();
+    });
+  }
+
+  new MutationObserver(scheduleClamp).observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["class", "style"],
+  });
+  window.addEventListener("resize", scheduleClamp);
 }

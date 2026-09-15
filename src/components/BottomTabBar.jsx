@@ -39,7 +39,20 @@ export default function BottomTabBar() {
     return () => mq.removeEventListener("change", sync);
   }, []);
 
-  if (!user || !isMobile || HIDDEN_ON.includes(loc.pathname)) return null;
+  const visible = Boolean(user) && isMobile && !HIDDEN_ON.includes(loc.pathname);
+
+  // Public pages (Landing, Help/Contact/Terms/FAQs) reserve bottom padding
+  // for this bar via `body.has-tabbar` — those pages don't know the auth
+  // state themselves, and this bar is the one place that already does, so
+  // it's the one to flag whether that space is actually needed. Without
+  // this, a signed-out visitor on mobile got the padding with no bar to
+  // justify it: blank space below the (hidden-on-mobile) footer.
+  useEffect(() => {
+    document.body.classList.toggle("has-tabbar", visible);
+    return () => document.body.classList.remove("has-tabbar");
+  }, [visible]);
+
+  if (!visible) return null;
 
   return (
     <nav className="tabbar" aria-label={t(lang, "navigation")}>

@@ -7,6 +7,14 @@
   background: #062117;
   color: rgba(244, 250, 247, 0.55);
   font-size: 0.85rem;
+  /* Sticks to the bottom of the scroll pane when the page's own content is
+     shorter than the viewport (paired with .lp-scroll's flex-column below),
+     instead of floating right after the short content with dead space
+     under it. Once content is tall enough to fill the pane on its own,
+     margin-top:auto has no extra room to push into, so the footer just
+     sits at the natural end of content — reached by scrolling, never
+     pinned in view like a fixed bar. */
+  margin-top: auto;
 }
 
 .lp-foot-light {
@@ -88,11 +96,13 @@
   }
 }
 
-/* Small screens drop the footer entirely — Help/Contact/Terms/Privacy are
-   already one tap away from the profile menu, and the footer's brand mark +
-   links just add scroll before reaching the bottom tab bar. */
+/* Small screens drop the footer only for signed-in users — Help/Contact/
+   Terms/Privacy are already one tap away from the profile menu there, and
+   the footer's brand mark + links just add scroll before the bottom tab
+   bar. Logged-out visitors have no profile menu or tab bar, so they keep
+   the footer (and its Help/FAQs/Terms links) on phones too. */
 @media (max-width: 900px) {
-  .lp-foot {
+  .lp-foot.lp-foot-authed {
     display: none;
   }
 }

@@ -32,19 +32,38 @@
 }
 
 /* SiteHeader sits above this, outside the scroll — everything else (hero,
-   sections, footer) lives in here and scrolls on its own. */
+   sections, footer) lives in here and scrolls on its own. A flex column so
+   the footer's own margin-top:auto (SiteFooter.css) can pin it to the
+   bottom of this pane when the page's content is shorter than the
+   viewport, rather than leaving it stranded mid-screen with dead space
+   below. When content is tall enough to fill the pane on its own, this
+   has no effect — the footer just sits at the natural end of content. */
 .lp-scroll {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+/* Flex items default to shrinking below their own content size to fit the
+   container — exactly wrong here, where content should overflow and
+   scroll, not get squashed to fit. Every direct child keeps its natural
+   height; only the footer's own margin-top:auto (SiteFooter.css) reaches
+   into the leftover space, if any. */
+.lp-scroll > * {
+  flex-shrink: 0;
 }
 
 @media (max-width: 900px) {
-  /* clears the fixed .tabbar shown to signed-in users on phones (this page
+  /* Clears the fixed .tabbar shown to signed-in users on phones (this page
      is reachable at /welcome even while signed in) so the footer isn't
-     covered. Derived from the shared --tabbar-clear token (index.css). */
-  .lp-scroll { padding-bottom: var(--tabbar-clear); }
+     covered. Scoped to body.has-tabbar (set by BottomTabBar.jsx) — signed-
+     out visitors get no tab bar here, so they get no reserved space either;
+     without the scope this padding always applied, leaving guests staring
+     at dead white space below the (hidden-on-mobile) footer for a bar that
+     was never there. */
+  body.has-tabbar .lp-scroll { padding-bottom: var(--tabbar-clear); }
 }
 
 .lp a { color: inherit; text-decoration: none; }
@@ -428,6 +447,8 @@
 
 .lp-mid {
   position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 48px;
@@ -440,6 +461,26 @@
       var(--lp-fog) 86%,
       color-mix(in srgb, var(--lp-deep) 8%, var(--lp-fog)) 100%
     );
+}
+
+/* One continuous grid drawn behind the Product/About/Reviews sections as a
+   single surface, instead of each section drawing its own copy from its own
+   top edge — three independent 48px tilings never line up at the seams
+   (each section's height isn't an exact multiple of 48px), so the pattern
+   visibly jumped at every section boundary. Product/About/Reviews stay
+   transparent (no background-color of their own) so this shows through
+   all three without a break. */
+.lp-mid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.7;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(20, 92, 69, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 92, 69, 0.08) 1px, transparent 1px);
+  background-size: 48px 48px;
 }
 
 
@@ -753,19 +794,6 @@
   scroll-margin-top: 72px;
 }
 
-.lp-product::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  opacity: 0.7;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(20, 92, 69, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(20, 92, 69, 0.08) 1px, transparent 1px);
-  background-size: 48px 48px;
-}
-
 .lp-product::after {
   content: "";
   position: absolute;
@@ -791,8 +819,8 @@
 }
 
 .lp-product .page-section-title {
-  font-size: clamp(1.5rem, 3.2vw, 2.2rem);
-  margin-bottom: 16px;
+  font-size: clamp(1.8rem, 3.6vw, 2.5rem);
+  margin-bottom: 24px;
   max-width: none;
 }
 
@@ -1045,19 +1073,6 @@
   scroll-margin-top: 72px;
 }
 
-.lp-reviews::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  opacity: 0.7;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(20, 92, 69, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(20, 92, 69, 0.08) 1px, transparent 1px);
-  background-size: 48px 48px;
-}
-
 .lp-reviews::after {
   content: "";
   position: absolute;
@@ -1100,7 +1115,7 @@
 }
 
 .lp-reviews .page-section-title {
-  color: var(--lp-ink);
+  color: var(--lp-forest);
   max-width: none;
 }
 
@@ -1290,19 +1305,6 @@
   background: transparent;
 }
 
-.lp-about-close::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  opacity: 0.7;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(20, 92, 69, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(20, 92, 69, 0.08) 1px, transparent 1px);
-  background-size: 48px 48px;
-}
-
 .lp-about-close::after {
   content: "";
   position: absolute;
@@ -1331,9 +1333,9 @@
 
 .lp-about-close .page-section-title,
 .lp-about-close .lp-section-title {
-  color: var(--lp-ink);
+  color: var(--lp-forest);
   max-width: none;
-  margin-bottom: 12px;
+  margin-bottom: 24px;
 }
 
 .lp-about-grid {

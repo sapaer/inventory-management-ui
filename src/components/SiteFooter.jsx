@@ -1,15 +1,20 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
 import BrandLogo from "./BrandLogo";
 import "./SiteFooter.css";
 
 export default function SiteFooter({ variant = "dark" }) {
+  const { user, ready } = useAuth();
   const { lang } = useLang();
   const year = new Date().getFullYear();
+  const loggedIn = ready && Boolean(user);
 
   return (
-    <footer className={`lp-foot${variant === "light" ? " lp-foot-light" : ""}`}>
+    <footer
+      className={`lp-foot${variant === "light" ? " lp-foot-light" : ""}${loggedIn ? " lp-foot-authed" : ""}`}
+    >
       <div className="lp-foot-left">
         <BrandLogo className="lp-foot-brand" />
       </div>
