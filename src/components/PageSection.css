@@ -32,6 +32,7 @@
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.2;
+  color: var(--lp-forest, #145c45);
   margin: 0 0 28px;
   max-width: 22ch;
 }
