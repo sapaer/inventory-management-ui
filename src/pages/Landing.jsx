@@ -56,9 +56,7 @@ export default function Landing() {
           id="product"
           className="lp-product"
           compact
-          kicker={t(lang, "lpValueKicker")}
-          title={t(lang, "lpValueTitle")}
-          body={t(lang, "lpValueBody")}
+          title={t(lang, "lpValueKicker")}
         >
           <ul className="lp-value-list">
             {VALUE_ITEMS.map(({ id, Icon }) => (
@@ -72,12 +70,7 @@ export default function Landing() {
           </ul>
         </PageSection>
 
-        <PageSection
-          id="about-close"
-          className="lp-about-close"
-          kicker={t(lang, "lpNavAbout")}
-          title={t(lang, "lpAboutCounter")}
-        >
+        <PageSection id="about-close" className="lp-about-close" title={t(lang, "lpNavAbout")}>
           <div className="lp-about-grid">
             <GlassPanel as="article" className="lp-about-card">
               <h3>{t(lang, "lpWhatWeDo")}</h3>
@@ -94,12 +87,7 @@ export default function Landing() {
           </div>
         </PageSection>
 
-        <PageSection
-          id="reviews"
-          className="lp-reviews"
-          kicker={t(lang, "lpReviewsKicker")}
-          title={t(lang, "lpReviewsTitle")}
-        >
+        <PageSection id="reviews" className="lp-reviews" title={t(lang, "lpReviewsKicker")}>
           <ReviewCarousel />
         </PageSection>
       </div>
