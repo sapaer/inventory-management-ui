@@ -107,6 +107,19 @@
   border-color: var(--forest-deep, #0f3d2a);
 }
 
+/* Public pages (Landing, Help/Contact/Terms/FAQs) wrap this header in `.lp`,
+   whose own `.lp a { color: inherit }` reset (needed for plain text links
+   elsewhere on those pages) outranks the bare-class rules above — a class
+   plus an element beats a class alone. Re-declare scoped to the actual
+   parent so these buttons always keep their own color regardless of which
+   page's link reset they sit inside. */
+.site-header-actions .site-header-btn-ghost {
+  color: var(--forest, #1a5c46);
+}
+.site-header-actions .site-header-btn-solid {
+  color: #fff;
+}
+
 /* Mobile account menu (MobileAccountMenu.jsx) is hidden on desktop — same
    nav shell as the signed-in app's top bar, no separate drawer here either. */
 .site-header-actions .mobile-acct {
