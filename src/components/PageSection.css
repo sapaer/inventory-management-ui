@@ -48,6 +48,10 @@
 
 @media (max-width: 640px) {
   .page-section-inner {
-    padding: 8px 16px;
+    /* 16px left the value/about/review cards (0 10px 28px shadow, ~28px
+       horizontal reach) only 16px from the section's own overflow:hidden
+       edge on a single-column mobile layout — clipping the shadow's outer
+       side. A bit more breathing room keeps it fully visible. */
+    padding: 8px 24px;
   }
 }

@@ -80,7 +80,7 @@
 .lp .lp-hero-title,
 .lp .lp-preview-title,
 .lp .lp-carousel-title,
-.lp .lp-value-copy strong,
+.lp .lp-value-head strong,
 .lp .lp-how-list strong,
 .lp .lp-inv-head h3,
 .lp .lp-inv-stat strong,
@@ -92,7 +92,7 @@
 .lp .page-section-body,
 .lp .lp-section-body,
 .lp .lp-hero-sub,
-.lp .lp-value-copy span,
+.lp .lp-value-body,
 .lp .lp-how-list span,
 .lp .lp-carousel-body,
 .lp .lp-review-quote,
@@ -497,7 +497,7 @@
 
 .lp .page-section-body,
 .lp .lp-hero-sub,
-.lp .lp-value-copy span,
+.lp .lp-value-body,
 .lp .lp-about-card p,
 .lp .lp-review-quote {
   text-align: justify;
@@ -510,7 +510,7 @@
 .lp .page-section-title,
 .lp .lp-hero-title,
 .lp .lp-brand-mark,
-.lp .lp-value-copy strong,
+.lp .lp-value-head strong,
 .lp .lp-about-card h3,
 .lp .page-section-kicker {
   text-align: start;
@@ -813,9 +813,21 @@
   padding-bottom: 8px;
 }
 
-.lp-product .page-section-inner {
+.lp-product .page-section-inner,
+.lp-product .page-section-inner.is-compact {
+  /* Same fix as .lp-about-close below: the value cards (GlassPanel
+     tone="light") cast a 0 10px 28px shadow that needs room to fade before
+     .lp-product's own overflow:hidden clips it, or it reads as a hard
+     "shadow just stops" line instead of dissolving into the background.
+     Generous padding so it's fully invisible, not just mostly, plus extra
+     breathing room before "About" starts.
+     PageSection is used here with `compact`, which adds .is-compact to
+     this same element — .lp-mid .page-section-inner.is-compact (3 classes)
+     otherwise outranks a plain .lp-product .page-section-inner (2 classes)
+     and silently won regardless of source order, so this has to match
+     .is-compact explicitly too. */
   padding-top: 16px;
-  padding-bottom: 8px;
+  padding-bottom: 96px;
 }
 
 .lp-product .page-section-title {
@@ -842,7 +854,7 @@
 .lp-product .lp-value-card {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
   align-items: flex-start;
   height: 100%;
   padding: clamp(22px, 2.8vh, 28px) clamp(20px, 2vw, 24px);
@@ -862,30 +874,34 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   background: rgba(20, 92, 69, 0.1);
   color: var(--lp-forest);
   flex-shrink: 0;
 }
 
-.lp-value-copy {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-  width: 100%;
+.lp-value-ic svg {
+  width: 26px;
+  height: 26px;
 }
 
-.lp-value-copy strong {
+.lp-value-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.lp-value-head strong {
   font-family: var(--lp-display);
-  font-size: 1.02rem;
+  font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.25;
 }
 
-.lp-value-copy span {
+.lp-value-body {
   color: var(--lp-mute);
   font-size: 0.89rem;
   line-height: 1.45;
@@ -1101,13 +1117,25 @@
 }
 
 .lp-about-close .page-section-inner {
-  padding-top: 8px;
-  padding-bottom: 8px;
+  /* The about cards (GlassPanel tone="light") cast a 0 10px 28px shadow —
+     nominally ~38px of reach below each card, but blur tails render
+     softer/longer than the nominal radius in practice. .lp-about-close
+     clips overflow (to contain the ::after glow), so with too little
+     padding here that shadow got sliced off mid-fade instead of
+     dissolving to nothing — the hard "seam" right under the cards.
+     Generous padding so it's fully invisible, not just mostly, before the
+     clip line. */
+  padding-top: 24px;
+  padding-bottom: 72px;
 }
 
 .lp-reviews .page-section-inner {
-  padding-top: 8px;
-  padding-bottom: 20px;
+  /* Same fix as .lp-about-close / .lp-product above: .lp-reviews also clips
+     overflow (to contain its ::after glow), and the review cards' own
+     0 10px 28px shadow needs room to fully fade before hitting that clip
+     line instead of getting sliced off mid-fade. */
+  padding-top: 24px;
+  padding-bottom: 56px;
 }
 
 .lp-reviews .page-section-kicker {
@@ -1167,9 +1195,16 @@
 .lp-reviews-viewport {
   flex: 1;
   min-width: 0;
+  /* Needs its own overflow:hidden for the horizontal slide (adjacent pages
+     sit side by side and must stay hidden) — but that same clip was cutting
+     each review card's 0 10px 28px shadow off mid-fade above and below,
+     since the old 8px buffer was nowhere near the ~38px the shadow needs.
+     Bigger padding + matching negative margin keeps the viewport's own
+     layout footprint unchanged (they cancel out) while giving the shadow
+     room to fully dissolve before this clip line. */
   overflow: hidden;
-  padding: 8px 0;
-  margin: -8px 0;
+  padding: 40px 0;
+  margin: -40px 0;
 }
 
 .lp-reviews-track {
@@ -1460,7 +1495,7 @@
 @media (max-width: 720px) {
   .lp .page-section-body,
   .lp .lp-hero-sub,
-  .lp .lp-value-copy span,
+  .lp .lp-value-body,
   .lp .lp-about-card p,
   .lp .lp-review-quote {
     text-align: start;
@@ -1471,7 +1506,6 @@
 
 @media (max-width: 640px) {
   .lp-nav-login { display: none; }
-  .lp-inv { display: none; }
   .lp-value-list,
   .lp-reviews-grid,
   .lp-about-grid { grid-template-columns: 1fr; }
@@ -1479,8 +1513,15 @@
   .lp-reviews {
     overflow: visible;
   }
-  .lp-preview { min-height: 0; }
-  .lp-preview-inner { padding: 28px 16px 16px; }
+  /* Full-screen hero on phones too, matching desktop, now that the
+     dashboard snapshot (.lp-inv) shows here instead of being hidden —
+     content is centered in the space instead of just starting at the
+     top with a growing empty gap below it. */
+  .lp-preview {
+    min-height: calc(100svh - 58px);
+    height: auto;
+  }
+  .lp-preview-inner { padding: 28px 16px 24px; align-items: center; }
   .lp-mid .page-section-inner,
   .lp-mid .page-section-inner.is-compact,
   .lp-product .page-section-inner,
