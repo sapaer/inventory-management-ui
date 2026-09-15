@@ -300,7 +300,7 @@ export default function Auth() {
   }
 
   return (
-    <AuthLayout hideLogin hideSignup>
+    <AuthLayout hideLogin={!isSignup} hideSignup={isSignup}>
       <div className="login-form">
         <div className="login-avatar" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

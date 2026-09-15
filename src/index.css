@@ -705,7 +705,7 @@ p.login-signup { text-align: center; margin-top: 14px; }
   min-width: 0;
   flex: 1;
 }
-.brand-name { display: block; font-size: 19px; font-weight: 700; letter-spacing: -0.3px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand-name { display: block; font-size: 22px; font-weight: 700; letter-spacing: -0.3px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .brand-tag { display: block; font-size: 11px; color: rgba(255,255,255,.5); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nav-toggle {
   flex-shrink: 0;
@@ -1063,7 +1063,7 @@ button.sidebar-acct-item:hover {
 .topbar-brand-m .brand-logo-text,
 .topbar-brand-m .brand-name {
   color: var(--forest);
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 700;
   letter-spacing: -0.3px;
 }
@@ -3943,7 +3943,7 @@ button.sidebar-acct-item:hover {
 
 @media (max-width: 540px) {
   /* Phone: drop the marketing panel, show only the form. */
-  .site-header-brand { font-size: 1.05rem; }
+  .site-header-brand { font-size: 1.25rem; }
   .login { padding: 0; gap: 0; }
   .login-left { display: none; }
   .login-right { padding: 18px 18px 22px; }
