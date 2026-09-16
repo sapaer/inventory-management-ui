@@ -1,3 +1,4 @@
+import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
@@ -13,10 +14,11 @@ import "./Landing.css";
 const SHOW_CLOSING_HERO = false;
 
 export default function Landing() {
+  const { user } = useAuth();
   const { lang } = useLang();
 
   return (
-    <div className="lp">
+    <div className={`lp${user ? " is-authed" : " is-guest"}`}>
       <SiteHeader sticky />
 
       <div className="lp-scroll">

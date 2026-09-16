@@ -4,7 +4,7 @@
   gap: 12px 24px;
   align-items: center;
   padding: 24px clamp(16px, 4vw, 48px);
-  background: #062117;
+  background: #145c45;
   color: rgba(244, 250, 247, 0.55);
   font-size: 0.85rem;
   /* Sticks to the bottom of the scroll pane when the page's own content is
@@ -104,5 +104,41 @@
 @media (max-width: 900px) {
   .lp-foot.lp-foot-authed {
     display: none;
+  }
+  .lp-foot.is-guest {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+    gap: 4px;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+    background: #145c45;
+    border-radius: 0;
+  }
+  .lp-foot.is-guest .lp-foot-brand {
+    display: inline-flex;
+    border: 1.5px solid rgba(244, 250, 247, 0.55);
+    border-radius: 6px;
+    padding: 2px 10px 3px;
+    font-size: 0.95rem;
+    color: #f4faf7;
+  }
+  .lp-foot.is-guest .lp-foot-copy {
+    text-align: center;
+    hyphens: none;
+    -webkit-hyphens: none;
+    font-size: 11px;
+    line-height: 1.2;
+    color: rgba(244, 250, 247, 0.7);
+  }
+  .lp-foot.is-guest .lp-foot-links {
+    gap: 4px 18px;
+  }
+  .lp-foot.is-guest .lp-foot-link {
+    font-size: 12px;
+    color: rgba(244, 250, 247, 0.78);
   }
 }

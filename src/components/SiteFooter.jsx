@@ -13,7 +13,9 @@ export default function SiteFooter({ variant = "dark" }) {
 
   return (
     <footer
-      className={`lp-foot${variant === "light" ? " lp-foot-light" : ""}${loggedIn ? " lp-foot-authed" : ""}`}
+      className={`lp-foot${variant === "light" ? " lp-foot-light" : ""}${
+        loggedIn ? " lp-foot-authed" : " is-guest"
+      }`}
     >
       <div className="lp-foot-left">
         <BrandLogo className="lp-foot-brand" />
@@ -25,8 +27,8 @@ export default function SiteFooter({ variant = "dark" }) {
         <Link to="/help" className="lp-foot-link">
           {t(lang, "help")}
         </Link>
-        <Link to="/help/faqs" className="lp-foot-link">
-          {t(lang, "faqs")}
+        <Link to="/contact" className="lp-foot-link">
+          {t(lang, "contactUs")}
         </Link>
         <Link to="/terms" className="lp-foot-link">
           {t(lang, "terms")}

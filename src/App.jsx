@@ -101,9 +101,8 @@ export default function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      {/* Global, signed-in-only bottom nav for phones — lives outside <Routes>
-          so it stays mounted (and covers standalone pages like Help/Contact/
-          Terms too, not just the ones wrapped in Layout). */}
+      {/* Global signed-in bottom nav for phones — lives outside <Routes> so it
+          stays mounted on standalone pages too. Logged-out phones use SiteFooter. */}
       <BottomTabBar />
     </>
   );
