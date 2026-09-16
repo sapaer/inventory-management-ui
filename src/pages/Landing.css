@@ -45,6 +45,10 @@
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
+  /* Stops the elastic/rubber-band bounce at this pane's own edges — see the
+     matching comment on .content in index.css for why this is scoped to
+     the scrolling element itself rather than html/body. */
+  overscroll-behavior-y: contain;
 }
 /* Flex items default to shrinking below their own content size to fit the
    container — exactly wrong here, where content should overflow and

@@ -100,6 +100,17 @@ button { cursor: pointer; }
   pointer-events: none;
   transition: opacity 0.15s ease;
 }
+/* Plain ring, same look as the app's other spinner (.loader-spinner) —
+   was a two-arrow "sync" icon that rotated on drag/refresh, which read as
+   a refresh-action glyph rather than a loading indicator. */
+.ptr-ic {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--line);
+  border-top-color: var(--forest);
+  border-radius: 50%;
+}
 .ptr-indicator.ptr-spin .ptr-ic {
   animation: ptr-rotate 0.7s linear infinite;
 }
@@ -1189,7 +1200,20 @@ button.sidebar-acct-item:hover {
   color: #991b1b;
   width: fit-content;
 }
-.content { flex: 1; min-height: 0; overflow-y: auto; padding: 18px 22px; }
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 22px;
+  /* Stops the elastic/rubber-band bounce at this pane's own top/bottom edge
+     without the restrictOverscroll.js clamp needing to catch every tick.
+     Scoped to the actual scrolling element, not html/body — Safari disables
+     scroll momentum entirely when overscroll-behavior sits on the root
+     document instead (that's the failure the comment on html above refers
+     to), but the same property on a plain overflow:auto element like this
+     one doesn't carry that bug. */
+  overscroll-behavior-y: contain;
+}
 
 .tour-layer {
   position: fixed;
