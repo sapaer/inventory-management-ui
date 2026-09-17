@@ -15,7 +15,7 @@ export default function Terms() {
   const { lang } = useLang();
 
   return (
-    <SupportLayout title={t(lang, "termsTitle")} lead={t(lang, "termsLead")} art={<TermsArt />}>
+    <SupportLayout title={t(lang, "termsTitle")} art={<TermsArt />}>
       <p className="support-meta">{t(lang, "termsUpdated")}</p>
       <div className="terms-cards">
         {SECTIONS.map(([title, body], i) => (

@@ -1,4 +1,5 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import BottomTabBar from "./components/BottomTabBar";
 import Layout from "./components/Layout";
@@ -43,6 +44,29 @@ function PublicOnly({ children }) {
   return children;
 }
 
+/**
+ * The app never scrolls the document itself (every page is a fixed shell
+ * with its own internally-scrolling pane — .content signed-in, .lp-scroll
+ * public), so the browser's own scroll-to-top-on-navigate never applies
+ * here, and .content in particular is a persistent element shared across
+ * all the routes nested under Layout (Dashboard/Inventory/Account/...) —
+ * switching between them leaves scrollTop wherever it was on the last
+ * page. Reset whichever pane is mounted on every route change instead.
+ *
+ * Keyed on location.key, not pathname — a click on a Link back to the
+ * page you're already on (e.g. the footer's Help link while already on
+ * /help, scrolled down to see the footer) still pushes a new history
+ * entry with its own key even though the path is unchanged, so this
+ * still fires there; keying on pathname alone would miss it.
+ */
+function ScrollToTop() {
+  const { key } = useLocation();
+  useEffect(() => {
+    document.querySelector(".content, .lp-scroll")?.scrollTo(0, 0);
+  }, [key]);
+  return null;
+}
+
 /** Logged-in users skip marketing and go straight into the product. */
 function Home() {
   const { user, ready } = useAuth();
@@ -54,6 +78,7 @@ function Home() {
 export default function App() {
   return (
     <>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/welcome" element={<Landing />} />

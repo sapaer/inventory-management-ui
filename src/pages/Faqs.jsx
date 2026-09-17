@@ -16,11 +16,10 @@ const FAQS = [
 export default function Faqs() {
   const { lang } = useLang();
   const [open, setOpen] = useState(0);
-  const rows = Math.ceil(FAQS.length / 2);
 
   return (
-    <SupportLayout title={t(lang, "faqsTitle")} lead={t(lang, "faqsLead")} art={<FaqArt />}>
-      <div className="faq-acc" style={{ "--faq-rows": rows }}>
+    <SupportLayout title={t(lang, "faqsTitle")} art={<FaqArt />}>
+      <div className="faq-acc">
         {FAQS.map(([q, a], i) => {
           const isOpen = open === i;
           return (

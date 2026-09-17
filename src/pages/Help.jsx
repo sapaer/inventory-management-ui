@@ -1,50 +1,7 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import HelpGuide from "../components/HelpGuide";
 import SupportLayout from "../components/SupportLayout";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
-
-const TOPICS = [
-  { id: "inv", title: "helpTopicInv", body: "helpTopicInvBody", Icon: BoxIcon },
-  { id: "stock", title: "helpTopicStock", body: "helpTopicStockBody", Icon: RefreshIcon },
-  { id: "low", title: "helpTopicLow", body: "helpTopicLowBody", Icon: AlertIcon },
-  { id: "reports", title: "helpTopicReports", body: "helpTopicReportsBody", Icon: ChartIcon },
-  { id: "account", title: "helpTopicAccount", body: "helpTopicAccountBody", Icon: UserIcon },
-  { id: "tech", title: "helpTopicTech", body: "helpTopicTechBody", Icon: WrenchIcon },
-];
-
-const GUIDES = {
-  inv: [
-    { title: "helpGuideInv1Title", body: "helpGuideInv1Body" },
-    { title: "helpGuideInv2Title", body: "helpGuideInv2Body" },
-    { title: "helpGuideInv3Title", body: "helpGuideInv3Body" },
-  ],
-  stock: [
-    { title: "helpGuideStock1Title", body: "helpGuideStock1Body" },
-    { title: "helpGuideStock2Title", body: "helpGuideStock2Body" },
-    { title: "helpGuideStock3Title", body: "helpGuideStock3Body" },
-  ],
-  low: [
-    { title: "helpGuideLow1Title", body: "helpGuideLow1Body" },
-    { title: "helpGuideLow2Title", body: "helpGuideLow2Body" },
-    { title: "helpGuideLow3Title", body: "helpGuideLow3Body" },
-  ],
-  reports: [
-    { title: "helpGuideReports1Title", body: "helpGuideReports1Body" },
-    { title: "helpGuideReports2Title", body: "helpGuideReports2Body" },
-  ],
-  account: [
-    { title: "helpGuideAccount1Title", body: "helpGuideAccount1Body" },
-    { title: "helpGuideAccount2Title", body: "helpGuideAccount2Body" },
-    { title: "helpGuideAccount3Title", body: "helpGuideAccount3Body" },
-  ],
-  tech: [
-    { title: "helpGuideTech1Title", body: "helpGuideTech1Body" },
-    { title: "helpGuideTech2Title", body: "helpGuideTech2Body" },
-    { title: "helpGuideTech3Title", body: "helpGuideTech3Body" },
-  ],
-};
 
 const QUICK = [
   { to: "/help/faqs", title: "faqs", body: "helpQuickFaqBody", Icon: ChatIcon },
@@ -54,32 +11,9 @@ const QUICK = [
 
 export default function Help() {
   const { lang } = useLang();
-  const [guideId, setGuideId] = useState(null);
-  const guide = guideId ? GUIDES[guideId] : null;
-  const topic = TOPICS.find((item) => item.id === guideId);
 
   return (
-    <SupportLayout title={t(lang, "helpTitle")} lead={t(lang, "helpLead")} art={<HelpArt />}>
-      <section className="support-block">
-        <h2>{t(lang, "helpBrowse")}</h2>
-        <div className="support-topics">
-          {TOPICS.map(({ id, title, body, Icon }) => (
-            <button key={id} type="button" className="support-topic" onClick={() => setGuideId(id)}>
-              <span className="support-topic-ic">
-                <Icon />
-              </span>
-              <span className="support-topic-copy">
-                <strong>{t(lang, title)}</strong>
-                <span>{t(lang, body)}</span>
-              </span>
-              <span className="support-topic-go" aria-hidden="true">
-                →
-              </span>
-            </button>
-          ))}
-        </div>
-      </section>
-
+    <SupportLayout title={t(lang, "helpTitle")} art={<HelpArt />}>
       <section className="support-block">
         <h2>{t(lang, "helpQuick")}</h2>
         <div className="support-links">
@@ -114,10 +48,6 @@ export default function Help() {
           {t(lang, "contactSupport")}
         </Link>
       </section>
-
-      {guide && topic ? (
-        <HelpGuide title={topic.title} steps={guide} onClose={() => setGuideId(null)} />
-      ) : null}
     </SupportLayout>
   );
 }
@@ -153,64 +83,6 @@ function Icon({ children }) {
     >
       {children}
     </svg>
-  );
-}
-
-function BoxIcon() {
-  return (
-    <Icon>
-      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-      <path d="m3.3 7 8.7 5 8.7-5M12 22V12" />
-    </Icon>
-  );
-}
-
-function RefreshIcon() {
-  return (
-    <Icon>
-      <path d="M4.5 10A7.5 7.5 0 0 1 16 5.6L18 8" />
-      <path d="M18 3v5h-5" />
-      <path d="M19.5 14A7.5 7.5 0 0 1 8 18.4L6 16" />
-      <path d="M6 21v-5h5" />
-    </Icon>
-  );
-}
-
-function AlertIcon() {
-  return (
-    <Icon>
-      <path d="M12 3.2 2.8 19.2a1.2 1.2 0 0 0 1 1.8h16.4a1.2 1.2 0 0 0 1-1.8L12 3.2z" />
-      <path d="M12 9v5" />
-      <path d="M12 17.2h.01" />
-    </Icon>
-  );
-}
-
-function ChartIcon() {
-  return (
-    <Icon>
-      <path d="M4 19h16" />
-      <rect x="6" y="11" width="3.2" height="8" rx="1" />
-      <rect x="10.4" y="6" width="3.2" height="13" rx="1" />
-      <rect x="14.8" y="9" width="3.2" height="10" rx="1" />
-    </Icon>
-  );
-}
-
-function UserIcon() {
-  return (
-    <Icon>
-      <circle cx="12" cy="8" r="3.4" />
-      <path d="M5 19.2c.8-3.2 3.5-5 7-5s6.2 1.8 7 5" />
-    </Icon>
-  );
-}
-
-function WrenchIcon() {
-  return (
-    <Icon>
-      <path d="M14.8 6.2a3.8 3.8 0 0 0-5.2 5.3L4 17.1 6.9 20l5.6-5.6a3.8 3.8 0 0 0 5.3-5.2L15.6 11l-2.6-2.6 1.8-2.2z" />
-    </Icon>
   );
 }
 

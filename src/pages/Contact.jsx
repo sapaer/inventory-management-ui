@@ -10,7 +10,7 @@ export default function Contact() {
   const call = `tel:+${SUPPORT.whatsappDigits}`;
 
   return (
-    <SupportLayout title={t(lang, "contactTitle")} lead={t(lang, "contactLead")} art={<ContactArt />}>
+    <SupportLayout title={t(lang, "contactTitle")} art={<ContactArt />}>
       <div className="contact-hero-row">
         <a className="contact-card contact-hero-card" href={wa} target="_blank" rel="noreferrer">
           <span className="contact-card-ic contact-hero-ic">

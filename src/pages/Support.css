@@ -62,74 +62,9 @@
   color: var(--lp-ink, #102021);
 }
 
-.support-topics {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.support-topic {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) 18px;
-  gap: 12px;
-  align-items: center;
-  width: 100%;
-  padding: 16px 16px 16px 14px;
-  border-radius: 14px;
-  border: 1px solid #e2ece7;
-  background: #fff;
-  text-align: left;
-  text-decoration: none;
-  color: inherit;
-  min-height: 88px;
-  cursor: pointer;
-  font: inherit;
-}
-
-.help-guide .tour-progress {
-  color: var(--lp-forest, #145c45);
-}
-
-.support-topic:hover {
-  border-color: color-mix(in srgb, var(--lp-forest, #145c45) 35%, #e2ece7);
-}
-
-.support-topic-ic {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  background: #e8f4ee;
-  color: var(--lp-forest, #145c45);
-  flex-shrink: 0;
-}
-
-.support-topic-ic svg,
 .support-link-ic svg,
 .support-assist-ic svg {
   display: block;
-}
-
-.support-topic strong {
-  display: block;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--lp-ink, #102021);
-}
-
-.support-topic-copy {
-  min-width: 0;
-}
-
-.support-topic-copy span {
-  display: block;
-  margin-top: 3px;
-  font-size: 0.8rem;
-  line-height: 1.4;
-  color: #5b7168;
 }
 
 .support-topic-go {
@@ -238,6 +173,17 @@
   font-size: 0.88rem;
   font-weight: 600;
   text-decoration: none;
+}
+
+/* This page is wrapped in `.lp` (SupportLayout), whose own
+   `.lp a { color: inherit }` reset (class + element, higher specificity
+   than the bare .support-assist-btn class above) was winning and making
+   this button's text inherit the page's dark ink color instead of staying
+   white on its solid green background. Same trap already fixed for
+   .site-header-brand / .site-header-btn — re-declare scoped to the actual
+   parent so it always wins here too. */
+.support-assist .support-assist-btn {
+  color: #fff;
 }
 
 .support-list,
@@ -509,7 +455,7 @@
   font-size: 1.45rem;
   font-weight: 400;
   line-height: 1;
-  color: #6b7c74;
+  color: var(--lp-forest, #145c45);
 }
 
 .faq-acc-a {
@@ -558,17 +504,21 @@
     margin-top: auto;
   }
 
+  /* Two independent columns (not a grid) — a grid's rows are shared across
+     both columns, so opening one FAQ (taller) forced every card in that
+     same row to stretch to match, leaving dead space under the shorter
+     ones. Columns let each side stack to its own height regardless of
+     what's open on the other side. break-inside keeps a card from
+     literally splitting across the two columns. */
   .faq-acc {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-rows: repeat(var(--faq-rows, 4), minmax(76px, auto));
-    grid-auto-flow: column;
-    gap: 12px 20px;
-    align-items: start;
+    columns: 2;
+    column-gap: 20px;
   }
 
   .faq-acc-item {
     width: 100%;
+    break-inside: avoid;
+    margin-bottom: 12px;
   }
 
   .faq-acc-q {
@@ -599,9 +549,6 @@
   }
   .support-hero-art {
     display: none;
-  }
-  .support-topics {
-    grid-template-columns: 1fr;
   }
 }
 
