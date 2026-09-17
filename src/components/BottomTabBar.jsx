@@ -14,14 +14,18 @@ const NAV = [
 // Focused, single-task flows — no app-wide nav while the user is in them.
 const HIDDEN_ON = ["/account-setup"];
 
+function scrollPageToTop() {
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+  document.querySelectorAll(".lp-scroll").forEach((el) => {
+    el.scrollTop = 0;
+  });
+}
+
 /**
  * App-wide bottom navigation for phones/small screens — the same four tabs
- * (Home/Inventory/Update stock/Insights) on every signed-in page, including
- * standalone pages like Help/Contact/Terms and the Account page itself.
- * Account's own sections (Profile/Store/Notifications/Settings) are reached
- * from the profile-menu button in the top bar (MobileAccountMenu.jsx), and
- * alerts/notifications from the bell button next to it — so this bar never
- * changes shape depending on where you are.
+ * (Home/Inventory/Update stock/Insights) on every signed-in page.
  */
 export default function BottomTabBar() {
   const { user } = useAuth();
@@ -52,6 +56,10 @@ export default function BottomTabBar() {
     return () => document.body.classList.remove("has-tabbar");
   }, [visible]);
 
+  useEffect(() => {
+    scrollPageToTop();
+  }, [loc.pathname]);
+
   if (!visible) return null;
 
   return (
@@ -62,6 +70,7 @@ export default function BottomTabBar() {
           to={item.to}
           end={item.end}
           className={({ isActive }) => `tabbar-item${isActive ? " active" : ""}`}
+          onClick={scrollPageToTop}
         >
           <span className="tabbar-ic">
             <item.icon />

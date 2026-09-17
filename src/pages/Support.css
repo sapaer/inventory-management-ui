@@ -36,7 +36,15 @@
   max-width: 46ch;
   font-size: 1.02rem;
   line-height: 1.55;
-  color: #4d635a;
+  color: #2f3f39;
+}
+
+.contact-page .support-hero-copy p {
+  color: #102021;
+}
+
+.support-hero-extra {
+  margin-top: 16px;
 }
 
 .support-hero-art {
@@ -62,9 +70,74 @@
   color: var(--lp-ink, #102021);
 }
 
+.support-topics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.support-topic {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 18px;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  padding: 16px 16px 16px 14px;
+  border-radius: 14px;
+  border: 1px solid #e2ece7;
+  background: #fff;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+  min-height: 88px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.help-guide .tour-progress {
+  color: var(--lp-forest, #145c45);
+}
+
+.support-topic:hover {
+  border-color: color-mix(in srgb, var(--lp-forest, #145c45) 35%, #e2ece7);
+}
+
+.support-topic-ic {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  background: #e8f4ee;
+  color: var(--lp-forest, #145c45);
+  flex-shrink: 0;
+}
+
+.support-topic-ic svg,
 .support-link-ic svg,
 .support-assist-ic svg {
   display: block;
+}
+
+.support-topic strong {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--lp-ink, #102021);
+}
+
+.support-topic-copy {
+  min-width: 0;
+}
+
+.support-topic-copy span {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #5b7168;
 }
 
 .support-topic-go {
@@ -175,17 +248,6 @@
   text-decoration: none;
 }
 
-/* This page is wrapped in `.lp` (SupportLayout), whose own
-   `.lp a { color: inherit }` reset (class + element, higher specificity
-   than the bare .support-assist-btn class above) was winning and making
-   this button's text inherit the page's dark ink color instead of staying
-   white on its solid green background. Same trap already fixed for
-   .site-header-brand / .site-header-btn — re-declare scoped to the actual
-   parent so it always wins here too. */
-.support-assist .support-assist-btn {
-  color: #fff;
-}
-
 .support-list,
 .terms-cards {
   display: flex;
@@ -245,10 +307,100 @@
   color: #6b7280;
 }
 
+.contact-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.contact-channels {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
 .contact-hero-row {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.contact-wa-picker {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+}
+
+.contact-wa-pick {
+  min-width: 44px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid #cfe6da;
+  background: #fff;
+  color: #145c45;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.contact-wa-pick.is-on {
+  background: #145c45;
+  border-color: #145c45;
+  color: #fff;
+}
+
+.contact-tiles {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.contact-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 168px;
+  padding: 28px 18px 24px;
+  border-radius: 18px;
+  border: 1px solid #e6ddd0;
+  background: #fbf7f0;
+  box-shadow: 0 10px 24px rgba(80, 60, 30, 0.08);
+  text-decoration: none;
+  text-align: center;
+  color: inherit;
+  box-sizing: border-box;
+}
+
+.contact-tile-ic {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #b08948;
+}
+
+.contact-tile-ic svg {
+  width: 36px;
+  height: 36px;
+  display: block;
+}
+
+.contact-tile strong {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #1a1712;
+}
+
+.contact-tile span {
+  font-size: 0.88rem;
+  line-height: 1.35;
+  font-weight: 500;
+  color: #1f1c18;
 }
 
 .contact-card {
@@ -291,7 +443,7 @@
 .contact-card > span:not(.contact-card-ic) {
   font-size: 0.92rem;
   line-height: 1.45;
-  color: #5b7168;
+  color: #102021;
 }
 
 .contact-card-btn {
@@ -315,39 +467,65 @@
   border: 1px solid var(--lp-forest, #145c45);
 }
 
-/* WhatsApp is the channel this audience actually uses most, so it gets a
-   larger highlighted card; Email and Contact us are a compact secondary
-   pair beside/below it. */
 .contact-hero-card {
-  padding: 26px 22px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
+  padding: 16px 16px;
   background: linear-gradient(135deg, #e8f4ee, #d7eee3);
   border-color: #cfe6da;
 }
 
+.contact-hero-ttl {
+  min-width: 0;
+}
+
 .contact-hero-ic {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  background: var(--lp-forest, #145c45);
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: #128c7e;
   color: #fff;
+  box-shadow: 0 4px 10px rgba(18, 140, 126, 0.22);
+}
+
+.contact-hero-ic svg {
+  width: 22px;
+  height: 22px;
 }
 
 .contact-hero-card strong {
   font-family: var(--lp-heading, Fraunces, Georgia, serif);
-  font-size: 1.25rem;
+  font-size: 1.2rem;
+  color: #0a1614;
 }
 
-.contact-hero-card > span:not(.contact-card-ic) {
-  font-size: 1rem;
-  color: #3f5b50;
+.contact-hero-card.is-wa-c {
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 999px;
 }
 
-.contact-hero-btn {
-  margin-top: 4px;
-  width: 100%;
-  min-height: 44px;
-  font-size: 0.9rem;
+.contact-hero-card.is-wa-c strong {
+  font-size: 1.05rem;
+}
+
+.contact-hero-card.is-wa-c .contact-hero-ic {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.contact-hero-card.is-wa-c .contact-hero-ic svg {
+  width: 18px;
+  height: 18px;
 }
 
 /* Hero illustration — one rounded tile instead of the old pair of
@@ -405,7 +583,121 @@
   margin: 20px 0 0;
   font-size: 0.82rem;
   line-height: 1.5;
-  color: #6b7280;
+  color: #33403b;
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 22px 20px 20px;
+  border-radius: 16px;
+  border: 1px solid #e6eee9;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.contact-form h2 {
+  margin: 0;
+  font-family: var(--lp-heading, Fraunces, Georgia, serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--lp-ink, #102021);
+}
+
+.contact-form > p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #102021;
+}
+
+.contact-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.contact-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.contact-field > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a2e26;
+}
+
+.contact-query {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.contact-form-error {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #b91c1c;
+}
+
+.contact-form-submit {
+  align-self: flex-start;
+  min-height: 42px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.contact-form.is-board {
+  gap: 8px;
+  padding: 22px 22px 18px;
+  border-radius: 20px;
+  border: 1px solid #ece4d8;
+  background: #fffefb;
+  box-shadow: 0 10px 24px rgba(80, 60, 30, 0.08);
+}
+
+.contact-form.is-board h2 {
+  margin-bottom: 8px;
+  font-size: 1.2rem;
+}
+
+.contact-form.is-board .contact-field {
+  gap: 2px;
+}
+
+.contact-form.is-board .contact-field > span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #102021;
+}
+
+.contact-form.is-board .inp {
+  border: 0;
+  border-bottom: 1px solid #b7b0a6;
+  border-radius: 0;
+  background: transparent;
+  padding: 8px 0 10px;
+  box-shadow: none;
+  color: #102021;
+}
+
+.contact-form.is-board .contact-query {
+  min-height: 52px;
+}
+
+.contact-form.is-board .contact-form-submit {
+  align-self: stretch;
+  width: 100%;
+  margin-top: 12px;
+  min-height: 48px;
+  border-radius: 999px;
+  justify-content: center;
+  box-shadow: inset 0 0 0 1px rgba(196, 154, 74, 0.55);
 }
 
 .faq-acc {
@@ -455,7 +747,7 @@
   font-size: 1.45rem;
   font-weight: 400;
   line-height: 1;
-  color: var(--lp-forest, #145c45);
+  color: #6b7c74;
 }
 
 .faq-acc-a {
@@ -483,6 +775,71 @@
     height: 100%;
   }
 
+  .contact-layout.is-classic {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: 22px;
+    align-items: stretch;
+  }
+
+  .contact-layout.is-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .contact-layout.is-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(260px, 0.92fr);
+    gap: 24px;
+    align-items: stretch;
+  }
+
+  .contact-layout.is-split .contact-form {
+    height: 100%;
+    min-height: 460px;
+    display: flex;
+    flex-direction: column;
+    padding: 28px 28px 24px;
+  }
+
+  .contact-layout.is-split .contact-form .contact-field:last-of-type {
+    flex: 1;
+  }
+
+  .contact-layout.is-split .contact-query {
+    flex: 1;
+    min-height: 180px;
+  }
+
+  .contact-layout.is-split .contact-tiles {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .contact-layout.is-split .contact-tile {
+    flex: 1;
+    min-height: 0;
+    padding: 18px 16px;
+  }
+
+  .contact-wa-picker {
+    display: flex;
+  }
+
+  .contact-wa-pick {
+    min-width: 48px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .contact-tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
   .contact-hero-row {
     display: grid;
     grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
@@ -496,6 +853,15 @@
     gap: 16px;
   }
 
+  .contact-hero-card.is-wa-c {
+    padding: 12px 18px;
+  }
+
+  .contact-hero-card.is-wa-c .contact-hero-ic {
+    width: 40px;
+    height: 40px;
+  }
+
   .contact-card-sm {
     flex: 1;
   }
@@ -504,21 +870,29 @@
     margin-top: auto;
   }
 
-  /* Two independent columns (not a grid) — a grid's rows are shared across
-     both columns, so opening one FAQ (taller) forced every card in that
-     same row to stretch to match, leaving dead space under the shorter
-     ones. Columns let each side stack to its own height regardless of
-     what's open on the other side. break-inside keeps a card from
-     literally splitting across the two columns. */
+  .contact-form {
+    padding: 26px 24px 22px;
+  }
+
+  .contact-form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .contact-form-submit {
+    margin-top: 4px;
+  }
+
   .faq-acc {
-    columns: 2;
-    column-gap: 20px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: repeat(var(--faq-rows, 4), minmax(76px, auto));
+    grid-auto-flow: column;
+    gap: 12px 20px;
+    align-items: start;
   }
 
   .faq-acc-item {
     width: 100%;
-    break-inside: avoid;
-    margin-bottom: 12px;
   }
 
   .faq-acc-q {
@@ -549,6 +923,16 @@
   }
   .support-hero-art {
     display: none;
+  }
+  .support-topics {
+    grid-template-columns: 1fr;
+  }
+  .support-main {
+    padding-bottom: 16px;
+  }
+  .contact-form-submit {
+    width: 100%;
+    justify-content: center;
   }
 }
 

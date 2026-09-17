@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import SupportLayout from "../components/SupportLayout";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
@@ -16,6 +16,13 @@ const FAQS = [
 export default function Faqs() {
   const { lang } = useLang();
   const [open, setOpen] = useState(0);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.querySelectorAll(".lp-scroll").forEach((el) => {
+      el.scrollTop = 0;
+    });
+  }, []);
 
   return (
     <SupportLayout title={t(lang, "faqsTitle")} art={<FaqArt />}>
