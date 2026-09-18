@@ -85,12 +85,20 @@ export default function AccountSetup() {
   return (
     <AuthLayout variant="setup" hideLogin hideSignup>
       <div className="login-form login-form-wide">
-        <h1 className="login-title">{t(lang, "tellAboutShop")}</h1>
-        <p className="lead">{t(lang, "shopSetupSubShort")}</p>
+        <div className="setup-head">
+          <h1 className="login-title">{t(lang, "tellAboutShop")}</h1>
+          <span className="setup-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 7v5l3 2" />
+            </svg>
+            {t(lang, "setupTakesMinute")}
+          </span>
+        </div>
 
-        <section className="form-block">
-          <h2 className="form-block-title">{t(lang, "basics")}</h2>
-          <div className="two-col">
+        <div className="setup-grid">
+          <section className="setup-card">
+            <h2 className="setup-card-title">{t(lang, "storeDetails")}</h2>
             <div className="field-grp">
               <label className="field-lbl">
                 {t(lang, "shopName")} <span className="req">*</span>
@@ -113,54 +121,56 @@ export default function AccountSetup() {
                 placeholder="Ramesh Sharma"
               />
             </div>
-          </div>
-        </section>
+            <div className="field-grp">
+              <label className="field-lbl">{t(lang, "businessType")}</label>
+              <div className="seg-row">
+                {BUSINESS_TYPES.map((b) => (
+                  <button
+                    key={b.id}
+                    type="button"
+                    className={`seg${form.businessType === b.id ? " on" : ""}`}
+                    onClick={() => set("businessType", b.id)}
+                  >
+                    {b.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="field-grp">
+              <label className="field-lbl">{t(lang, "vehiclesDeal")}</label>
+              <div className="veh-chips">
+                {VEHICLES.map((v) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    className={`vchip${form.vehicleCategories.includes(v.id) ? " on" : ""}`}
+                    onClick={() => toggleVehicle(v.id)}
+                  >
+                    {v.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
 
-        <section className="form-block">
-          <h2 className="form-block-title">{t(lang, "location")}</h2>
-          <LocationPicker
-            required
-            compact
-            value={form}
-            onChange={(loc) => {
-              setError("");
-              setForm((f) => ({ ...f, ...loc }));
-            }}
-          />
-        </section>
+          <section className="setup-card">
+            <h2 className="setup-card-title">{t(lang, "location")}</h2>
+            <LocationPicker
+              required
+              compact
+              showMap
+              mapPlaceholder
+              keepAddress
+              value={form}
+              onChange={(loc) => {
+                setError("");
+                setForm((f) => ({ ...f, ...loc }));
+              }}
+            />
+          </section>
+        </div>
 
-        <section className="form-block">
-          <h2 className="form-block-title">{t(lang, "businessType")}</h2>
-          <div className="seg-row">
-            {BUSINESS_TYPES.map((b) => (
-              <button
-                key={b.id}
-                type="button"
-                className={`seg${form.businessType === b.id ? " on" : ""}`}
-                onClick={() => set("businessType", b.id)}
-              >
-                {b.label}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="form-block form-block-last">
-          <h2 className="form-block-title">{t(lang, "vehiclesDeal")}</h2>
-          <div className="veh-chips">
-            {VEHICLES.map((v) => (
-              <button
-                key={v.id}
-                type="button"
-                className={`vchip${form.vehicleCategories.includes(v.id) ? " on" : ""}`}
-                onClick={() => toggleVehicle(v.id)}
-              >
-                {v.label}
-              </button>
-            ))}
-          </div>
-        </section>
-
+        <div className="setup-actions">
         <label className="terms-check">
           <input
             type="checkbox"
@@ -182,6 +192,7 @@ export default function AccountSetup() {
         <button className="btn btn-p btn-full" disabled={busy} onClick={submit}>
           {busy ? t(lang, "saving") : t(lang, "setupCatalog")}
         </button>
+        </div>
       </div>
     </AuthLayout>
   );

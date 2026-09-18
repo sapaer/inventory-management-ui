@@ -14,6 +14,9 @@ export default function LocationPicker({
   // When true, picking a place / using GPS updates the pin + locality but never
   // overwrites the address textarea — the user types the address themselves.
   keepAddress = false,
+  // Reserve the map's slot with a hint until a place is picked, so the form
+  // doesn't jump (or look half-empty) when the map appears.
+  mapPlaceholder = false,
 }) {
   const { lang } = useLang();
   const [query, setQuery] = useState(locationLabel(value) || "");
@@ -219,12 +222,16 @@ export default function LocationPicker({
           📍 {locality || value?.address}
           {value?.state ? ` · ${value.state}` : ""}
           {value?.pincode ? ` · ${value.pincode}` : ""}
-          {hasPin ? (
-            <span className="loc-coords">
-              {" "}
-              ({Number(lat).toFixed(5)}, {Number(lng).toFixed(5)})
-            </span>
-          ) : null}
+        </div>
+      ) : null}
+
+      {showMap && mapPlaceholder && !hasPin ? (
+        <div className="loc-map loc-map-empty">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" />
+            <circle cx="12" cy="9.5" r="2.5" />
+          </svg>
+          <span>{t(lang, "mapPlaceholder")}</span>
         </div>
       ) : null}
 

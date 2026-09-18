@@ -346,6 +346,113 @@ p {
   padding: 16px;
   gap: 16px;
 }
+/* Account setup: two matching cards — store details (name, owner, business
+   type, vehicles) and location — so headings, first fields and edges line
+   up. On desktop the green panel slims to ~30% and the cards sit side by
+   side on one screen with terms + submit on a row underneath; below 901px
+   they simply stack and the cards lose their chrome. */
+.login-art { display: none; }
+.setup-badge { display: none; }
+.login-hero-line { display: block; }
+/* Same panel treatment on login / signup / setup: centred tagline, then the
+   illustration. Desktop only — below 901px the panel is a slim banner. The
+   panel's own size is untouched; only what's inside changed. */
+@media (min-width: 901px) {
+  .login-tag { margin-bottom: 18px; text-align: center; }
+  .login-art { display: block; width: 100%; max-width: 250px; margin: 0 auto 26px; }
+  .login-art svg { display: block; width: 100%; height: auto; }
+}
+/* Map slot: phones skip it (the form is long enough already); desktop shows
+   the real map once a place is picked, this hint until then. */
+.login-page.is-setup .loc-map { display: none; }
+.loc-map-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 24px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+  background: #f6faf8;
+  border: 1.5px dashed #cfe0d7;
+}
+.login-form-wide .login-title { margin-bottom: 18px; }
+.setup-grid { display: flex; flex-direction: column; gap: 22px; margin-bottom: 8px; }
+.setup-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0 0 14px;
+}
+.setup-card .field-grp:last-child { margin-bottom: 0; }
+@media (min-width: 901px) {
+  .login-page.is-setup .login-left { width: 30%; min-width: 270px; padding: 28px 26px; }
+  .login-page.is-setup .login-hero { font-size: 22px; }
+  .login-page.is-setup .login-sub { font-size: 13px; margin-bottom: 22px; }
+  .login-page.is-setup .login-right { padding: 8px 24px 12px; }
+  .login-page.is-setup .login-right-main.is-top { padding: 4px 0 0; }
+  .login-page.is-setup .login-form-wide { max-width: 100%; }
+  /* Heading row: title on the left edge of the left card, a small pill on the
+     right edge of the right card, with room before the cards start. */
+  .setup-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 4px 0 22px; }
+  .login-page.is-setup .setup-head .login-title { text-align: left; font-size: 24px; margin: 0; }
+  .setup-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 13px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--forest);
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid #d2e5db;
+  }
+  .setup-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    gap: 20px;
+    margin-bottom: 0;
+  }
+  .setup-card {
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid #e3ece7;
+    border-radius: 16px;
+    padding: 22px 24px 24px;
+    box-shadow: 0 6px 20px rgba(15, 61, 42, 0.05);
+  }
+  .setup-card .seg-row { flex-wrap: nowrap; gap: 6px; }
+  .setup-card .seg { min-width: 0; padding: 9px 6px; }
+  .login-page.is-setup .loc-map { display: flex; height: 170px; }
+  .login-page.is-setup iframe.loc-map { display: block; }
+  .login-page.is-setup .loc-address { min-height: 64px; }
+  .setup-card .field-grp { margin-bottom: 18px; }
+  .setup-card .inp { padding: 12px 14px; }
+  .setup-card .loc-address-lbl { margin-top: 18px; }
+  .setup-card-title { font-size: 16px; margin-bottom: 16px; }
+  .setup-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 28px;
+    padding-top: 14px;
+  }
+  .setup-actions .terms-check { margin: 0; }
+  .setup-actions .err { grid-column: 1 / -1; grid-row: 2; margin: 8px 0 0; }
+  .setup-actions .btn-full { grid-column: 2; grid-row: 1; width: auto; min-width: 240px; }
+}
+
+/* Phones show the bottom tab bar on account setup (instead of the footer,
+   which is hidden for signed-in users there) — clear it so the submit
+   button isn't covered. body.has-tabbar is set by BottomTabBar.jsx. */
+@media (max-width: 900px) {
+  body.has-tabbar .login-page.is-setup { padding-bottom: var(--tabbar-clear); }
+}
 /* Auth header glass lives on .site-header (GlassPanel). */
 .login-left {
   position: relative;
@@ -414,6 +521,9 @@ p {
 /* Setup screen: long form — top-align it and let the page scroll. */
 .login-right-main.is-top {
   justify-content: flex-start;
+  /* flex-start on the CROSS axis too — align-items:center above vertically
+     centres the form in the column, which left a gap above the heading. */
+  align-items: flex-start;
   padding-top: 4px;
 }
 .login-form-wide {
@@ -626,7 +736,6 @@ p.login-signup { text-align: center; margin-top: 14px; }
 .loc-hit span { font-size: 11px; color: var(--muted); }
 .loc-empty { padding: 10px 12px; font-size: 12px; color: var(--muted); }
 .loc-picked { font-size: 12px; color: #374151; margin-top: 8px; }
-.loc-coords { color: var(--muted); font-size: 11px; }
 .loc-map {
   width: 100%;
   height: 160px;

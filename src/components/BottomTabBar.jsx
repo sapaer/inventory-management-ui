@@ -11,9 +11,6 @@ const NAV = [
   { to: "/insights", tabKey: "insights", icon: ChartIcon },
 ];
 
-// Focused, single-task flows — no app-wide nav while the user is in them.
-const HIDDEN_ON = ["/account-setup"];
-
 function scrollPageToTop() {
   window.scrollTo(0, 0);
   document.documentElement.scrollTop = 0;
@@ -43,7 +40,7 @@ export default function BottomTabBar() {
     return () => mq.removeEventListener("change", sync);
   }, []);
 
-  const visible = Boolean(user) && isMobile && !HIDDEN_ON.includes(loc.pathname);
+  const visible = Boolean(user) && isMobile;
 
   // Public pages (Landing, Help/Contact/Terms/FAQs) reserve bottom padding
   // for this bar via `body.has-tabbar` — those pages don't know the auth
