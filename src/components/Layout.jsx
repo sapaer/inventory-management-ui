@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { inventoryApi } from "../api";
+import { authApi, formatApiError, inventoryApi } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
@@ -17,13 +17,26 @@ const NAV = [
 ];
 
 export default function Layout() {
-  const { signOut } = useAuth();
+  const { signOut, signIn } = useAuth();
   const { lang } = useLang();
   const loc = useLocation();
   const nav = useNavigate();
   const [query, setQuery] = useState("");
   const [acctOpen, setAcctOpen] = useState(false);
   const [lowCount, setLowCount] = useState(0);
+  const [addingShop, setAddingShop] = useState(false);
+
+  async function addShop() {
+    setAddingShop(true);
+    try {
+      const data = await authApi.createAccount();
+      signIn(data);
+      window.location.href = "/account-setup";
+    } catch (e) {
+      alert(formatApiError(e));
+      setAddingShop(false);
+    }
+  }
 
   async function logout() {
     setAcctOpen(false);
@@ -124,7 +137,7 @@ export default function Layout() {
           onClick={() => nav("/low-stocks")}
         >
           <span className="nav-ic">
-            <AlertIcon />
+            {lowCount > 0 ? <AlertIcon /> : <CheckIcon />}
           </span>
           <span className="sidebar-lowstock-txt nav-txt">
             {lowCount > 0 ? t(lang, "sidebarLowStock", lowCount) : t(lang, "sidebarLowStockOk")}
@@ -139,6 +152,16 @@ export default function Layout() {
         >
           <span className="sidebar-add-ic">+</span>
           <span className="nav-txt">{t(lang, "addPart")}</span>
+        </button>
+        <button
+          className="sidebar-add sidebar-add-secondary"
+          aria-label={t(lang, "addShop")}
+          data-tip={t(lang, "addShop")}
+          disabled={addingShop}
+          onClick={addShop}
+        >
+          <span className="sidebar-add-ic">+</span>
+          <span className="nav-txt">{addingShop ? t(lang, "saving") : t(lang, "addShop")}</span>
         </button>
         <div className={`sidebar-acct${acctOpen ? " open" : ""}`} ref={acctRef}>
           {acctOpen ? (
@@ -296,6 +319,14 @@ function AlertIcon() {
       <path d="m12 3 9.5 17H2.5L12 3Z" />
       <path d="M12 10v4" />
       <circle cx="12" cy="17.2" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+function CheckIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9.5" />
+      <path d="m8 12.3 2.6 2.6L16 9.5" />
     </svg>
   );
 }

@@ -806,6 +806,22 @@ p.login-signup { text-align: center; margin-top: 14px; }
 }
 .sidebar-add-ic { font-size: 15px; line-height: 1; }
 
+/* Secondary CTA right under "Add a part" — same shape/sizing (shares
+   .sidebar-add) but outlined instead of solid, so it doesn't compete with
+   the primary action above it. */
+.sidebar-add.sidebar-add-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+.sidebar-add.sidebar-add-secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+.sidebar-add.sidebar-add-secondary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 /* My account dropdown in the sidebar */
 .sidebar-acct {
   position: relative;
