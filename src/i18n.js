@@ -465,7 +465,7 @@ export const messages = {
   yes: "Yes",
   no: "No",
   saveChanges: "Save changes",
-  saved: "Saved",
+  saved: "Your changes are saved",
   freePlan: "FREE PLAN",
   yourShop: "Your shop",
   sending: "Sending…",

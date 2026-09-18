@@ -12,15 +12,9 @@ import { useLang } from "../context/LangContext";
 import { BUSINESS_TYPES, t, VEHICLES } from "../i18n";
 import { formatWhen, initials } from "../utils";
 
-const DESKTOP_SECTIONS = [
-  { id: "profile", key: "basicDetails", Icon: UserIcon },
-  { id: "shop", key: "storeDetails", Icon: StoreIcon },
-  { id: "notifications", key: "notifications", Icon: BellIcon },
-  { id: "security", key: "security", Icon: LockIcon },
-  { id: "preferences", key: "preferences", Icon: SlidersIcon },
-];
-// On phones, Security + Preferences collapse into one "Settings" tab.
-const MOBILE_SECTIONS = [
+// Security + Preferences collapse into one "Settings" tab, on phones and
+// desktop alike.
+const SECTIONS = [
   { id: "profile", key: "basicDetails", Icon: UserIcon },
   { id: "shop", key: "storeDetails", Icon: StoreIcon },
   { id: "notifications", key: "notifications", Icon: BellIcon },
@@ -57,14 +51,9 @@ export default function Account() {
   const nav = useNavigate();
   const isMobile = useIsMobile();
   const [params, setParams] = useSearchParams();
-  const SECTIONS = isMobile ? MOBILE_SECTIONS : DESKTOP_SECTIONS;
   const raw = params.get("section");
-  // Map the URL section onto whatever tabs this viewport actually has.
-  const remap = (id) => {
-    if (isMobile && (id === "security" || id === "preferences")) return "settings";
-    if (!isMobile && id === "settings") return "security";
-    return id;
-  };
+  // Old bookmarked/linked URLs may still point at the pre-merge section ids.
+  const remap = (id) => (id === "security" || id === "preferences" ? "settings" : id);
   const section = SECTIONS.some((s) => s.id === remap(raw)) ? remap(raw) : "profile";
 
   const [accounts, setAccounts] = useState(null);
@@ -137,15 +126,7 @@ export default function Account() {
 
             {section === "profile" && <ProfileSection {...shared} />}
             {section === "shop" && <ShopSection {...shared} />}
-            {section === "security" && <SecuritySection {...shared} />}
             {section === "notifications" && <NotificationsSection lang={lang} />}
-            {section === "preferences" && (
-              <>
-                <PreferencesSection {...shared} />
-                <HelpSupportSection lang={lang} />
-                <AccountDangerZone lang={lang} flash={flash} signOut={signOut} nav={nav} />
-              </>
-            )}
             {section === "settings" && (
               <div className="account-settings-stack">
                 <PreferencesSection {...shared} />
@@ -158,7 +139,14 @@ export default function Account() {
         </div>
       </div>
 
-      {toast ? <div className="toast">{toast}</div> : null}
+      {toast ? (
+        <div className="toast-center">
+          <span className="toast-center-ic">
+            <ToastCheckIcon />
+          </span>
+          {toast}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1003,19 +991,19 @@ function StoreIcon() {
     </svg>
   );
 }
-function LockIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="4" y="11" width="16" height="10" rx="2" />
-      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-    </svg>
-  );
-}
 function BellIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
       <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  );
+}
+function ToastCheckIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9.5" />
+      <path d="m8 12.3 2.6 2.6L16 9.5" />
     </svg>
   );
 }
