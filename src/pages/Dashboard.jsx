@@ -4,8 +4,17 @@ import { inventoryApi, notificationApi } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
-import { formatDate, formatWhen, stockOf } from "../utils";
+import { formatDate, stockOf } from "../utils";
 import "./Dashboard.css";
+
+// Rows a phone shows per section before "View all": enough to fill one screen
+// once the section's heading has been scrolled up under the top bar (screen
+// height minus top bar, tab bar and heading, over a ~58px row). Bounded so a
+// tall tablet doesn't dump the whole feed and a short phone still gets a few.
+function screenRows() {
+  if (typeof window === "undefined") return 8;
+  return Math.max(5, Math.min(12, Math.floor((window.innerHeight - 190) / 58)));
+}
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -17,6 +26,13 @@ export default function Dashboard() {
   const [mobile, setMobile] = useState(
     () => typeof window !== "undefined" && window.matchMedia("(max-width: 900px)").matches,
   );
+
+  const [previewRows, setPreviewRows] = useState(screenRows);
+  useEffect(() => {
+    const onResize = () => setPreviewRows(screenRows());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 900px)");
@@ -44,10 +60,6 @@ export default function Dashboard() {
   const inStock = items.filter((i) => stockOf(i) === "IN_STOCK");
   const attention = low.length + out.length;
   const pct = total ? Math.round((inStock.length / total) * 100) : 0;
-  const latest = items.reduce((acc, i) => {
-    const tms = new Date(i.updatedAt).getTime();
-    return tms > acc ? tms : acc;
-  }, 0);
   const recent = [...items].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 10);
   const feed = [
     ...recent.map((item) => {
@@ -71,168 +83,284 @@ export default function Dashboard() {
     })),
   ].sort((a, b) => new Date(b.at) - new Date(a.at));
 
-  const groups = groupFeedByDay(feed);
+  // Phones show a short preview (heading + View all sit on top); the full
+  // list lives on the Activity / Low Stocks pages.
+  // One row fewer than the screenful so the last card isn't cramped against the tab bar.
+  const groups = groupFeedByDay(feed.slice(0, Math.max(4, previewRows - 1)));
 
-  const data = { user, lang, nav, total, out, inStock, attention, pct, latest, groups };
+  // First-run setup: a part in the catalog and a named shop. Until both are
+  // done the "Get started" card shows; after that it's gone for good.
+  const profileDone = Boolean(user?.shopName && user?.name);
+  const setupPending = total === 0 || !profileDone;
+
+  const deskGroups = groupFeedByDay(feed.slice(0, 6));
+
+  const data = { user, lang, nav, total, out, low, inStock, attention, pct, groups, profileDone, setupPending, previewRows };
 
   if (loading) return <div className={`content dash ${mobile ? "is-last" : "is-desk"}`}>Loading…</div>;
 
   return (
     <div className={`content dash ${mobile ? "is-last" : "is-desk"}`}>
-      {mobile ? <LastHome {...data} /> : <DeskHome {...data} />}
+      {mobile ? <LastHome {...data} /> : <DeskHome {...data} groups={deskGroups} />}
     </div>
   );
 }
 
-function LastHome({ user, lang, nav, total, inStock, attention, pct, out, groups }) {
+function LastHome({ lang, nav, total, inStock, attention, out, low, groups, profileDone, setupPending, previewRows }) {
   return (
     <>
-      <AlertBanner user={user} lang={lang} attention={attention} />
-      <div className="stack-actions">
-        <button type="button" className="stack-link" onClick={() => nav("/inventory/new")}>
-          <span className="stack-ic">
-            <PlusIcon />
-          </span>
-          <span className="stack-link-ttl">{t(lang, "addPart")}</span>
-          <Chevron />
-        </button>
-      </div>
-
-      <div className="stack-stats">
-        <div className="stack-metrics">
-          <div>
-            <strong>{total}</strong>
-            <span>{t(lang, "totalParts")}</span>
-            <em>{t(lang, "inCatalog")}</em>
-          </div>
-          <div>
-            <strong style={{ color: "#16A34A" }}>{inStock.length}</strong>
-            <span>{t(lang, "inStock")}</span>
-            <em>{t(lang, "availablePct", pct)}</em>
-          </div>
-          <div>
-            <strong style={{ color: "#D97706" }}>{attention}</strong>
-            <span>{t(lang, "lowOut")}</span>
-            <em>{t(lang, "atZero", out.length)}</em>
-          </div>
-        </div>
-      </div>
-
-      <RecentBlock lang={lang} nav={nav} groups={groups} />
-    </>
-  );
-}
-
-function DeskHome({ user, lang, nav, total, out, inStock, attention, pct, latest, groups }) {
-  return (
-    <>
-      <div className="desk-split">
-        <div className="desk-left">
-          <AlertBanner user={user} lang={lang} attention={attention} />
-          <button className="qa-card is-add" onClick={() => nav("/inventory/new")}>
-            <div className="qa-icon">
+      <div className="stack-top">
+        <div className="stack-actions">
+          <button type="button" className="stack-link" onClick={() => nav("/inventory/new")}>
+            <span className="stack-ic">
               <PlusIcon />
-            </div>
-            <div>
-              <div className="qa-title">{t(lang, "addPart")}</div>
-              <div className="qa-sub">{t(lang, "qaAddSub")}</div>
-              <div className="qa-pill">{t(lang, "freeNow")}</div>
-            </div>
+            </span>
+            <span className="stack-link-ttl">{t(lang, "addPart")}</span>
+            <Chevron />
           </button>
         </div>
 
-        <div className="desk-right">
-          <div className="stat-row">
-            <div className="stat-card">
-              <div className="stat-lbl">{t(lang, "totalParts")}</div>
-              <div className="stat-val">{total}</div>
-              <div className="stat-note">{t(lang, "inCatalog")}</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-lbl">{t(lang, "inStock")}</div>
-              <div className="stat-val" style={{ color: "#16A34A" }}>
-                {inStock.length}
-              </div>
-              <div className="stat-note">{t(lang, "availablePct", pct)}</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-lbl">{t(lang, "lowOut")}</div>
-              <div className="stat-val" style={{ color: "#D97706" }}>
-                {attention}
-              </div>
-              <div className="stat-note" style={{ color: out.length ? "#EF4444" : undefined }}>
-                {t(lang, "atZero", out.length)}
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-lbl">{t(lang, "lastUpdated")}</div>
-              <div className="stat-val stat-val-when">{latest ? formatWhen(latest) : "—"}</div>
-              <div className="stat-note">{user?.shopName || t(lang, "yourShop")}</div>
+        {total > 0 ? (
+          <div className="stack-stats">
+            <div className="stack-metrics">
+              <Link to="/inventory">
+                <strong>{total}</strong>
+                <span>{t(lang, "totalParts")}</span>
+              </Link>
+              <Link to="/inventory?status=in">
+                <strong style={{ color: "#16A34A" }}>{inStock.length}</strong>
+                <span>{t(lang, "inStock")}</span>
+              </Link>
+              <Link to="/low-stocks">
+                <strong style={{ color: "#D97706" }}>{attention}</strong>
+                <span>{t(lang, "lowOut")}</span>
+              </Link>
             </div>
           </div>
-        </div>
+        ) : null}
       </div>
 
-      <RecentBlock lang={lang} nav={nav} groups={groups} />
+      {attention > 0 ? <LowList lang={lang} rows={[...out, ...low]} total={total} limit={previewRows} /> : null}
+      {setupPending ? <GetStarted lang={lang} nav={nav} total={total} profileDone={profileDone} /> : null}
+      {groups.length ? <RecentBlock lang={lang} groups={groups} /> : null}
     </>
   );
 }
 
-function AlertBanner({ user, lang, attention }) {
-  if (attention > 0) {
-    return (
-      <div className="banner amber">
-        <span className="banner-ic" aria-hidden="true">
-          <WarnIcon size={22} />
-        </span>
-        <div className="banner-copy">
-          <div className="banner-head">
-            <strong>{t(lang, "partsRunningLow", attention)}</strong>
-            <Link className="link" to="/low-stocks">
-              {t(lang, "viewAll")} →
-            </Link>
-          </div>
+function DeskHome({ lang, nav, user, total, out, low, inStock, attention, pct, groups, profileDone, setupPending }) {
+  const who = user?.shopName || user?.name;
+  const sub = total === 0 ? "dashSubNew" : attention > 0 ? "dashSubLow" : "dashSubOk";
+  const isNew = total === 0;
+  const start = setupPending ? <GetStarted lang={lang} nav={nav} total={total} profileDone={profileDone} /> : null;
+  const recent = groups.length ? <RecentBlock lang={lang} groups={groups} /> : null;
+  return (
+    <>
+      <header className="dash-head">
+        <p className="dash-hello">{t(lang, "greeting", who)}</p>
+        <p className="dash-sub">{t(lang, sub, attention)}</p>
+      </header>
+
+      {isNew ? null : (
+        <div className="desk-cards">
+          <button type="button" className="add-card" onClick={() => nav("/inventory/new")}>
+            <span className="add-card-ic" aria-hidden="true">
+              <PlusIcon />
+            </span>
+            <span className="add-card-copy">
+              <strong>{t(lang, "addPart")}</strong>
+              <span>{t(lang, "addHeroSub")}</span>
+            </span>
+          </button>
+          <StatCard
+            to="/inventory"
+            icon={<BoxIcon />}
+            label={t(lang, "totalParts")}
+            value={total}
+            note={t(lang, "inCatalog")}
+          />
+          <StatCard
+            to="/inventory?status=in"
+            tone="ok"
+            icon={<CheckIcon />}
+            label={t(lang, "inStock")}
+            value={inStock.length}
+            bar={pct}
+            note={t(lang, "availablePct", pct)}
+          />
+          <StatCard
+            to="/low-stocks"
+            tone={attention > 0 ? "warn" : undefined}
+            icon={<WarnIcon />}
+            label={t(lang, "lowOut")}
+            value={attention}
+            note={t(lang, "atZero", out.length)}
+            cta={attention > 0 ? t(lang, "viewShort") : undefined}
+          />
+        </div>
+      )}
+
+      {/* A brand-new shop has no stock to list, so its two panels stretch to the
+          bottom of the page with their content centred instead of leaving a
+          blank band under them. */}
+      <div className={`desk-bottom${isNew ? " is-fill" : ""}`}>
+        {isNew ? start : <LowList lang={lang} rows={[...out, ...low]} total={total} />}
+        <div className="desk-bottom-side">
+          {isNew ? null : start}
+          {recent || (isNew ? <ActivityEmpty lang={lang} /> : null)}
         </div>
       </div>
-    );
-  }
-  return (
-    <div className="banner mint">
-      <div className="banner-copy">
-        {user?.shopName || user?.name ? t(lang, "welcomeBanner") : t(lang, "completeProfile")}
-      </div>
-      {!user?.shopName || !user?.name ? (
-        <Link className="link" to="/account?section=profile">
-          {t(lang, "settings")} →
-        </Link>
-      ) : null}
-    </div>
+    </>
   );
 }
 
-function RecentBlock({ lang, nav, groups }) {
+function StatCard({ to, tone, icon, label, value, note, cta, bar }) {
+  const body = (
+    <>
+      <span className="stat-tile" aria-hidden="true">
+        {icon}
+      </span>
+      <div className="stat-body">
+        <div className="stat-val">{value}</div>
+        <div className="stat-lbl">{label}</div>
+        <div className="stat-note">
+          {note}
+          {cta ? (
+            <>
+              {" · "}
+              <span className="stat-cta">{cta}</span>
+            </>
+          ) : null}
+        </div>
+        {bar != null ? (
+          <div className="stat-bar" aria-hidden="true">
+            <span style={{ width: `${bar}%` }} />
+          </div>
+        ) : null}
+      </div>
+    </>
+  );
+  const cls = `stat-card${to ? " is-link" : ""}${tone ? ` is-${tone}` : ""}`;
+  return to ? (
+    <Link to={to} className={cls}>
+      {body}
+    </Link>
+  ) : (
+    <div className={cls}>{body}</div>
+  );
+}
+
+function LowList({ lang, rows, total, limit = 6 }) {
+  const shown = [...rows].sort((a, b) => a.quantity - b.quantity).slice(0, limit);
+  return (
+    <section className="card dash-low">
+      <div className="card-hd">
+        <div className="card-ttl">{t(lang, "runningLow")}</div>
+        {rows.length ? (
+          <Link className="link dash-viewall" to="/low-stocks">
+            {t(lang, "viewAll")} →
+          </Link>
+        ) : null}
+      </div>
+      {shown.length ? (
+        shown.map((item) => (
+          <Link key={item.id} to="/low-stocks" className="list-row dash-low-row">
+            <div className="dash-row-text">{item.partName}</div>
+            {stockOf(item) === "OUT_OF_STOCK" ? (
+              <span className="badge b-r">{t(lang, "out")}</span>
+            ) : (
+              <span className="badge b-a">
+                {item.quantity} {t(lang, "leftShort")}
+              </span>
+            )}
+          </Link>
+        ))
+      ) : (
+        <p className="dash-low-empty">{t(lang, total ? "allStocked" : "lowEmptyNew")}</p>
+      )}
+    </section>
+  );
+}
+
+function GetStarted({ lang, nav, total, profileDone }) {
+  const steps = [
+    { key: "shop", done: true, text: t(lang, "stepShop") },
+    { key: "part", done: total > 0, text: t(lang, "stepAddPart"), action: t(lang, "addPart"), go: () => nav("/inventory/new") },
+    { key: "profile", done: profileDone, text: t(lang, "stepProfile"), action: t(lang, "settings"), go: () => nav("/account?section=profile") },
+  ];
+  const done = steps.filter((x) => x.done).length;
+  return (
+    <section className="card dash-recent dash-start">
+      <div className="card-hd">
+        <div className="card-ttl">{t(lang, "getStarted")}</div>
+        <span className="dash-start-count">{t(lang, "setupProgress", done, steps.length)}</span>
+      </div>
+      <h2 className="dash-recent-ttl">{t(lang, "getStarted")}</h2>
+      <div className="dash-start-bar" aria-hidden="true">
+        <span style={{ width: `${Math.round((done / steps.length) * 100)}%` }} />
+      </div>
+      <div className="dash-start-rows">
+        {steps.map((step) => (
+          <div className={`list-row${step.done ? " is-done" : ""}`} key={step.key}>
+            <span className={`dot dash-dot is-${step.done ? "ok" : "warn"}`} aria-hidden="true">
+              ●
+            </span>
+            <span className={`dash-ic ${step.done ? "is-ok" : "is-todo"}`} aria-hidden="true">
+              {step.done ? <CheckIcon /> : null}
+            </span>
+            <div className="dash-row-text">{step.text}</div>
+            {step.done ? (
+              <span className="dash-start-done">{t(lang, "stepDone")}</span>
+            ) : (
+              <button type="button" className="link" onClick={step.go}>
+                {step.action}
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ActivityEmpty({ lang }) {
+  return (
+    <section className="card dash-activity-empty">
+      <span className="dash-activity-ic" aria-hidden="true">
+        <ActivityIcon />
+      </span>
+      <p className="dash-activity-ttl">{t(lang, "activityEmptyTitle")}</p>
+      <p className="dash-activity-sub">{t(lang, "activityEmptySub")}</p>
+    </section>
+  );
+}
+
+function RecentBlock({ lang, groups }) {
   return (
     <section className="card dash-recent">
       <div className="card-hd">
         <div className="card-ttl">{t(lang, "recent")}</div>
+        <Link className="link dash-viewall" to="/activity">
+          {t(lang, "viewAll")} →
+        </Link>
       </div>
-      <h2 className="dash-recent-ttl">{t(lang, "recent")}</h2>
-      {groups.length ? (
-        groups.map((group) => (
-          <div className="dash-group" key={group.key}>
-            <p className="dash-day">
-              {group.key === "today"
-                ? `${t(lang, "todayLabel")} (${group.items.length})`
-                : `${formatDate(group.items[0].at)} (${group.items.length})`}
-            </p>
-            {group.items.map((row) => (
-              <FeedRow key={row.id} row={row} />
-            ))}
-          </div>
-        ))
-      ) : (
-        <EmptyHints lang={lang} nav={nav} />
-      )}
+      <div className="dash-recent-bar">
+        <h2 className="dash-recent-ttl">{t(lang, "recent")}</h2>
+        <Link className="link dash-viewall" to="/activity">
+          {t(lang, "viewAll")} →
+        </Link>
+      </div>
+      {groups.map((group) => (
+        <div className="dash-group" key={group.key}>
+          <p className="dash-day">
+            {group.key === "today"
+              ? `${t(lang, "todayLabel")} (${group.items.length})`
+              : `${formatDate(group.items[0].at)} (${group.items.length})`}
+          </p>
+          {group.items.map((row) => (
+            <FeedRow key={row.id} row={row} />
+          ))}
+        </div>
+      ))}
     </section>
   );
 }
@@ -250,46 +378,6 @@ function FeedRow({ row }) {
       <div className="dash-row-text">{row.text}</div>
       {when ? <span className="time">{when}</span> : null}
     </div>
-  );
-}
-
-function EmptyHints({ lang, nav }) {
-  return (
-    <>
-      <div className="list-row">
-        <span className="dot dash-dot is-ok" aria-hidden="true">
-          ●
-        </span>
-        <span className="dash-ic is-ok" aria-hidden="true">
-          <CheckIcon />
-        </span>
-        <div className="dash-row-text">{t(lang, "hintAdd")}</div>
-        <button className="link" onClick={() => nav("/inventory/new")}>
-          {t(lang, "addPart")}
-        </button>
-      </div>
-      <div className="list-row">
-        <span className="dot dash-dot is-ok" aria-hidden="true">
-          ●
-        </span>
-        <span className="dash-ic is-ok" aria-hidden="true">
-          <CheckIcon />
-        </span>
-        <div className="dash-row-text">{t(lang, "hintProfile")}</div>
-        <Link className="link" to="/account?section=profile">
-          {t(lang, "settings")}
-        </Link>
-      </div>
-      <div className="list-row">
-        <span className="dot dash-dot is-warn" aria-hidden="true">
-          ●
-        </span>
-        <span className="dash-ic is-activity" aria-hidden="true">
-          <ActivityIcon />
-        </span>
-        <div className="dash-row-text">{t(lang, "hintAlerts")}</div>
-      </div>
-    </>
   );
 }
 
@@ -373,6 +461,14 @@ function ActivityIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 12h3.2l2.1-6 3.4 12 2.2-6H20" />
+    </svg>
+  );
+}
+
+function BoxIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
     </svg>
   );
 }

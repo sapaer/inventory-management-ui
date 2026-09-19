@@ -1,0 +1,213 @@
+.lowstock .ls-hd {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.lowstock .ls-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #111827;
+}
+.lowstock .ls-sub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: left;
+}
+.lowstock .ls-copy {
+  flex-shrink: 0;
+}
+.lowstock .ls-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.lowstock .ls-filters .chip {
+  cursor: pointer;
+}
+
+.lowstock .ls-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lowstock .ls-hint {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #9ca3af;
+}
+.lowstock .ls-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 2fr);
+  align-items: center;
+  gap: 12px 28px;
+  padding: 16px 20px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-left-width: 4px;
+  border-radius: 12px;
+}
+.lowstock .ls-row.is-out {
+  border-left-color: #ef4444;
+}
+.lowstock .ls-row.is-low {
+  border-left-color: #f59e0b;
+}
+.lowstock .ls-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.lowstock .ls-item .inv-thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+}
+.lowstock .ls-main {
+  min-width: 0;
+}
+.lowstock .ls-name {
+  display: block;
+  max-width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+  text-align: left;
+  cursor: pointer;
+}
+.lowstock .ls-name:hover {
+  color: var(--forest);
+  text-decoration: underline;
+}
+.lowstock .ls-main .pspec {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+/* Four labelled facts side by side, so a row reads like a small record:
+   how many are left, the level it counts as low at, price, and freshness. */
+.lowstock .ls-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+}
+.lowstock .ls-fact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 2px 16px;
+  border-left: 1px solid #f0f3f1;
+  min-width: 0;
+}
+.lowstock .ls-fact:first-child {
+  padding-left: 0;
+  border-left: none;
+}
+.lowstock .ls-fact-lbl {
+  font-size: 11px;
+  font-weight: 500;
+  color: #9ca3af;
+}
+.lowstock .ls-fact-val {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+.lowstock .ls-fact-val strong {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.lowstock .ls-fact.is-level .ls-fact-val strong {
+  font-size: 18px;
+  font-weight: 600;
+  color: #4b5563;
+}
+.lowstock .ls-row.is-out .ls-fact.is-qty strong {
+  color: #dc2626;
+}
+.lowstock .ls-row.is-low .ls-fact.is-qty strong {
+  color: #d97706;
+}
+.lowstock .ls-alert-change {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--forest);
+  cursor: pointer;
+}
+.lowstock .ls-level-edit {
+  gap: 6px;
+}
+.lowstock .ls-min-inp {
+  width: 64px;
+  margin-bottom: 0;
+}
+.lowstock .ls-level-edit .btn {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.lowstock .ls-empty {
+  padding: 56px 24px;
+}
+.lowstock .ls-empty-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 14px;
+  border-radius: 50%;
+  background: #e7f6ee;
+  color: #16a34a;
+  font-size: 24px;
+  font-weight: 700;
+}
+.lowstock .ls-empty .btn {
+  display: inline-flex;
+}
+
+@media (max-width: 1100px) {
+  .lowstock .ls-row {
+    grid-template-columns: 1fr;
+  }
+  .lowstock .ls-facts {
+    padding-top: 12px;
+    border-top: 1px solid #f0f3f1;
+  }
+}
+@media (max-width: 900px) {
+  .lowstock .ls-hd {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .lowstock .ls-row {
+    padding: 14px;
+  }
+  .lowstock .ls-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 0;
+  }
+  .lowstock .ls-fact:nth-child(odd) {
+    padding-left: 0;
+    border-left: none;
+  }
+  .lowstock .ls-fact:nth-child(even) {
+    padding-left: 16px;
+  }
+}

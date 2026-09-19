@@ -52,7 +52,7 @@ function statusText(lang, st) {
 export default function Inventory() {
   const { lang } = useLang();
   const nav = useNavigate();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const [items, setItems] = useState([]);
   const [q, setQ] = useState(() => params.get("q") || "");
   const [loading, setLoading] = useState(true);
@@ -63,7 +63,12 @@ export default function Inventory() {
   const [seeding, setSeeding] = useState(false);
   const [sort, setSort] = useState("recent");
 
-  const sortedItems = useMemo(() => sortItems(items, sort), [items, sort]);
+  // The dashboard's "In stock" card links here with ?status=in.
+  const inStockOnly = params.get("status") === "in";
+  const sortedItems = useMemo(() => {
+    const rows = inStockOnly ? items.filter((i) => stockOf(i) === "IN_STOCK") : items;
+    return sortItems(rows, sort);
+  }, [items, sort, inStockOnly]);
 
   async function load() {
     setError("");
@@ -129,12 +134,18 @@ export default function Inventory() {
           + {t(lang, "addPart")}
         </button>
       </div>
+      {inStockOnly ? (
+        <button type="button" className="inv-filter-chip" onClick={() => setParams({}, { replace: true })}>
+          {t(lang, "filterInStock")} <span aria-hidden="true">×</span>
+          <span className="sr-only">{t(lang, "clearFilter")}</span>
+        </button>
+      ) : null}
       {error ? <div className="err" style={{ marginBottom: 10 }}>{error}</div> : null}
       {loading ? (
         <div>Loading…</div>
-      ) : items.length === 0 ? (
+      ) : sortedItems.length === 0 ? (
         <div className="empty">
-          <p>{q.trim() ? t(lang, "noParts") : t(lang, "hintAdd")}</p>
+          <p>{q.trim() || inStockOnly ? t(lang, "noParts") : t(lang, "hintAdd")}</p>
         </div>
       ) : (
         <>
@@ -150,7 +161,7 @@ export default function Inventory() {
                 onDelete={() => setDeleteItem(item)}
               />
             ))}
-            <div className="inv-list-foot">{t(lang, "partsCount", items.length)}</div>
+            <div className="inv-list-foot">{t(lang, "partsCount", sortedItems.length)}</div>
           </div>
 
           <div className="card inv-table">
@@ -250,7 +261,7 @@ export default function Inventory() {
           onHistory={() => {
             const id = viewItem.id;
             setViewItem(null);
-            nav(`/inventory/${id}/edit`);
+            nav(`/activity?part=${id}`);
           }}
           onEdit={() => {
             const id = viewItem.id;

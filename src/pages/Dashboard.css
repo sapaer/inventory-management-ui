@@ -1,3 +1,21 @@
+.dash-recent-bar {
+  display: none;
+}
+.dash.is-last .dash-recent-bar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+/* One "View all →" look for every dashboard card, desktop and phone. */
+.dash .dash-viewall {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--forest);
+}
 .dash.is-last .stack-actions {
   display: grid;
   gap: 8px;
@@ -49,8 +67,21 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
-.dash.is-last .stack-metrics > div {
+.dash.is-last .stack-metrics > div,
+.dash.is-last .stack-metrics > a {
   text-align: center;
+}
+.dash.is-last .stack-metrics > a {
+  display: block;
+  margin: -6px;
+  padding: 6px;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.dash.is-last .stack-metrics > a:active {
+  background: #f1f5f3;
 }
 .dash.is-last .stack-metrics strong {
   display: block;
@@ -60,8 +91,7 @@
   line-height: 1;
   text-align: center;
 }
-.dash.is-last .stack-metrics span,
-.dash.is-last .stack-metrics em {
+.dash.is-last .stack-metrics span {
   display: block;
   margin-top: 4px;
   font-size: 11px;
@@ -73,59 +103,292 @@
 .dash.is-last .stack-link .dash-chev { color: #4b5563; }
 
 @media (min-width: 901px) {
-  .dash.is-desk .desk-split {
-    display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
-    gap: 20px;
-    align-items: stretch;
-    margin-bottom: 18px;
+  /* On very wide screens the cards would stretch until each one is mostly
+     blank. Cap the page at a comfortable width and centre it; below that
+     width the normal 22px gutters apply. */
+  .dash.is-desk {
+    padding-left: max(22px, calc((100% - 1200px) / 2));
+    padding-right: max(22px, calc((100% - 1200px) / 2));
   }
-  .dash.is-desk .desk-left {
+  /* Add-a-part plus the three stat cards sit in one even row. */
+  .dash.is-desk .desk-cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    align-items: stretch;
+  }
+  .dash.is-desk {
+    display: flex;
+    flex-direction: column;
+  }
+  .dash.is-desk > * {
+    flex-shrink: 0;
+  }
+  /* Two equal halves with the same gap as the card row above, so the middle
+     gutter runs straight down between card 2 and card 3. Sized by content —
+     a short list gets a short panel, not a tall empty one. */
+  .dash.is-desk .desk-bottom {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    align-items: stretch;
+    margin-top: 14px;
+  }
+  .dash.is-desk .desk-bottom-side {
     display: flex;
     flex-direction: column;
     gap: 14px;
     min-width: 0;
   }
-  .dash.is-desk .desk-right {
-    min-width: 0;
-  }
-  .dash.is-desk .desk-left .qa-card {
+  .dash.is-desk .desk-bottom-side > .dash-recent:last-child {
     flex: 1;
-    min-height: 140px;
-    padding: 22px 20px;
-    border-radius: 14px;
   }
-  .dash.is-desk .desk-left .banner {
-    margin-bottom: 0;
+  .dash.is-desk .dash-head {
+    margin: 0 0 16px;
   }
-  .dash.is-desk .desk-right .stat-row {
-    height: 100%;
-    margin-bottom: 0;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+  .dash.is-desk .dash-hello {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #111827;
+  }
+  .dash.is-desk .dash-sub {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #6b7280;
+  }
+  .dash.is-desk .dash-start-count {
+    font-size: 12px;
+    color: #6b7280;
+  }
+  .dash.is-desk .dash-ic.is-todo {
+    background: #fff;
+    border: 1.5px solid #cbd5d0;
+  }
+  .dash.is-desk .list-row.is-done .dash-row-text {
+    color: #6b7280;
+    text-decoration: line-through;
+    text-decoration-color: #b8c4be;
   }
   .dash.is-desk .stat-card {
-    padding: 18px 16px 16px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
     border-radius: 12px;
   }
-  .dash.is-desk .stat-lbl,
-  .dash.is-desk .stat-note {
+  .dash.is-desk .stat-tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: #eef3f1;
+    color: #145c45;
+  }
+  .dash.is-desk .stat-tile svg {
+    width: 22px;
+    height: 22px;
+  }
+  .dash.is-desk .stat-card.is-ok .stat-tile {
+    background: #e7f6ee;
+    color: #16a34a;
+  }
+  .dash.is-desk .stat-card.is-warn .stat-tile {
+    background: #fff4e5;
+    color: #d97706;
+  }
+  .dash.is-desk .stat-body {
+    flex: 1;
+    min-width: 0;
+  }
+  .dash.is-desk .stat-card.is-link {
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .dash.is-desk .stat-card.is-link:hover {
+    border-color: #b8d4c8;
+    box-shadow: 0 6px 18px rgba(20, 92, 69, 0.08);
+  }
+  .dash.is-desk .stat-card.is-warn {
+    border-color: #f1d6a4;
+  }
+  .dash.is-desk .stat-lbl {
+    margin: 2px 0 0;
+    font-size: 13px;
+    font-weight: 500;
     color: #374151;
+  }
+  .dash.is-desk .stat-card.is-ok .stat-val { color: #16a34a; }
+  .dash.is-desk .stat-card.is-warn .stat-val { color: #d97706; }
+  .dash.is-desk .stat-bar {
+    height: 4px;
+    margin-top: 8px;
+    border-radius: 2px;
+    background: #e7f6ee;
+    overflow: hidden;
+  }
+  .dash.is-desk .stat-bar span {
+    display: block;
+    height: 100%;
+    border-radius: 2px;
+    background: #16a34a;
+  }
+  .dash.is-desk .stat-cta {
+    font-weight: 600;
+    color: var(--forest);
+  }
+  .dash.is-desk .stat-val {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .dash.is-desk .stat-note {
+    margin-top: 1px;
+    font-size: 12px;
+    color: #6b7280;
+  }
+  .dash.is-desk .dash-recent .card-hd .link,
+  .dash.is-desk .dash-low .card-hd .link {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--forest);
+  }
+  .dash.is-desk .dash-low-row {
+    align-items: center;
+    color: inherit;
+    text-decoration: none;
+  }
+  .dash.is-desk .dash-low-row:hover {
+    background: #f7faf8;
+  }
+  .dash.is-desk .dash-low {
+    display: flex;
+    flex-direction: column;
+  }
+  .dash.is-desk .dash-low-empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 28px 24px;
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: center;
+    color: #6b7280;
   }
   .dash.is-desk .dash-recent {
     border-radius: 12px;
   }
   .dash.is-desk .dash-day {
-    display: block;
-    margin: 12px 17px 4px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    color: #4b5563;
+    display: none;
   }
   .dash.is-desk .dash-recent .list-row {
     align-items: center;
+    padding: 12px 18px;
+    border-bottom: 1px solid #f3f6f4;
+  }
+  .dash.is-desk .dash-recent .dash-group:last-child .list-row:last-child,
+  .dash.is-desk .dash-recent .dash-start-rows .list-row:last-child {
     border-bottom: none;
+  }
+  .dash.is-desk .dash-recent:not(.dash-start) .dash-ic {
+    display: none;
+  }
+  .dash.is-desk .dash-recent-ttl,
+  .dash.is-desk .dash-low .list-row {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+  .dash.is-desk .dash-start-bar {
+    height: 4px;
+    margin: 14px 18px 4px;
+    border-radius: 2px;
+    background: #eef3f1;
+    overflow: hidden;
+  }
+  .dash.is-desk .dash-start-bar span {
+    display: block;
+    height: 100%;
+    border-radius: 2px;
+    background: #145c45;
+  }
+  .dash.is-desk .dash-start-done {
+    margin-left: auto;
+    font-size: 12px;
+    color: #9ca3af;
+  }
+  .dash.is-desk .dash-start-rows .link {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--forest);
+  }
+  .dash.is-desk .dash-activity-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 28px 24px;
+    text-align: center;
+    border-radius: 12px;
+  }
+  .dash.is-desk .dash-activity-ic {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-bottom: 4px;
+    border-radius: 50%;
+    background: #eef3f1;
+    color: #145c45;
+  }
+  .dash.is-desk .dash-activity-ic svg {
+    width: 20px;
+    height: 20px;
+  }
+  .dash.is-desk .dash-activity-ttl {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+  }
+  .dash.is-desk .dash-activity-sub {
+    max-width: 260px;
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #6b7280;
+  }
+  /* New shop: the two panels grow to the bottom of the page; the checklist
+     rows share the extra height so the card doesn't end in a blank slab. */
+  .dash.is-desk .desk-bottom.is-fill {
+    flex: 1 1 auto;
+    min-height: 300px;
+  }
+  .dash.is-desk .desk-bottom.is-fill > .dash-start {
+    display: flex;
+    flex-direction: column;
+  }
+  .dash.is-desk .desk-bottom.is-fill .dash-start-rows {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .dash.is-desk .desk-bottom.is-fill .dash-start-rows .list-row {
+    flex: 1;
+    max-height: 88px;
   }
   .dash.is-desk .dash-dot {
     display: none;
@@ -156,6 +419,24 @@
 }
 
 @media (max-width: 900px) {
+  /* The page ends flush against the bottom tab bar by default, so the last
+     Recent Updates row looked cut off / stuck under it. Leave a gap so the
+     end of the list is clearly the end. */
+  .content.dash.is-last {
+    padding-bottom: calc(var(--tabbar-clear) + 20px);
+  }
+  .dash .dash-start-count {
+    display: none;
+  }
+  .dash .dash-ic.is-todo {
+    background: #fff;
+    border: 1.5px solid #cbd5d0;
+  }
+  .dash .list-row.is-done .dash-row-text {
+    color: #6b7280;
+    text-decoration: line-through;
+    text-decoration-color: #b8c4be;
+  }
   .dash.is-last .banner {
     margin-bottom: 12px;
   }
@@ -181,5 +462,150 @@
   }
   .dash.is-last .time {
     color: #4b5563;
+  }
+}
+
+/* Add a Part call-to-action (desktop): the whole card is the button — a big
+   "+" tile with the title and hint beside it, same height as the stat cards. */
+@media (min-width: 901px) {
+  .dash.is-desk .add-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    min-height: 88px;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 12px;
+    background: #145c45;
+    color: #fff;
+    text-align: left;
+    cursor: pointer;
+    transition: box-shadow 0.15s ease, transform 0.15s ease, background 0.15s ease;
+  }
+  .dash.is-desk .add-card:hover {
+    background: #1a6b52;
+    box-shadow: 0 10px 26px rgba(20, 92, 69, 0.22);
+    transform: translateY(-1px);
+  }
+  .dash.is-desk .add-card-ic {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: #fff;
+  }
+  .dash.is-desk .add-card-ic svg {
+    width: 34px;
+    height: 34px;
+    stroke-width: 2.4;
+  }
+  .dash.is-desk .add-card-copy {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .dash.is-desk .add-card-copy strong {
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+  .dash.is-desk .add-card-copy span {
+    margin-top: 3px;
+    font-size: 13px;
+    line-height: 1.35;
+    color: rgba(255, 255, 255, 0.82);
+  }
+}
+
+/* Phone and tablet */
+@media (max-width: 900px) {
+  .dash.is-last .stack-link {
+    background: linear-gradient(135deg, #145c45 0%, #1f7a5c 100%);
+    border-color: #145c45;
+  }
+  .dash.is-last .stack-ic {
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+  }
+  .dash.is-last .stack-link-ttl {
+    color: #fff;
+  }
+  .dash.is-last .stack-link .dash-chev {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  /* Running low as a plain heading + rows, like the activity list below it. */
+  .dash.is-last .dash-start-bar {
+    height: 4px;
+    margin: 4px 2px 10px;
+    border-radius: 2px;
+    background: #e3ebe7;
+    overflow: hidden;
+  }
+  .dash.is-last .dash-start-bar span {
+    display: block;
+    height: 100%;
+    border-radius: 2px;
+    background: #145c45;
+  }
+  .dash.is-last .dash-start-done {
+    margin-left: auto;
+    font-size: 12px;
+    color: #9ca3af;
+  }
+  .dash.is-last .dash-low.card {
+    margin-bottom: 16px;
+    background: transparent;
+    border: none;
+    overflow: visible;
+  }
+  .dash.is-last .dash-low .card-hd {
+    align-items: baseline;
+    padding: 4px 2px 8px;
+    border: none;
+    background: transparent;
+  }
+  .dash.is-last .dash-low .card-ttl {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+  }
+  .dash.is-last .dash-low-row {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+/* Tablet: put the Add tile beside the stats strip instead of stacking two
+   full-width bars, so the top of the page isn't a wide empty band. */
+@media (min-width: 600px) and (max-width: 900px) {
+  .dash.is-last .stack-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+    gap: 12px;
+    align-items: stretch;
+    margin-bottom: 16px;
+  }
+  .dash.is-last .stack-top .stack-actions,
+  .dash.is-last .stack-top .stack-stats {
+    margin-bottom: 0;
+  }
+  .dash.is-last .stack-top .stack-actions {
+    display: flex;
+  }
+  .dash.is-last .stack-top .stack-link {
+    height: 100%;
+  }
+  .dash.is-last .stack-top .stack-stats {
+    display: flex;
+    align-items: center;
+  }
+  .dash.is-last .stack-top .stack-metrics {
+    width: 100%;
   }
 }

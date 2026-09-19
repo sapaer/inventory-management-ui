@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { authApi, formatApiError, inventoryApi } from "../api";
+import { inventoryApi } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
@@ -14,29 +14,17 @@ const NAV = [
   { to: "/inventory", key: "inventory", icon: BoxIcon },
   { to: "/stock-update", key: "updateStock", icon: UpdateIcon },
   { to: "/insights", key: "insights", icon: ChartIcon },
+  { to: "/activity", key: "activity", icon: ActivityIcon },
 ];
 
 export default function Layout() {
-  const { signOut, signIn } = useAuth();
+  const { signOut } = useAuth();
   const { lang } = useLang();
   const loc = useLocation();
   const nav = useNavigate();
   const [query, setQuery] = useState("");
   const [acctOpen, setAcctOpen] = useState(false);
   const [lowCount, setLowCount] = useState(0);
-  const [addingShop, setAddingShop] = useState(false);
-
-  async function addShop() {
-    setAddingShop(true);
-    try {
-      const data = await authApi.createAccount();
-      signIn(data);
-      window.location.href = "/account-setup";
-    } catch (e) {
-      alert(formatApiError(e));
-      setAddingShop(false);
-    }
-  }
 
   async function logout() {
     setAcctOpen(false);
@@ -152,16 +140,6 @@ export default function Layout() {
         >
           <span className="sidebar-add-ic">+</span>
           <span className="nav-txt">{t(lang, "addPart")}</span>
-        </button>
-        <button
-          className="sidebar-add sidebar-add-secondary"
-          aria-label={t(lang, "addShop")}
-          data-tip={t(lang, "addShop")}
-          disabled={addingShop}
-          onClick={addShop}
-        >
-          <span className="sidebar-add-ic">+</span>
-          <span className="nav-txt">{addingShop ? t(lang, "saving") : t(lang, "addShop")}</span>
         </button>
         <div className={`sidebar-acct${acctOpen ? " open" : ""}`} ref={acctRef}>
           {acctOpen ? (
@@ -342,6 +320,13 @@ function ChartIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M18 20V10M12 20V4M6 20v-6" />
+    </svg>
+  );
+}
+function ActivityIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 12h3.2l2.1-6 3.4 12 2.2-6H20" />
     </svg>
   );
 }

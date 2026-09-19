@@ -45,17 +45,10 @@ export default function NotificationBell({ label }) {
       console.warn(formatApiError(e));
     }
     setOpen(false);
-    // Same routing as NotificationModal.jsx's action button: a low-stock
-    // alert for a specific part goes straight to that part, only falling
-    // back to the generic list when there's no part to link to. The old
-    // order checked type first and sent every LOW_STOCK alert to the list
-    // regardless of itemId, then (for any OTHER type that happened to carry
-    // an itemId) navigated to that item's edit page — landing on an
-    // unrelated part's edit screen for notifications that were never about
-    // it.
-    const itemId = n.data?.item_id || n.data?.itemId;
-    if (n.type === "LOW_STOCK" && itemId) nav(`/inventory/${itemId}/edit`);
-    else if (n.type === "LOW_STOCK") nav("/low-stocks");
+    // A notification opens the Notifications tab (where it can be read in
+    // full and acted on from its own popup) rather than jumping straight to a
+    // part's edit form.
+    nav("/account?section=notifications");
   }
 
   function viewAll() {

@@ -12,6 +12,7 @@ import PartForm from "./pages/PartForm";
 import LowStocks from "./pages/LowStocks";
 import StockUpdate from "./pages/StockUpdate";
 import Insights from "./pages/Insights";
+import Activity from "./pages/Activity";
 import Account from "./pages/Account";
 import AccountSetup from "./pages/AccountSetup";
 import Help from "./pages/Help";
@@ -120,6 +121,7 @@ export default function App() {
           <Route path="/low-stocks" element={<LowStocks />} />
           <Route path="/stock-update" element={<StockUpdate />} />
           <Route path="/insights" element={<Insights />} />
+          <Route path="/activity" element={<Activity />} />
           <Route path="/account" element={<Account />} />
           <Route path="/profile" element={<Navigate to="/account" replace />} />
           <Route path="/settings" element={<Navigate to="/account" replace />} />

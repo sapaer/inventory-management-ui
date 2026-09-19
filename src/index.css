@@ -915,22 +915,6 @@ p.login-signup { text-align: center; margin-top: 14px; }
 }
 .sidebar-add-ic { font-size: 15px; line-height: 1; }
 
-/* Secondary CTA right under "Add a part" — same shape/sizing (shares
-   .sidebar-add) but outlined instead of solid, so it doesn't compete with
-   the primary action above it. */
-.sidebar-add.sidebar-add-secondary {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-}
-.sidebar-add.sidebar-add-secondary:hover {
-  background: rgba(255, 255, 255, 0.14);
-}
-.sidebar-add.sidebar-add-secondary:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
 /* My account dropdown in the sidebar */
 .sidebar-acct {
   position: relative;
@@ -1582,6 +1566,21 @@ button.sidebar-acct-item:hover {
   .inv-search { max-width: 100%; }
 }
 
+.inv-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 10px;
+  padding: 5px 10px 5px 12px;
+  border: 1px solid #b8d4c8;
+  border-radius: 999px;
+  background: #e7f6ee;
+  color: var(--forest);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.inv-filter-chip:hover { background: #d6efe2; }
 .inv-toolbar {
   display: flex;
   align-items: flex-start;
@@ -3886,6 +3885,22 @@ button.sidebar-acct-item:hover {
     border-radius: 16px;
     box-shadow: 0 1px 2px rgba(16, 42, 32, 0.04);
   }
+  /* The welcome/complete-profile banner is plain text + one link (no icon or
+     title/names split), so the grid areas above don't apply — its text and
+     link were being auto-placed into the icon/title columns and drifting out
+     of line. A simple text-left / link-right row instead. */
+  .dash .banner.mint {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .dash .banner.mint .banner-copy {
+    display: block;
+    flex: 1;
+    min-width: 0;
+    line-height: 1.4;
+  }
+  .dash .banner.mint .link { margin: 0; }
   .dash .banner-ic { grid-area: ic; }
   .dash .banner-copy,
   .dash .banner-head { display: contents; }
@@ -4048,7 +4063,6 @@ button.sidebar-acct-item:hover {
     font-weight: 800;
     letter-spacing: -0.03em;
   }
-  .dash .stat-val-when { font-size: 15px; }
   .dash .stat-note {
     margin-top: 3px;
     font-size: 10px;
