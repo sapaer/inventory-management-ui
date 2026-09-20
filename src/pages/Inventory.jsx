@@ -6,6 +6,7 @@ import { t, vehicleLabel } from "../i18n";
 import { formatPrice, formatDate, stockOf } from "../utils";
 import StatusBadge from "../components/StatusBadge";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import SearchIcon from "../components/SearchIcon";
 import ViewPartModal from "../components/ViewPartModal";
 
 // DEV ONLY: one-tap sample catalog for trying the page out without adding
@@ -120,7 +121,9 @@ export default function Inventory() {
   return (
     <div className="content">
       <div className="inv-search">
-        <span>⌕</span>
+        <span aria-hidden="true">
+          <SearchIcon size={20} />
+        </span>
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t(lang, "search")} />
       </div>
       <div className="inv-toolbar">
@@ -252,7 +255,6 @@ export default function Inventory() {
         <ViewPartModal
           item={viewItem}
           lang={lang}
-          thumb={<PartThumb item={viewItem} />}
           onClose={() => setViewItem(null)}
           onHistory={() => {
             const id = viewItem.id;

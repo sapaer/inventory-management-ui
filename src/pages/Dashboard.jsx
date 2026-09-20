@@ -3,8 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { inventoryApi, notificationApi } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
-import { t } from "../i18n";
-import { formatDate, stockOf } from "../utils";
+import { BUSINESS_TYPES, t, VEHICLES } from "../i18n";
+import { formatDate, locationLabel, stockOf } from "../utils";
 import "./Dashboard.css";
 
 // Rows a phone shows per section before "View all": enough to fill one screen
@@ -106,9 +106,10 @@ export default function Dashboard() {
   );
 }
 
-function LastHome({ lang, nav, total, inStock, attention, out, low, groups, profileDone, setupPending, previewRows }) {
+function LastHome({ user, lang, nav, total, inStock, attention, out, low, groups, profileDone, setupPending, previewRows }) {
   return (
     <>
+      <DashHero user={user} lang={lang} total={total} attention={attention} />
       <div className="stack-top">
         <div className="stack-actions">
           <button type="button" className="stack-link" onClick={() => nav("/inventory/new")}>
@@ -148,17 +149,12 @@ function LastHome({ lang, nav, total, inStock, attention, out, low, groups, prof
 }
 
 function DeskHome({ lang, nav, user, total, out, low, inStock, attention, pct, groups, profileDone, setupPending }) {
-  const who = user?.shopName || user?.name;
-  const sub = total === 0 ? "dashSubNew" : attention > 0 ? "dashSubLow" : "dashSubOk";
   const isNew = total === 0;
   const start = setupPending ? <GetStarted lang={lang} nav={nav} total={total} profileDone={profileDone} /> : null;
   const recent = groups.length ? <RecentBlock lang={lang} groups={groups} /> : null;
   return (
     <>
-      <header className="dash-head">
-        <p className="dash-hello">{t(lang, "greeting", who)}</p>
-        <p className="dash-sub">{t(lang, sub, attention)}</p>
-      </header>
+      <DashHero user={user} lang={lang} total={total} attention={attention} />
 
       {isNew ? null : (
         <div className="desk-cards">
@@ -210,6 +206,80 @@ function DeskHome({ lang, nav, user, total, out, low, inStock, attention, pct, g
         </div>
       </div>
     </>
+  );
+}
+
+/**
+ * Top of the dashboard: who the shop is (name, owner, type, place, vehicles),
+ * whether stock needs attention, and a link to edit the details. Styled like the
+ * landing page — mint panel with the brand grid, serif shop name.
+ */
+function DashHero({ user, lang, total, attention }) {
+  const shop = user?.shopName;
+  const who = shop || user?.name;
+  const type = BUSINESS_TYPES.find((b) => b.id === user?.businessType)?.label;
+  const place = locationLabel(user);
+  const vehicles = (user?.vehicleCategories || [])
+    .map((id) => VEHICLES.find((v) => v.id === id)?.label)
+    .filter(Boolean);
+  const facts = [user?.name && shop ? t(lang, "shopOwner", user.name) : "", type, place, user?.phone ? `+91 ${user.phone}` : ""].filter(
+    Boolean,
+  );
+  const status =
+    total === 0
+      ? { tone: "new", text: t(lang, "dashSubNew"), to: "/inventory/new" }
+      : attention > 0
+        ? { tone: "warn", text: t(lang, "dashSubLow", attention), to: "/low-stocks" }
+        : { tone: "ok", text: t(lang, "dashSubOk") };
+  const pill = (
+    <>
+      <span className="hero-pill-ic" aria-hidden="true">
+        {status.tone === "warn" ? <WarnIcon size={15} /> : status.tone === "ok" ? <CheckIcon /> : <PlusIcon />}
+      </span>
+      {status.text}
+      {status.to ? <span aria-hidden="true"> →</span> : null}
+    </>
+  );
+  return (
+    <section className="hero" aria-label={t(lang, "shopDetailsTitle")}>
+      <div className="hero-id">
+        <span className="hero-tile" aria-hidden="true">
+          {user?.shopPhotoUrl ? <img src={user.shopPhotoUrl} alt="" /> : <StoreIcon />}
+        </span>
+        <div className="hero-txt">
+          <p className="hero-kicker">{t(lang, "dashWelcome")}</p>
+          <h1 className="hero-name">{who || t(lang, "yourShop")}</h1>
+          {facts.length ? (
+            <p className="hero-facts">
+              {facts.map((f) => (
+                <span key={f}>{f}</span>
+              ))}
+            </p>
+          ) : null}
+          {vehicles.length ? (
+            <div className="hero-chips">
+              {vehicles.map((v) => (
+                <span key={v}>{v}</span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
+      <div className="hero-side">
+        {status.to ? (
+          <Link to={status.to} className={`hero-pill is-${status.tone}`}>
+            {pill}
+          </Link>
+        ) : (
+          <span className={`hero-pill is-${status.tone}`}>{pill}</span>
+        )}
+        {shop ? (
+          <Link to="/account?section=shop" className="hero-edit">
+            {t(lang, "shopEditDetails")}
+          </Link>
+        ) : null}
+      </div>
+    </section>
   );
 }
 
@@ -436,6 +506,16 @@ function Chevron() {
   return (
     <svg className="dash-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
       <path d="m8 10 4 4 4-4" />
+    </svg>
+  );
+}
+
+function StoreIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 9V7l1.5-3h13L20 7v2a2.5 2.5 0 0 1-4.5 1.5A2.5 2.5 0 0 1 12 11a2.5 2.5 0 0 1-3.5-.5A2.5 2.5 0 0 1 4 9z" />
+      <path d="M5 11v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8" />
+      <path d="M10 20v-5h4v5" />
     </svg>
   );
 }

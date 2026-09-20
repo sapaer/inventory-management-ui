@@ -3,8 +3,11 @@ import { useSearchParams } from "react-router-dom";
 import { formatApiError, inventoryApi } from "../api";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
-import { formatDate, stockOf } from "../utils";
-import StatusBadge from "../components/StatusBadge";
+import { formatDate } from "../utils";
+import ActivityRow from "../components/ActivityRow";
+import Dropdown from "../components/Dropdown";
+import { InfoNote, PageHero } from "../components/PageHero";
+import SearchIcon from "../components/SearchIcon";
 import DateRangePicker, { fromKey } from "../components/DateRangePicker";
 import "./Activity.css";
 
@@ -17,6 +20,7 @@ const TYPES = [
   { id: "RECEIVED", key: "actReceived" },
   { id: "ADJUSTMENT", key: "actAdjusted" },
   { id: "RETURNED", key: "actReturned" },
+  { id: "EDIT", key: "actEdited" },
 ];
 
 // [start, end) in local time; either side null = open-ended.
@@ -24,8 +28,6 @@ function rangeBounds(from, to) {
   const end = fromKey(to);
   return [fromKey(from), end ? new Date(end.getFullYear(), end.getMonth(), end.getDate() + 1) : null];
 }
-
-const TYPE_KEY = Object.fromEntries(TYPES.map((x) => [x.id, x.key]));
 
 const NO_STATS = { changes: 0, unitsSold: 0, unitsReceived: 0 };
 
@@ -42,6 +44,7 @@ export default function Activity() {
   const [error, setError] = useState("");
   const [type, setType] = useState("ALL");
   const [dates, setDates] = useState({ from: "", to: "" });
+  const [showFilters, setShowFilters] = useState(false);
   const latest = useRef(0);
 
   useEffect(() => {
@@ -109,62 +112,74 @@ export default function Activity() {
 
   const groups = useMemo(() => groupByDay(events), [events]);
 
+  const typeOptions = TYPES.map((x) => ({ value: x.id, label: t(lang, x.id === "ALL" ? "actAllChanges" : x.key) }));
+  const datesSet = Boolean(dates.from || dates.to);
+  const activeCount = (type !== "ALL" ? 1 : 0) + (datesSet ? 1 : 0);
+  const anyActive = activeCount > 0 || Boolean(part);
+
+  function clearAll() {
+    setType("ALL");
+    setDates({ from: "", to: "" });
+    selectPart("");
+  }
+
   if (loading) return <div className="content act">Loading…</div>;
 
   return (
     <div className="content act">
-      <header className="act-head">
-        <div>
-          <h1 className="act-title">{t(lang, "activity")}</h1>
-          <p className="act-sub">{t(lang, "activitySub")}</p>
-        </div>
-      </header>
+      <PageHero
+        icon={
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 12h4l2.5-7 4 14L16 12h5" />
+          </svg>
+        }
+        kicker={t(lang, "actKicker")}
+        title={t(lang, "activity")}
+      />
+      <InfoNote id="activity">{t(lang, "activitySub")}</InfoNote>
 
-      <div className="act-filters">
-        <PartPicker lang={lang} parts={parts} selected={part} onChange={selectPart} />
-        <div className="act-types" role="group" aria-label={t(lang, "actType")}>
-          {TYPES.map((x) => (
-            <button
-              key={x.id}
-              type="button"
-              className={`chip${type === x.id ? " on" : ""}`}
-              aria-pressed={type === x.id}
-              onClick={() => setType(x.id)}
-            >
-              {t(lang, x.key)}
+      {/* One toolbar instead of stacked blocks. On a phone the type and date
+          controls fold behind a Filters button. */}
+      <div className="act-bar">
+        <PartPicker lang={lang} parts={parts} onChange={selectPart} />
+        <button
+          type="button"
+          className={`act-filter-btn${activeCount ? " is-set" : ""}`}
+          aria-expanded={showFilters}
+          onClick={() => setShowFilters((v) => !v)}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <path d="M4 7h10M18 7h2M4 17h2M10 17h10" />
+            <circle cx="16" cy="7" r="2" />
+            <circle cx="8" cy="17" r="2" />
+          </svg>
+          {t(lang, "actFilters")}
+          {activeCount ? <span className="act-filter-n">{activeCount}</span> : null}
+        </button>
+        <div className={`act-tools${showFilters ? " is-open" : ""}`}>
+          <Dropdown className="dd-sm" value={type} options={typeOptions} onChange={setType} ariaLabel={t(lang, "actType")} />
+          <DateRangePicker value={dates} onChange={setDates} />
+        </div>
+      </div>
+
+      <div className="act-active">
+        <div className="act-tags">
+          {anyActive ? <span className="act-active-lbl">{t(lang, "actShowing")}</span> : null}
+          {part ? <FilterTag label={part.partName} remove={t(lang, "actClearPart")} onRemove={() => selectPart("")} /> : null}
+          {type !== "ALL" ? (
+            <FilterTag label={t(lang, TYPES.find((x) => x.id === type)?.key)} remove={t(lang, "actRemoveFilter")} onRemove={() => setType("ALL")} />
+          ) : null}
+          {datesSet ? (
+            <FilterTag label={rangeText(dates)} remove={t(lang, "actClearDates")} onRemove={() => setDates({ from: "", to: "" })} />
+          ) : null}
+          {anyActive ? (
+            <button type="button" className="act-clear" onClick={clearAll}>
+              {t(lang, "actClearAll")}
             </button>
-          ))}
+          ) : null}
         </div>
+        <p className="act-count">{t(lang, "actRecords", total)}</p>
       </div>
-
-      <div className="act-range">
-        <span className="act-range-lbl">{t(lang, "actDate")}</span>
-        <DateRangePicker value={dates} onChange={setDates} />
-      </div>
-
-      <section className="card act-summary">
-        {part ? (
-          <div className="act-part">
-            <strong className="act-part-name">{part.partName}</strong>
-            <StatusBadge status={stockOf(part)} lang={lang} />
-            <span className="act-part-now">{t(lang, "actNow", part.quantity)}</span>
-          </div>
-        ) : null}
-        <div className="act-stats">
-          <div>
-            <strong>{stats.changes}</strong>
-            <span>{t(lang, "actChanges")}</span>
-          </div>
-          <div>
-            <strong>{stats.unitsSold}</strong>
-            <span>{t(lang, "actUnitsSold")}</span>
-          </div>
-          <div>
-            <strong>{stats.unitsReceived}</strong>
-            <span>{t(lang, "actUnitsIn")}</span>
-          </div>
-        </div>
-      </section>
 
       {error ? <div className="err">{error}</div> : null}
 
@@ -184,7 +199,7 @@ export default function Activity() {
                 <span>{group.items.length}</span>
               </p>
               {group.items.map((e) => (
-                <EventRow key={e.id} e={e} lang={lang} onPart={part ? null : () => selectPart(e.partId)} />
+                <ActivityRow key={e.id} e={e} lang={lang} onPart={part ? null : () => selectPart(e.partId)} />
               ))}
             </div>
           ))}
@@ -199,37 +214,7 @@ export default function Activity() {
   );
 }
 
-function EventRow({ e, lang, onPart }) {
-  const up = e.qtyChange > 0;
-  const flat = e.qtyChange === 0;
-  return (
-    <div className="act-row">
-      <span className={`act-ic is-${e.changeType.toLowerCase()}`} aria-hidden="true">
-        <TypeIcon type={e.changeType} />
-      </span>
-      <div className="act-main">
-        <div className="act-line">
-          <strong>{t(lang, TYPE_KEY[e.changeType])}</strong>
-          {onPart ? (
-            <button type="button" className="act-part-link" onClick={onPart} title={t(lang, "actShowPart")}>
-              {e.partName}
-            </button>
-          ) : null}
-        </div>
-        <div className="act-detail">
-          {e.qtyBefore} → {e.qtyAfter}
-          {e.note ? ` · ${e.note}` : ""}
-        </div>
-      </div>
-      <div className="act-side">
-        {flat ? null : <span className={`act-delta ${up ? "is-up" : "is-down"}`}>{up ? `+${e.qtyChange}` : `−${Math.abs(e.qtyChange)}`}</span>}
-        <span className="act-time">{formatTime(e.createdAt)}</span>
-      </div>
-    </div>
-  );
-}
-
-function PartPicker({ lang, parts, selected, onChange }) {
+function PartPicker({ lang, parts, onChange }) {
   const [text, setText] = useState("");
   const [open, setOpen] = useState(false);
   const box = useRef(null);
@@ -242,24 +227,13 @@ function PartPicker({ lang, parts, selected, onChange }) {
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
-  if (selected) {
-    return (
-      <div className="act-picked">
-        <span className="act-picked-name">{selected.partName}</span>
-        <button type="button" className="act-picked-x" aria-label={t(lang, "actClearPart")} onClick={() => onChange("")}>
-          ×
-        </button>
-      </div>
-    );
-  }
-
   const q = text.trim().toLowerCase();
   const matches = parts.filter((p) => !q || p.partName.toLowerCase().includes(q)).slice(0, 8);
 
   return (
     <div className="act-picker" ref={box}>
       <span className="act-picker-ic" aria-hidden="true">
-        ⌕
+        <SearchIcon size={18} />
       </span>
       <input
         value={text}
@@ -293,6 +267,27 @@ function PartPicker({ lang, parts, selected, onChange }) {
   );
 }
 
+function FilterTag({ label, remove, onRemove }) {
+  return (
+    <span className="act-tag">
+      <span className="act-tag-text">{label}</span>
+      <button type="button" className="act-tag-x" aria-label={remove} onClick={onRemove}>
+        ×
+      </button>
+    </span>
+  );
+}
+
+function rangeText({ from, to }) {
+  const s = fromKey(from);
+  const e = fromKey(to) || s;
+  const now = new Date().getFullYear();
+  const fmt = (d) =>
+    d.toLocaleDateString("en-IN", { day: "numeric", month: "short", ...(d.getFullYear() === now ? {} : { year: "numeric" }) });
+  if (!s) return fmt(e);
+  return e && e.getTime() !== s.getTime() ? `${fmt(s)} – ${fmt(e)}` : fmt(s);
+}
+
 function groupByDay(list) {
   const buckets = new Map();
   for (const e of list) {
@@ -315,46 +310,4 @@ function dayLabel(lang, key, iso) {
   const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
   if (key === dayKey(yesterday.toISOString())) return t(lang, "dayYesterday");
   return formatDate(d.toISOString());
-}
-
-function formatTime(iso) {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
-}
-
-function TypeIcon({ type }) {
-  const p = { width: 16, height: 16, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2.2, strokeLinecap: "round", strokeLinejoin: "round" };
-  if (type === "ADD")
-    return (
-      <svg {...p}>
-        <path d="M12 5v14M5 12h14" />
-      </svg>
-    );
-  if (type === "SOLD")
-    return (
-      <svg {...p}>
-        <path d="M12 5v14M6 13l6 6 6-6" />
-      </svg>
-    );
-  if (type === "RECEIVED")
-    return (
-      <svg {...p}>
-        <path d="M12 19V5M6 11l6-6 6 6" />
-      </svg>
-    );
-  if (type === "RETURNED")
-    return (
-      <svg {...p}>
-        <path d="M9 14 4 9l5-5" />
-        <path d="M4 9h10a6 6 0 0 1 0 12h-3" />
-      </svg>
-    );
-  return (
-    <svg {...p}>
-      <path d="M4 7h10M18 7h2M4 17h2M10 17h10" />
-      <circle cx="16" cy="7" r="2" />
-      <circle cx="8" cy="17" r="2" />
-    </svg>
-  );
 }

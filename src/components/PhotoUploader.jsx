@@ -1,8 +1,10 @@
 import { useRef } from "react";
 
 /**
- * Empty by default. Thumbnails appear only after the user uploads.
- * maxCount defaults to 3.
+ * A fixed row of photo slots (maxCount, default 3) so the box is the same size
+ * whether it's empty or full: uploaded photos fill slots from the left, the
+ * next free slot is the "add" button, the rest are quiet placeholders. The
+ * first photo is tagged as the main one.
  */
 export default function PhotoUploader({
   images = [],
@@ -11,10 +13,10 @@ export default function PhotoUploader({
   uploading = false,
   disabled = false,
   maxCount = 3,
-  chooseLabel = "Choose Files",
-  emptyTitle = "Add photos",
-  emptyHint = "JPEG or PNG · up to 3 images",
+  addLabel = "Add photo",
+  mainLabel = "Main",
   uploadingLabel = "Uploading…",
+  hint = "",
 }) {
   const fileRef = useRef(null);
   const canAdd = !disabled && images.length < maxCount && !uploading && typeof onAddFiles === "function";
@@ -33,52 +35,43 @@ export default function PhotoUploader({
         }}
       />
 
-      <button
-        type="button"
-        className="photo-drop"
-        disabled={!canAdd}
-        onClick={() => canAdd && fileRef.current?.click()}
-      >
-        <span className="photo-drop-ic" aria-hidden="true">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="M12 16V8M8.5 11.5 12 8l3.5 3.5" />
-            <path d="M4 16.5V18a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1.5" />
-          </svg>
-        </span>
-        <span className="photo-drop-title">{uploading ? uploadingLabel : emptyTitle}</span>
-        <span className="photo-drop-hint">{emptyHint}</span>
-        {!disabled ? <span className="photo-drop-btn">{chooseLabel}</span> : null}
-      </button>
-
-      {images.length > 0 ? (
-        <div className="photo-thumbs">
-          {images.map((url) => (
-            <div className="photo-thumb" key={url}>
-              <img src={url} alt="" />
-              {!disabled && onRemove ? (
-                <button
-                  type="button"
-                  className="photo-thumb-x"
-                  aria-label="Remove photo"
-                  onClick={() => onRemove(url)}
-                >
-                  ×
-                </button>
-              ) : null}
-            </div>
-          ))}
-          {canAdd ? (
-            <button
-              type="button"
-              className="photo-thumb-add"
-              aria-label="Add another photo"
-              onClick={() => fileRef.current?.click()}
-            >
-              +
-            </button>
-          ) : null}
-        </div>
-      ) : null}
+      <div className="photo-slots">
+        {Array.from({ length: maxCount }, (_, i) => {
+          const url = images[i];
+          if (url) {
+            return (
+              <div className="photo-slot has-img" key={url}>
+                <img src={url} alt="" />
+                {i === 0 ? <span className="photo-slot-tag">{mainLabel}</span> : null}
+                {!disabled && onRemove ? (
+                  <button type="button" className="photo-thumb-x" aria-label="Remove photo" onClick={() => onRemove(url)}>
+                    ×
+                  </button>
+                ) : null}
+              </div>
+            );
+          }
+          if (i === images.length && (canAdd || uploading)) {
+            return (
+              <button
+                type="button"
+                key={`add-${i}`}
+                className="photo-slot is-add"
+                disabled={!canAdd}
+                onClick={() => canAdd && fileRef.current?.click()}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M4 8a2 2 0 0 1 2-2h1.5l1.2-1.6A1 1 0 0 1 9.5 4h5a1 1 0 0 1 .8.4L16.5 6H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8z" />
+                  <circle cx="12" cy="12.5" r="3.2" />
+                </svg>
+                <span>{uploading ? uploadingLabel : addLabel}</span>
+              </button>
+            );
+          }
+          return <div className="photo-slot is-empty" key={`empty-${i}`} aria-hidden="true" />;
+        })}
+      </div>
+      {hint ? <p className="photo-hint">{hint}</p> : null}
     </div>
   );
 }

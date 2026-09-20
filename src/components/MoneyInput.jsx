@@ -15,12 +15,12 @@ export default function MoneyInput({ value, onChange, placeholder = "0", disable
   const display = formatInrDigits(value);
 
   return (
-    <div className="money-input">
+    <div className={`money-input${disabled ? " is-disabled" : ""}`}>
       <span className="money-pfx" aria-hidden="true">
         ₹
       </span>
       <input
-        className="f-inp money-inp"
+        className="money-inp"
         type="text"
         inputMode="numeric"
         autoComplete="off"
