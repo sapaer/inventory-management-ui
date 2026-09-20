@@ -33,7 +33,11 @@ export const CHANGE_TYPES = [
 
 /** Single English source of truth — page language is applied automatically. */
 export const messages = {
-  brand: "PartNear",
+  brand: "Spaer",
+  comingSoonPill: "Coming soon",
+  comingSoonTitle: "Something big is coming to your counter",
+  comingSoonBody:
+    "We are putting the finishing touches on Spaer, free inventory for spare parts shops. We will be open very soon.",
   tagline: "Spare Parts Network",
   heroTitle: "Apna stock, apne control mein",
   heroSub: "Free inventory for spare parts shops",
@@ -117,7 +121,7 @@ export const messages = {
   lpPrevTopParts: "Top parts",
   lpAboutTitle: "Built for spare parts shops",
   lpAboutBody:
-    "PartNear is a free inventory tool for India’s spare parts shops and garages. We help you know what you have, what is running low, and what to reorder, without spreadsheets or guesswork",
+    "Spaer is a free inventory tool for India’s spare parts shops and garages. We help you know what you have, what is running low, and what to reorder, without spreadsheets or guesswork",
   lpAboutCounter: "Built for the spare parts counter",
   lpWhatWeDo: "What we do",
   lpWhatWeDoBody: "Free inventory so shops know what they have, what’s low, and what to reorder",
@@ -132,13 +136,13 @@ export const messages = {
   lpValueKicker: "What you get",
   lpValueTitle: "Everything your counter needs free",
   lpValueBody:
-    "PartNear replaces the register and the guesswork. Here is exactly what you can do from day one",
+    "Spaer replaces the register and the guesswork. Here is exactly what you can do from day one",
   lpValue1Title: "A live count of every part",
   lpValue1Body:
     "Two-wheelers, cars, three-wheelers, commercial and EV parts in one catalog, with the exact quantity sitting on your shelf right now",
   lpValue2Title: "WhatsApp alerts before you run out",
   lpValue2Body:
-    "Set a minimum for each part. When stock drops to it, PartNear messages you on WhatsApp so you reorder in time instead of losing the sale",
+    "Set a minimum for each part. When stock drops to it, Spaer messages you on WhatsApp so you reorder in time instead of losing the sale",
   lpValue3Title: "One-tap quantity updates",
   lpValue3Body:
     "Sold a part or received a delivery? Press plus or minus on the catalog. No forms, no spreadsheet, no waiting till closing time",
@@ -185,7 +189,7 @@ export const messages = {
   lpBlog2Meta: "Blog · Alerts",
   lpHowKicker: "How to use",
   lpHowTitle: "From signup to stock alerts in five steps",
-  lpHowBody: "PartNear is built for the counter, open it on your phone or laptop and follow these steps",
+  lpHowBody: "Spaer is built for the counter, open it on your phone or laptop and follow these steps",
   lpHow1Title: "Sign up with WhatsApp OTP",
   lpHow1Body: "Enter your mobile number, verify the OTP sent on WhatsApp, no password to remember",
   lpHow2Title: "Set up your shop",
@@ -195,7 +199,7 @@ export const messages = {
   lpHow4Title: "Update stock from the counter",
   lpHow4Body: "Open My Inventory, search a part, and change quantity when you sell or receive stock",
   lpHow5Title: "Watch low-stock alerts",
-  lpHow5Body: "When quantity hits your minimum, PartNear flags it on the dashboard and can remind you on WhatsApp",
+  lpHow5Body: "When quantity hits your minimum, Spaer flags it on the dashboard and can remind you on WhatsApp",
   lpHowGotIt: "Got it",
   userGuide: "User guide",
   tourLabel: "User guide",
@@ -597,13 +601,13 @@ export const messages = {
   helpTitle: "Help and Support",
   helpQuick: "Quick links",
   helpQuickFaqBody: "Find answers to the most common questions",
-  helpQuickContactBody: "Reach the PartNear support team",
-  helpQuickTermsBody: "Read how PartNear may be used",
+  helpQuickContactBody: "Reach the Spaer support team",
+  helpQuickTermsBody: "Read how Spaer may be used",
   helpStillStuck: "Need further assistance?",
   helpAssistBody: "Our support team is available to help you",
   faqsTitle: "Frequently asked questions",
-  faq1Q: "How do I get started with PartNear?",
-  faq1A: "To create an account, all you need to do is enter your phone number, confirm it, and that's it. Your PartNear account is ready to use.",
+  faq1Q: "How do I get started with Spaer?",
+  faq1A: "To create an account, all you need to do is enter your phone number, confirm it, and that's it. Your Spaer account is ready to use.",
   faq2Q: "How can I identify items that are running low on stock?",
   faq2A: "A part shows as Low Stock when the number you have reaches or drops below the alert level you set for it.",
   faq3Q: "Can two users update the same inventory at the same time?",
@@ -642,7 +646,7 @@ export const messages = {
   termsUpdated: "Last updated: 11 September 2026",
   termsS1Title: "The service",
   termsS1Body:
-    "PartNear is a free inventory tool for spare parts shops and garages. You use it to record stock, update quantities, and receive low-stock reminders. Features may change as we build the product.",
+    "Spaer is a free inventory tool for spare parts shops and garages. You use it to record stock, update quantities, and receive low-stock reminders. Features may change as we build the product.",
   termsS2Title: "Your account",
   termsS2Body:
     "You must give a valid Indian mobile number and keep your shop details accurate. You are responsible for who uses your account and for the stock data you enter.",
@@ -651,10 +655,10 @@ export const messages = {
     "We store your profile, shop location, catalog, and quantity history so the product can work. We do not sell your catalog to other shops. OTP is sent on WhatsApp through our messaging provider.",
   termsS4Title: "Acceptable use",
   termsS4Body:
-    "Use PartNear for your own shop operations. Do not try to break the service, scrape other users’ data, or upload illegal content.",
+    "Use Spaer for your own shop operations. Do not try to break the service, scrape other users’ data, or upload illegal content.",
   termsS5Title: "Availability",
   termsS5Body:
-    "We aim to keep PartNear running, but we do not guarantee uptime. Hosted services and WhatsApp delivery can fail. Keep your own backup of critical stock figures if you need them offline.",
+    "We aim to keep Spaer running, but we do not guarantee uptime. Hosted services and WhatsApp delivery can fail. Keep your own backup of critical stock figures if you need them offline.",
   termsS6Title: "Changes",
   termsS6Body:
     "We may update these terms. The date at the top will change when we do. Continued use after an update means you accept the new draft until a signed version replaces it.",

@@ -1,4 +1,4 @@
-# PartNear frontend
+# Spaer frontend
 
 React inventory app for spare-parts shops. Matches the seller UI we designed: forest-green sidebar, sage pages, WhatsApp OTP on the same login screen, then dashboard.
 

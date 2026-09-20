@@ -10,7 +10,7 @@ import InventoryPreview from "../components/InventoryPreview";
 import { t } from "../i18n";
 import "./Landing.css";
 
-/** Closing PartNear hero is parked for now — flip to true to bring it back. */
+/** Closing Spaer hero is parked for now — flip to true to bring it back. */
 const SHOW_CLOSING_HERO = false;
 
 export default function Landing() {

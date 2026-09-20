@@ -19,6 +19,9 @@ import Help from "./pages/Help";
 import Faqs from "./pages/Faqs";
 import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
+import ComingSoon from "./pages/ComingSoon";
+import TeamEntry from "./pages/TeamEntry";
+import { gateActive } from "./launchGate";
 import { needsShopSetup } from "./utils";
 
 /** Any signed-in user may use the app. Shop setup is a first-run nudge, not a wall. */
@@ -77,6 +80,12 @@ function Home() {
 }
 
 export default function App() {
+  const { pathname } = useLocation();
+  // Pre-launch: production shows only Coming Soon (see launchGate.js). /team is
+  // the team's way in; it has to be checked before the gate.
+  if (pathname === "/team") return <TeamEntry />;
+  if (gateActive()) return <ComingSoon />;
+
   return (
     <>
       <ScrollToTop />

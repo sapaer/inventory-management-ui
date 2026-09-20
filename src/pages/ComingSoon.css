@@ -1,0 +1,104 @@
+.cs {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  background: #e8f1ed;
+  color: #10231c;
+  font-family: Fraunces, Georgia, serif;
+}
+.cs-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(700px 420px at 85% 20%, rgba(43, 188, 138, 0.18), transparent 65%),
+    linear-gradient(rgba(20, 92, 69, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 92, 69, 0.07) 1px, transparent 1px);
+  background-size: auto, 48px 48px, 48px 48px;
+}
+.cs-top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px clamp(20px, 4.5vw, 64px);
+}
+.cs-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #145c45;
+}
+.cs .cs-brand .brand-name {
+  font: inherit;
+  color: inherit;
+}
+.cs-main {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px 40px;
+  text-align: center;
+}
+.cs-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(20, 92, 69, 0.25);
+  background: rgba(255, 255, 255, 0.6);
+  color: #145c45;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.cs-title {
+  max-width: 16ch;
+  margin: 22px 0 14px;
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  color: #145c45;
+}
+.cs-body {
+  max-width: 46ch;
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #4d635a;
+  text-align: center;
+  hyphens: none;
+  -webkit-hyphens: none;
+}
+.cs-feats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.cs-feats li {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(20, 92, 69, 0.14);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #145c45;
+}
+.cs-foot {
+  position: relative;
+  padding: 18px 20px 22px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #6b7f76;
+}

@@ -31,7 +31,7 @@ export default function Contact() {
     setError("");
     setSending(true);
     const text = encodeURIComponent(
-      `Hi PartNear,\n\nName: ${trimmedName}\nMobile: +91 ${trimmedPhone.slice(-10)}\n\n${trimmedQuery}`,
+      `Hi Spaer,\n\nName: ${trimmedName}\nMobile: +91 ${trimmedPhone.slice(-10)}\n\n${trimmedQuery}`,
     );
     window.open(`${wa}?text=${text}`, "_blank", "noopener,noreferrer");
     setTimeout(() => setSending(false), 800);
