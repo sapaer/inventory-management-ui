@@ -108,12 +108,20 @@ export default function StockUpdate() {
       return;
     }
 
-    const jobs = [
-      ...soldRows.map((r) => ({ id: r.item.id, change: -Math.min(r.qty, r.item.quantity || r.qty), changeType: "SOLD" })),
-      ...restockRows.map((r) => ({ id: r.item.id, change: r.qty, changeType: "RECEIVED" })),
-    ];
+    // A part can be in both lists (sold some, restocked some). Changes to the
+    // same part run one after another — sold first, then restocked — so two
+    // simultaneous writes can't overwrite each other; different parts still
+    // go in parallel.
+    const byPart = new Map();
+    const queue = (id, job) => byPart.set(id, [...(byPart.get(id) || []), job]);
+    soldRows.forEach((r) =>
+      queue(r.item.id, { id: r.item.id, change: -Math.min(r.qty, r.item.quantity || r.qty), changeType: "SOLD" }),
+    );
+    restockRows.forEach((r) => queue(r.item.id, { id: r.item.id, change: r.qty, changeType: "RECEIVED" }));
     const outcomes = await Promise.allSettled(
-      jobs.map((j) => inventoryApi.quantity(j.id, { change: j.change, changeType: j.changeType })),
+      [...byPart.values()].map(async (list) => {
+        for (const j of list) await inventoryApi.quantity(j.id, { change: j.change, changeType: j.changeType });
+      }),
     );
     setBusy(false);
     const failed = outcomes.find((o) => o.status === "rejected");
@@ -277,6 +285,16 @@ function StockRowsPanel({ title, rows, lang, onQty, onRemove, cap }) {
 }
 
 function ReviewModal({ lang, soldRows, restockRows, busy, error, onBack, onConfirm }) {
+  // Same part sold AND restocked: one combined line (3 − 3 + 3 = 3), not two
+  // separate before/after calculations that each start from today's stock.
+  const restockById = new Map(restockRows.map((r) => [r.item.id, r]));
+  const soldIds = new Set(soldRows.map((r) => r.item.id));
+  const soldOnly = soldRows.filter((r) => !restockById.has(r.item.id));
+  const restockOnly = restockRows.filter((r) => !soldIds.has(r.item.id));
+  const both = soldRows
+    .filter((r) => restockById.has(r.item.id))
+    .map((r) => ({ item: r.item, sold: Number(r.qty) || 0, restocked: Number(restockById.get(r.item.id).qty) || 0 }));
+
   return (
     <div className="overlay" onClick={busy ? undefined : onBack}>
       <div
@@ -291,12 +309,11 @@ function ReviewModal({ lang, soldRows, restockRows, busy, error, onBack, onConfi
         </h3>
         <p className="stock-review-sub">{t(lang, "reviewChangesSub")}</p>
 
-        {soldRows.length ? (
-          <ReviewGroup lang={lang} label={t(lang, "soldLbl")} rows={soldRows} sign={-1} />
+        {soldOnly.length ? <ReviewGroup lang={lang} label={t(lang, "soldLbl")} rows={soldOnly} sign={-1} /> : null}
+        {restockOnly.length ? (
+          <ReviewGroup lang={lang} label={t(lang, "restockedLbl")} rows={restockOnly} sign={1} />
         ) : null}
-        {restockRows.length ? (
-          <ReviewGroup lang={lang} label={t(lang, "restockedLbl")} rows={restockRows} sign={1} />
-        ) : null}
+        {both.length ? <BothGroup label={t(lang, "soldAndRestockedLbl")} rows={both} /> : null}
 
         {error ? <div className="err">{error}</div> : null}
 
@@ -326,6 +343,33 @@ function ReviewGroup({ label, rows, sign }) {
             <span className="stock-review-delta">
               <span className="qty-old">{current}</span>
               <span className="stock-review-arrow">→</span>
+              <span className="qty-new">{next}</span>
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function BothGroup({ label, rows }) {
+  return (
+    <div className="stock-review-group">
+      <div className="stock-review-group-hd">{label}</div>
+      {rows.map(({ item, sold, restocked }) => {
+        const current = Number(item.quantity) || 0;
+        const sellable = Math.min(sold, current);
+        const next = current - sellable + restocked;
+        return (
+          <div className="stock-review-row" key={item.id}>
+            <span className="pname">{item.partName}</span>
+            <span className="stock-review-delta stock-review-calc">
+              <span className="qty-start">{current}</span>
+              <span className="stock-review-op">−</span>
+              <span>{sellable}</span>
+              <span className="stock-review-op">+</span>
+              <span>{restocked}</span>
+              <span className="stock-review-op">=</span>
               <span className="qty-new">{next}</span>
             </span>
           </div>

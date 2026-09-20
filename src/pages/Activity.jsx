@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { inventoryApi } from "../api";
+import { formatApiError, inventoryApi } from "../api";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
 import { formatDate, stockOf } from "../utils";
-import { ACTIVITY_IS_SAMPLE, SAMPLE_PARTS, buildSampleActivity } from "../data/activityDummy";
 import StatusBadge from "../components/StatusBadge";
 import DateRangePicker, { fromKey } from "../components/DateRangePicker";
 import "./Activity.css";
@@ -28,80 +27,87 @@ function rangeBounds(from, to) {
 
 const TYPE_KEY = Object.fromEntries(TYPES.map((x) => [x.id, x.key]));
 
-// Swap this for the real activity endpoint once the backend records history.
-// The page only needs `{ parts, events }` in the shapes described in
-// data/activityDummy.js.
-async function loadActivity() {
-  const rows = await inventoryApi.list().catch(() => []);
-  const real = Array.isArray(rows) ? rows : [];
-  const parts = real.length ? real : SAMPLE_PARTS;
-  return { parts, events: buildSampleActivity(parts) };
-}
+const NO_STATS = { changes: 0, unitsSold: 0, unitsReceived: 0 };
 
 export default function Activity() {
   const { lang } = useLang();
   const [params, setParams] = useSearchParams();
   const [parts, setParts] = useState([]);
   const [events, setEvents] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [stats, setStats] = useState(NO_STATS);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState("");
   const [type, setType] = useState("ALL");
-  const [shown, setShown] = useState(PAGE);
   const [dates, setDates] = useState({ from: "", to: "" });
+  const latest = useRef(0);
 
   useEffect(() => {
-    loadActivity()
-      .then(({ parts: p, events: e }) => {
-        setParts(p);
-        setEvents(e);
-      })
-      .finally(() => setLoading(false));
+    inventoryApi
+      .list()
+      .then((rows) => setParts(Array.isArray(rows) ? rows : []))
+      .catch(() => setParts([]));
   }, []);
 
   const partId = params.get("part") || "";
   const part = parts.find((p) => p.id === partId) || null;
 
+  const query = useMemo(() => {
+    const [start, end] = rangeBounds(dates.from, dates.to);
+    return {
+      partId: part?.id,
+      type: type === "ALL" ? undefined : type,
+      from: start ? start.toISOString() : undefined,
+      to: end ? end.toISOString() : undefined,
+    };
+  }, [part?.id, type, dates]);
+
+  // Any filter change starts over at page 1. Older responses that land after a
+  // newer request was sent are dropped so the list never shows stale filters.
+  useEffect(() => {
+    if (partId && !parts.length) return;
+    const id = ++latest.current;
+    setError("");
+    inventoryApi
+      .activity({ ...query, page: 1, limit: PAGE })
+      .then((res) => {
+        if (id !== latest.current) return;
+        setEvents(res.content || []);
+        setTotal(res.total || 0);
+        setStats(res.stats || NO_STATS);
+        setPage(1);
+      })
+      .catch((e) => {
+        if (id === latest.current) setError(formatApiError(e));
+      })
+      .finally(() => {
+        if (id === latest.current) setLoading(false);
+      });
+  }, [query, partId, parts.length]);
+
+  async function showMore() {
+    const id = ++latest.current;
+    setLoadingMore(true);
+    try {
+      const res = await inventoryApi.activity({ ...query, page: page + 1, limit: PAGE });
+      if (id !== latest.current) return;
+      setEvents((list) => [...list, ...(res.content || [])]);
+      setTotal(res.total || 0);
+      setPage(page + 1);
+    } catch (e) {
+      if (id === latest.current) setError(formatApiError(e));
+    } finally {
+      if (id === latest.current) setLoadingMore(false);
+    }
+  }
+
   function selectPart(id) {
-    setShown(PAGE);
     setParams(id ? { part: id } : {}, { replace: true });
   }
 
-  function selectType(id) {
-    setShown(PAGE);
-    setType(id);
-  }
-
-  function selectDates(next) {
-    setShown(PAGE);
-    setDates(next);
-  }
-
-  // Totals describe the part (or the whole shop) regardless of the type chip,
-  // so switching chips doesn't zero out the numbers above the list.
-  const scoped = useMemo(() => {
-    const [start, end] = rangeBounds(dates.from, dates.to);
-    return events.filter((e) => {
-      if (part && e.partId !== part.id) return false;
-      const at = new Date(e.createdAt);
-      if (start && at < start) return false;
-      if (end && at >= end) return false;
-      return true;
-    });
-  }, [events, part, dates]);
-  const stats = useMemo(() => {
-    let sold = 0;
-    let received = 0;
-    for (const e of scoped) {
-      if (e.changeType === "SOLD") sold += Math.abs(e.qtyChange);
-      if (e.changeType === "RECEIVED") received += e.qtyChange;
-    }
-    return { changes: scoped.length, sold, received };
-  }, [scoped]);
-
-  const filtered = useMemo(
-    () => (type === "ALL" ? scoped : scoped.filter((e) => e.changeType === type)),
-    [scoped, type],
-  );
-  const groups = useMemo(() => groupByDay(filtered.slice(0, shown)), [filtered, shown]);
+  const groups = useMemo(() => groupByDay(events), [events]);
 
   if (loading) return <div className="content act">Loading…</div>;
 
@@ -112,7 +118,6 @@ export default function Activity() {
           <h1 className="act-title">{t(lang, "activity")}</h1>
           <p className="act-sub">{t(lang, "activitySub")}</p>
         </div>
-        {ACTIVITY_IS_SAMPLE ? <span className="act-sample">{t(lang, "activitySample")}</span> : null}
       </header>
 
       <div className="act-filters">
@@ -124,7 +129,7 @@ export default function Activity() {
               type="button"
               className={`chip${type === x.id ? " on" : ""}`}
               aria-pressed={type === x.id}
-              onClick={() => selectType(x.id)}
+              onClick={() => setType(x.id)}
             >
               {t(lang, x.key)}
             </button>
@@ -134,7 +139,7 @@ export default function Activity() {
 
       <div className="act-range">
         <span className="act-range-lbl">{t(lang, "actDate")}</span>
-        <DateRangePicker value={dates} onChange={selectDates} />
+        <DateRangePicker value={dates} onChange={setDates} />
       </div>
 
       <section className="card act-summary">
@@ -151,17 +156,19 @@ export default function Activity() {
             <span>{t(lang, "actChanges")}</span>
           </div>
           <div>
-            <strong>{stats.sold}</strong>
+            <strong>{stats.unitsSold}</strong>
             <span>{t(lang, "actUnitsSold")}</span>
           </div>
           <div>
-            <strong>{stats.received}</strong>
+            <strong>{stats.unitsReceived}</strong>
             <span>{t(lang, "actUnitsIn")}</span>
           </div>
         </div>
       </section>
 
-      {filtered.length === 0 ? (
+      {error ? <div className="err">{error}</div> : null}
+
+      {total === 0 ? (
         <div className="card act-empty">
           <p className="act-empty-ttl">{t(lang, "actEmptyTitle")}</p>
           <p className="act-empty-sub">
@@ -181,9 +188,9 @@ export default function Activity() {
               ))}
             </div>
           ))}
-          {filtered.length > shown ? (
-            <button type="button" className="act-more" onClick={() => setShown((n) => n + PAGE)}>
-              {t(lang, "actMore", filtered.length - shown)}
+          {total > events.length ? (
+            <button type="button" className="act-more" disabled={loadingMore} onClick={showMore}>
+              {loadingMore ? t(lang, "loading") : t(lang, "actMore", total - events.length)}
             </button>
           ) : null}
         </section>

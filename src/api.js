@@ -186,8 +186,18 @@ export const inventoryApi = {
   remove: (id) => api(`/api/v1/inventory/${id}`, { method: "DELETE" }),
   quantity: (id, body) => api(`/api/v1/inventory/${id}/quantity`, { method: "PATCH", body }),
   lowStock: () => api("/api/v1/inventory/low-stock"),
-  history: (id, page = 1, limit = 20) =>
-    api(`/api/v1/inventory/history/${id}?page=${page}&limit=${limit}`),
+  // Stock activity feed: { content, page, limit, total, stats }. Filters are
+  // all optional; from/to are ISO instants covering [from, to).
+  activity: ({ partId, type, from, to, page = 1, limit = 20 } = {}) => {
+    const q = new URLSearchParams({ page, limit });
+    if (partId) q.set("partId", partId);
+    if (type) q.set("type", type);
+    if (from) q.set("from", from);
+    if (to) q.set("to", to);
+    return api(`/api/v1/inventory/activity?${q}`);
+  },
+  // One part's changes (the Edit Part page's history panel).
+  history: (id, page = 1, limit = 20) => inventoryApi.activity({ partId: id, page, limit }),
 };
 
 export const notificationApi = {

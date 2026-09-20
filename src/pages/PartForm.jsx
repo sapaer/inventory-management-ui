@@ -195,9 +195,6 @@ export default function PartForm() {
     <div className="content part-form-page">
       <div className="part-form">
         <header className="part-form-top">
-          <button type="button" className="part-form-back" onClick={() => nav("/inventory")} aria-label={t(lang, "inventory")}>
-            ←
-          </button>
           <div>
             <h1 className="part-form-title">{editing ? t(lang, "edit") : t(lang, "addPart")}</h1>
             <p className="part-form-sub part-form-sub-desktop">{t(lang, "addPartSub")}</p>

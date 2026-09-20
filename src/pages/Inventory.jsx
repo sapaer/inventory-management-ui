@@ -173,7 +173,6 @@ export default function Inventory() {
                     <th>{t(lang, "vehicle")}</th>
                     <th>{t(lang, "quantity")}</th>
                     <th>{t(lang, "price")}</th>
-                    <th>{t(lang, "marginLbl")}</th>
                     <th>{t(lang, "status")}</th>
                     <th>{t(lang, "updated")}</th>
                     <th className="tbl-actions-hd">{t(lang, "actions")}</th>
@@ -182,7 +181,6 @@ export default function Inventory() {
                 <tbody>
                   {sortedItems.map((item) => {
                     const st = stockOf(item);
-                    const margin = Number(item.costPrice) > 0 ? (Number(item.sellingPrice) || 0) - Number(item.costPrice) : null;
                     return (
                       <tr key={item.id}>
                         <td>
@@ -205,10 +203,8 @@ export default function Inventory() {
                           >
                             {item.quantity}
                           </span>
-                          <span className="qty-min"> · {t(lang, "qtyMinLbl", item.minQuantity)}</span>
                         </td>
-                        <td style={{ fontWeight: 600 }}>{formatPrice(item.sellingPrice)}</td>
-                        <td className="tbl-margin">{margin != null ? formatPrice(margin) : "—"}</td>
+                        <td style={{ fontWeight: 600 }}>{item.sellingPrice ? formatPrice(item.sellingPrice) : ""}</td>
                         <td>
                           <StatusBadge status={st} lang={lang} />
                         </td>
@@ -374,7 +370,7 @@ function PartCard({ item, lang, deletingId, onView, onEdit, onDelete }) {
         <div className="inv-list-main">
           <div className="inv-list-name-row">
             <span className="inv-list-name">{item.partName}</span>
-            <span className="inv-list-price">{formatPrice(item.sellingPrice)}</span>
+            {item.sellingPrice ? <span className="inv-list-price">{formatPrice(item.sellingPrice)}</span> : null}
           </div>
           <div className="inv-list-meta">
             {vehicleLabel(item.vehicleCategory)} · <span className={`inv-list-status${qtyCls}`}>{statusText(lang, st)}</span> ·{" "}
