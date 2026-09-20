@@ -1,15 +1,20 @@
 /**
- * Pre-launch "Coming soon" gate. Build the app with VITE_COMING_SOON=true
- * (Vercel → Environment Variables → Production) and every route shows the
- * Coming Soon page. Team members open /team once (add ?key=… when
- * VITE_TEAM_KEY is set) to flag their browser and use the app normally.
+ * Pre-launch "Coming soon" gate. Production builds show the Coming Soon page
+ * on every route by default; local dev (npm run dev) is unaffected. Set
+ * VITE_COMING_SOON explicitly to override either way — "false" in Vercel opens
+ * the site at launch, "true" locally previews the gate. Team members open
+ * /team once (add ?key=… when VITE_TEAM_KEY is set) to flag their browser and
+ * use the app normally.
  *
  * This only hides the UI — the API itself is locked by the backend's
  * LAUNCH_ALLOWLIST, so someone who bypasses the page still can't sign in.
  */
 const KEY = "pn_team";
 
-export const COMING_SOON = import.meta.env.VITE_COMING_SOON === "true";
+const FLAG = import.meta.env.VITE_COMING_SOON;
+// Unset → on for production builds only. Defaulting on (instead of requiring
+// the variable) means a missing Vercel env var can't leave the site open.
+export const COMING_SOON = FLAG ? FLAG === "true" : import.meta.env.PROD;
 
 function hasTeamAccess() {
   try {
