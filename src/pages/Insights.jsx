@@ -1,36 +1,87 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { inventoryApi } from "../api";
 import { useLang } from "../context/LangContext";
-import { t, VEHICLES, vehicleLabel } from "../i18n";
+import { t, VEHICLES } from "../i18n";
 import { formatPrice, stockOf } from "../utils";
+import { InfoNote, PageHero } from "../components/PageHero";
 import "./Insights.css";
 
 const RANGE_DAYS = [7, 30, 90];
+const MAX_PAGES = 10; // 100 events a page
 
-// Fake catalog so a new/empty shop can see what this page looks like with
-// real numbers on it — never sent anywhere, purely a client-side preview.
-const daysAgo = (n) => new Date(Date.now() - n * 86400000).toISOString();
+const DAY = 86400000;
+const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+// Example shop so an empty account can see the page with numbers on it.
+// Client-side only, never sent anywhere.
+const daysAgo = (n) => new Date(Date.now() - n * DAY).toISOString();
 const DUMMY_ITEMS = [
-  { id: "d1", partName: "Brake Pad Set — Front", quantity: 2, minQuantity: 6, costPrice: 480, sellingPrice: 650, vehicleCategory: "FOUR_WHEELER", updatedAt: daysAgo(2) },
-  { id: "d2", partName: "Engine Oil Filter", quantity: 0, minQuantity: 10, costPrice: 90, sellingPrice: 150, vehicleCategory: "TWO_WHEELER", updatedAt: daysAgo(1) },
-  { id: "d3", partName: "Clutch Plate", quantity: 5, minQuantity: 4, costPrice: 620, sellingPrice: 850, vehicleCategory: "TWO_WHEELER", updatedAt: daysAgo(5) },
-  { id: "d4", partName: "Headlight Assembly", quantity: 0, minQuantity: 3, costPrice: 1450, sellingPrice: 1950, vehicleCategory: "FOUR_WHEELER", updatedAt: daysAgo(3) },
-  { id: "d5", partName: "Battery 12V 35Ah", quantity: 8, minQuantity: 5, costPrice: 2400, sellingPrice: 3100, vehicleCategory: "FOUR_WHEELER", updatedAt: daysAgo(40) },
-  { id: "d6", partName: "Chain Sprocket Kit", quantity: 12, minQuantity: 5, costPrice: 850, sellingPrice: 1150, vehicleCategory: "TWO_WHEELER", updatedAt: daysAgo(1) },
-  { id: "d7", partName: "Air Filter", quantity: 3, minQuantity: 8, costPrice: 150, sellingPrice: 250, vehicleCategory: "COMMERCIAL", updatedAt: daysAgo(4) },
-  { id: "d8", partName: "Wiper Blade Pair", quantity: 15, minQuantity: 6, costPrice: 220, sellingPrice: 350, vehicleCategory: "FOUR_WHEELER", updatedAt: daysAgo(60) },
-  { id: "d9", partName: "Auto Rickshaw Tyre", quantity: 6, minQuantity: 4, costPrice: 1100, sellingPrice: 1450, vehicleCategory: "THREE_WHEELER", updatedAt: daysAgo(7) },
-  { id: "d10", partName: "EV Charging Cable", quantity: 4, minQuantity: 3, costPrice: 1800, sellingPrice: 2400, vehicleCategory: "EV", updatedAt: daysAgo(2) },
-  { id: "d11", partName: "Spark Plug (Set of 4)", quantity: 20, minQuantity: 8, costPrice: 320, sellingPrice: 480, vehicleCategory: "FOUR_WHEELER", updatedAt: daysAgo(10) },
-  { id: "d12", partName: "Radiator Coolant 1L", quantity: 18, minQuantity: 6, costPrice: 180, sellingPrice: 280, vehicleCategory: "COMMERCIAL", updatedAt: daysAgo(95) },
+  { id: "d1", partName: "Brake Pad Set — Front", quantity: 2, minQuantity: 6, sellingPrice: 650, vehicleCategory: "FOUR_WHEELER", updatedAt: daysAgo(2) },
+  { id: "d2", partName: "Engine Oil Filter", quantity: 0, minQuantity: 10, sellingPrice: 150, vehicleCategory: "TWO_WHEELER", updatedAt: daysAgo(1) },
+  { id: "d3", partName: "Clutch Plate", quantity: 5, minQuantity: 4, sellingPrice: 850, vehicleCategory: "TWO_WHEELER", updatedAt: daysAgo(5) },
+  { id: "d4", partName: "Headlight Assembly", quantity: 0, minQuantity: 3, sellingPrice: 1950, vehicleCategory: "FOUR_WHEELER", updatedAt: daysAgo(3) },
+  { id: "d5", partName: "Battery 12V 35Ah", quantity: 8, minQuantity: 5, sellingPrice: 3100, vehicleCategory: "FOUR_WHEELER", updatedAt: daysAgo(40) },
+  { id: "d6", partName: "Chain Sprocket Kit", quantity: 12, minQuantity: 5, sellingPrice: 1150, vehicleCategory: "TWO_WHEELER", updatedAt: daysAgo(1) },
+  { id: "d7", partName: "Air Filter", quantity: 3, minQuantity: 8, sellingPrice: 250, vehicleCategory: "COMMERCIAL", updatedAt: daysAgo(4) },
+  { id: "d8", partName: "Wiper Blade Pair", quantity: 15, minQuantity: 6, sellingPrice: 350, vehicleCategory: "FOUR_WHEELER", updatedAt: daysAgo(60) },
+  { id: "d9", partName: "Auto Rickshaw Tyre", quantity: 6, minQuantity: 4, sellingPrice: 1450, vehicleCategory: "THREE_WHEELER", updatedAt: daysAgo(7) },
+  { id: "d10", partName: "EV Charging Cable", quantity: 4, minQuantity: 3, sellingPrice: 2400, vehicleCategory: "EV", updatedAt: daysAgo(2) },
+  { id: "d11", partName: "Spark Plug (Set of 4)", quantity: 20, minQuantity: 8, sellingPrice: 480, vehicleCategory: "FOUR_WHEELER", updatedAt: daysAgo(10) },
+  { id: "d12", partName: "Radiator Coolant 1L", quantity: 18, minQuantity: 6, sellingPrice: 280, vehicleCategory: "COMMERCIAL", updatedAt: daysAgo(95) },
 ];
+const QUIET = new Set(["d5", "d8", "d12"]);
 
-function restockCost(list) {
-  return list.reduce((sum, i) => {
-    const gap = Math.max((Number(i.minQuantity) || 0) - (Number(i.quantity) || 0), 0);
-    return sum + gap * (Number(i.costPrice) || 0);
-  }, 0);
+function dummySales() {
+  const out = [];
+  DUMMY_ITEMS.forEach((item, k) => {
+    if (QUIET.has(item.id)) return;
+    for (let d = 0; d < 90; d++) {
+      if ((d * 37 + k * 11 + (d % 5) * k) % 7 > 1) continue;
+      const at = new Date(Date.now() - d * DAY);
+      at.setHours(11, 0, 0, 0);
+      out.push({ partId: item.id, partName: item.partName, qty: ((d * 3 + k) % 3) + 1, at });
+    }
+  });
+  return out;
 }
+
+// ₹ axis labels: 950, 1.5k, 20k, 1.2L
+function compactMoney(v) {
+  if (v >= 100000) return `₹${+(v / 100000).toFixed(1)}L`;
+  if (v >= 1000) return `₹${+(v / 1000).toFixed(1)}k`;
+  return `₹${v}`;
+}
+
+// Ticks at 0, half and top, with the top on a round number.
+function niceMax(m) {
+  if (m <= 1) return 2;
+  const pow = 10 ** Math.floor(Math.log10(m));
+  return [1, 2, 4, 8, 10].map((c) => c * pow).find((v) => v >= m) || 10 * pow;
+}
+
+// Bars: one per day for 7 and 30 days, one per 3 days for 90.
+function bucketSales(sales, days) {
+  const size = days === 90 ? 3 : 1;
+  const n = days / size;
+  const today = startOfDay(new Date());
+  const buckets = Array.from({ length: n }, (_, i) => {
+    const end = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (n - 1 - i) * size);
+    const start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - (size - 1));
+    return { start, end, units: 0, amount: 0 };
+  });
+  for (const s of sales) {
+    const ago = Math.round((today - startOfDay(s.at)) / DAY);
+    const i = n - 1 - Math.floor(ago / size);
+    if (i >= 0 && i < n) {
+      buckets[i].units += s.qty;
+      buckets[i].amount += s.amount;
+    }
+  }
+  return buckets;
+}
+
+const fmtDay = (d) => d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 
 export default function Insights() {
   const { lang } = useLang();
@@ -38,6 +89,7 @@ export default function Insights() {
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState(30);
   const [preview, setPreview] = useState(false);
+  const [sales, setSales] = useState({ list: [], units: 0, received: 0, failed: false, loading: true });
 
   useEffect(() => {
     inventoryApi
@@ -47,62 +99,91 @@ export default function Insights() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Real sales for the range, straight from the activity log.
+  useEffect(() => {
+    if (preview) return undefined;
+    let stale = false;
+    setSales((s) => ({ ...s, loading: true }));
+    const from = new Date(startOfDay(new Date()).getTime() - (range - 1) * DAY).toISOString();
+    (async () => {
+      const list = [];
+      let units = 0;
+      let received = 0;
+      try {
+        for (let page = 1; page <= MAX_PAGES; page++) {
+          const res = await inventoryApi.activity({ type: "SOLD", from, page, limit: 100 });
+          units = res.stats?.unitsSold ?? 0;
+          received = res.stats?.unitsReceived ?? 0;
+          for (const e of res.content || []) {
+            list.push({ partId: e.partId, partName: e.partName, qty: Math.max(0, e.qtyBefore - e.qtyAfter), at: new Date(e.createdAt) });
+          }
+          if (list.length >= (res.total || 0)) break;
+        }
+        if (!stale) setSales({ list, units, received, failed: false, loading: false });
+      } catch {
+        if (!stale) setSales({ list: [], units: 0, received: 0, failed: true, loading: false });
+      }
+    })();
+    return () => {
+      stale = true;
+    };
+  }, [range, preview]);
+
   const displayItems = preview ? DUMMY_ITEMS : items;
+  const soldList = useMemo(() => {
+    const raw = preview ? dummySales().filter((s) => Date.now() - s.at <= range * DAY) : sales.list;
+    const price = new Map(displayItems.map((i) => [i.id, Number(i.sellingPrice) || 0]));
+    return raw.map((s) => ({ ...s, amount: s.qty * (price.get(s.partId) || 0) }));
+  }, [preview, sales.list, range, displayItems]);
+  const unitsSold = preview ? soldList.reduce((n, s) => n + s.qty, 0) : sales.units;
+  const unitsReceived = preview ? Math.round(unitsSold * 0.8) : sales.received;
+  const salesLoading = !preview && sales.loading;
 
   const stats = useMemo(() => {
     const out = displayItems.filter((i) => stockOf(i) === "OUT_OF_STOCK");
     const low = displayItems.filter((i) => stockOf(i) === "LOW_STOCK");
     const inStock = displayItems.filter((i) => stockOf(i) === "IN_STOCK");
-    const total = displayItems.length;
+    const worth = (i) => (Number(i.quantity) || 0) * (Number(i.sellingPrice) || 0);
+    const units = displayItems.reduce((s, i) => s + (Number(i.quantity) || 0), 0);
 
-    const costValue = displayItems.reduce((s, i) => s + (Number(i.quantity) || 0) * (Number(i.costPrice) || 0), 0);
-    const sellValue = displayItems.reduce((s, i) => s + (Number(i.quantity) || 0) * (Number(i.sellingPrice) || 0), 0);
-    const margin = sellValue - costValue;
-    const marginPct = sellValue ? Math.round((margin / sellValue) * 1000) / 10 : 0;
-
-    const outCost = restockCost(out);
-    const lowCost = restockCost(low);
-
-    const cutoff = Date.now() - range * 86400000;
-    const dead = displayItems.filter(
-      (i) => (Number(i.quantity) || 0) > 0 && new Date(i.updatedAt).getTime() < cutoff,
+    // In stock, but nothing sold for the whole range (and not added inside it).
+    const soldIds = new Set(soldList.map((s) => s.partId));
+    const cutoff = Date.now() - range * DAY;
+    const idle = displayItems.filter(
+      (i) => (Number(i.quantity) || 0) > 0 && !soldIds.has(i.id) && new Date(i.createdAt || i.updatedAt).getTime() < cutoff,
     );
-    const deadValue = dead.reduce((s, i) => s + (Number(i.quantity) || 0) * (Number(i.costPrice) || 0), 0);
 
-    const byValue = displayItems
-      .map((i) => ({ ...i, value: (Number(i.quantity) || 0) * (Number(i.costPrice) || 0) }))
-      .filter((i) => i.value > 0)
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 6);
-    const maxItemValue = Math.max(1, ...byValue.map((i) => i.value));
+    const perPart = new Map();
+    for (const s of soldList) {
+      const row = perPart.get(s.partId) || { id: s.partId, name: s.partName, units: 0 };
+      row.units += s.qty;
+      perPart.set(s.partId, row);
+    }
+    const top = [...perPart.values()].sort((a, b) => b.units - a.units).slice(0, 5);
 
     const byVehicle = VEHICLES.map((v) => ({
       ...v,
-      value: displayItems
-        .filter((i) => i.vehicleCategory === v.id)
-        .reduce((s, i) => s + (Number(i.quantity) || 0) * (Number(i.costPrice) || 0), 0),
-    }));
-    const maxVehicleValue = Math.max(1, ...byVehicle.map((v) => v.value));
+      value: displayItems.filter((i) => i.vehicleCategory === v.id).reduce((s, i) => s + worth(i), 0),
+    })).filter((v) => v.value > 0);
 
     return {
       out,
       low,
       inStock,
-      total,
-      costValue,
-      sellValue,
-      margin,
-      marginPct,
-      outCost,
-      lowCost,
-      dead,
-      deadValue,
-      byValue,
-      maxItemValue,
+      total: displayItems.length,
+      units,
+      worth: displayItems.reduce((s, i) => s + worth(i), 0),
+      idle,
+      idleWorth: idle.reduce((s, i) => s + worth(i), 0),
+      top,
+      maxTop: Math.max(1, ...top.map((r) => r.units)),
       byVehicle,
-      maxVehicleValue,
+      maxVehicle: Math.max(1, ...byVehicle.map((v) => v.value)),
     };
-  }, [displayItems, range]);
+  }, [displayItems, soldList, range]);
+
+  const buckets = useMemo(() => bucketSales(soldList, range), [soldList, range]);
+  const salesTotal = soldList.reduce((n, s) => n + s.amount, 0);
 
   function namesLine(list) {
     const names = list.slice(0, 2).map((i) => i.partName).join(", ");
@@ -110,361 +191,316 @@ export default function Insights() {
     return more > 0 ? `${names} ${t(lang, "andNMore", more)}` : names;
   }
 
-  if (loading) return <div className="content insights-page">Loading…</div>;
+  if (loading) return <div className="content ins">Loading…</div>;
 
-  const noAttention = !stats.out.length && !stats.low.length && !stats.dead.length;
-  const pct = (n) => (stats.total ? Math.max(n > 0 ? 3 : 0, (n / stats.total) * 100) : 0);
+  const restock = stats.out.length + stats.low.length;
+  const pct = (n) => (stats.total ? (n / stats.total) * 100 : 0);
+  const attention = [
+    stats.out.length > 0 && { key: "out", tone: "crit", to: "/low-stocks", title: t(lang, "insOutOfStock", stats.out.length), meta: namesLine(stats.out) },
+    stats.low.length > 0 && { key: "low", tone: "warn", to: "/low-stocks", title: t(lang, "insRunningLow", stats.low.length), meta: namesLine(stats.low) },
+    stats.idle.length > 0 && {
+      key: "idle",
+      tone: "idle",
+      to: "/inventory",
+      title: t(lang, "insNotSold", stats.idle.length, range),
+      meta: `${namesLine(stats.idle)} · ${t(lang, "insTiedUp", formatPrice(stats.idleWorth))}`,
+    },
+  ].filter(Boolean);
 
   return (
-    <div className="content insights-page">
-      <div className="ins-hd">
-        <div className="ins-hd-id">
-          <div className="ins-kicker ins-kicker-lg">
-            {t(lang, "insights")}
-            {preview ? <span className="ins-sample-badge">{t(lang, "sampleDataBadge")}</span> : null}
-          </div>
+    <div className="content ins">
+      <PageHero
+        icon={
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+          </svg>
+        }
+        kicker={preview ? t(lang, "sampleDataBadge") : t(lang, "insKicker")}
+        title={t(lang, "insights")}
+      />
+      <InfoNote id="insights">{t(lang, "insightsSub")}</InfoNote>
+
+      <div className="ins-toolbar">
+        <div className="ins-chips" role="group" aria-label={t(lang, "insRange")}>
+          {RANGE_DAYS.map((d) => (
+            <button key={d} type="button" className={`ins-chip${range === d ? " on" : ""}`} onClick={() => setRange(d)}>
+              {t(lang, d === 7 ? "last7" : d === 30 ? "last30" : "last90")}
+            </button>
+          ))}
         </div>
         <button type="button" className="ins-preview-btn" onClick={() => setPreview((v) => !v)}>
           {t(lang, preview ? "exitSampleData" : "previewSampleData")}
         </button>
       </div>
 
-      <div className="ins-chips" role="group" aria-label="Date range">
-        {RANGE_DAYS.map((d) => (
-          <button
-            key={d}
-            type="button"
-            className={`ins-chip${range === d ? " on" : ""}`}
-            onClick={() => setRange(d)}
-          >
-            {t(lang, d === 7 ? "last7" : d === 30 ? "last30" : "last90")}
-          </button>
-        ))}
+      <div className="ins-tiles">
+        <Tile tone="worth" icon={<WalletIcon />} label={t(lang, "insWorth")} value={formatPrice(stats.worth)} sub={t(lang, "insWorthSub", stats.total, stats.units)} />
+        <Tile tone="sold" icon={<MinusIcon />} label={t(lang, "insSoldLbl")} value={salesLoading ? "…" : unitsSold} sub={t(lang, "insInRange", range)} />
+        <Tile tone="recv" icon={<PlusIcon />} label={t(lang, "insRecvLbl")} value={salesLoading ? "…" : unitsReceived} sub={t(lang, "insInRange", range)} />
+        <Tile
+          tone={restock ? "alert" : "ok"}
+          icon={<BoxIcon />}
+          label={t(lang, "insRestockLbl")}
+          value={restock}
+          sub={restock ? t(lang, "insRestockSub", stats.out.length, stats.low.length) : t(lang, "insAllStocked")}
+        />
       </div>
 
-      <div className="ins-sec">
-        <div className="ins-money-grid">
-          <div className="ins-tile">
-            <span className="ins-ic">
-              <WalletIcon />
-            </span>
-            <div className="ins-tile-lbl">{t(lang, "stockValueToday")}</div>
-            <div className="ins-tile-val-row">
-              <div className="ins-tile-val ins-num-blue">{formatPrice(stats.costValue)}</div>
+      <div className="ins-grid">
+        <section className="ins-card ins-span">
+          <header className="ins-card-hd">
+            <h2>{t(lang, "insSalesTtl")}</h2>
+            <p>
+              {t(lang, range === 90 ? "insSalesSub3" : "insSalesSub1")}
+              {!salesLoading && unitsSold > 0 ? <b> · {t(lang, "insSalesTotal", formatPrice(salesTotal))}</b> : null}
+            </p>
+          </header>
+          {sales.failed && !preview ? (
+            <p className="ins-empty">{t(lang, "insSalesFail")}</p>
+          ) : !salesLoading && unitsSold === 0 ? (
+            <div className="ins-empty">
+              <strong>{t(lang, "insSalesNone")}</strong>
+              <span>{t(lang, "insSalesNoneSub")}</span>
+              <Link to="/stock-update" className="ins-link">
+                {t(lang, "insGoUpdate")}
+              </Link>
             </div>
-          </div>
-          <div className="ins-tile">
-            <span className="ins-ic">
-              <TrendIcon />
-            </span>
-            <div className="ins-tile-lbl">{t(lang, "potentialMargin")}</div>
-            <div className="ins-tile-val-row">
-              <div className="ins-tile-val">{formatPrice(stats.margin)}</div>
-              <TrendTag tone={stats.margin >= 0 ? "green" : "grey"} dir={stats.margin >= 0 ? "up" : "down"} />
-            </div>
-          </div>
-          <div className="ins-tile">
-            <span className="ins-ic">
-              <RestockIcon />
-            </span>
-            <div className="ins-tile-lbl">{t(lang, "restockCostNeeded")}</div>
-            <div className="ins-tile-val-row">
-              <div className="ins-tile-val">{formatPrice(stats.outCost + stats.lowCost)}</div>
-              <TrendTag
-                tone={stats.outCost + stats.lowCost > 0 ? "grey" : "green"}
-                dir={stats.outCost + stats.lowCost > 0 ? "down" : "up"}
-              />
-            </div>
-          </div>
-          <div className="ins-tile">
-            <span className="ins-ic">
-              <ClockIcon />
-            </span>
-            <div className="ins-tile-lbl">{t(lang, "deadStockValue")}</div>
-            <div className="ins-tile-val-row">
-              <div className="ins-tile-val">{formatPrice(stats.deadValue)}</div>
-              <TrendTag tone={stats.deadValue > 0 ? "grey" : "green"} dir={stats.deadValue > 0 ? "down" : "up"} />
-            </div>
-          </div>
-        </div>
-      </div>
+          ) : (
+            <>
+              <SalesChart lang={lang} buckets={buckets} size={range === 90 ? 3 : 1} />
+              <p className="ins-foot">{t(lang, "insSalesNote")}</p>
+            </>
+          )}
+        </section>
 
-      <div className="ins-sec">
-        <div className="ins-sec-hd">
-          <div className="ins-sec-ttl">{t(lang, "revenueTrend")}</div>
-        </div>
-        <div className="ins-card">
-          <RevenueTrendChart items={displayItems} days={range} />
-        </div>
-      </div>
-
-      <div className="ins-sec">
-        <div className="ins-sec-hd">
-          <div className="ins-sec-ttl">{t(lang, "needsAttentionToday")}</div>
-        </div>
-        <div className="ins-card">
-          {stats.out.length ? (
-            <div className="ins-attn-row">
-              <span className="ins-ic crit">
-                <AlertIcon />
-              </span>
-              <div className="ins-attn-body">
-                <div className="ins-attn-ttl">{t(lang, "partsOutOfStock", stats.out.length)}</div>
-                <div className="ins-attn-meta">{namesLine(stats.out)}</div>
-              </div>
-              <div className="ins-attn-right">
-                <div className="ins-attn-cost">{formatPrice(stats.outCost)}</div>
-                <div className="ins-attn-cost-lbl">{t(lang, "toReachMinStock")}</div>
-              </div>
-            </div>
-          ) : null}
-          {stats.low.length ? (
-            <div className="ins-attn-row">
-              <span className="ins-ic warn">
-                <BellIcon />
-              </span>
-              <div className="ins-attn-body">
-                <div className="ins-attn-ttl">{t(lang, "partsRunningLow", stats.low.length)}</div>
-                <div className="ins-attn-meta">{namesLine(stats.low)}</div>
-              </div>
-              <div className="ins-attn-right">
-                <div className="ins-attn-cost">{formatPrice(stats.lowCost)}</div>
-                <div className="ins-attn-cost-lbl">{t(lang, "toReachMinStock")}</div>
-              </div>
-            </div>
-          ) : null}
-          {stats.dead.length ? (
-            <div className="ins-attn-row">
-              <span className="ins-ic dead">
-                <MoonIcon />
-              </span>
-              <div className="ins-attn-body">
-                <div className="ins-attn-ttl">{t(lang, "partsUnchanged", stats.dead.length)}</div>
-                <div className="ins-attn-meta">{namesLine(stats.dead)}</div>
-              </div>
-              <div className="ins-attn-right">
-                <div className="ins-attn-cost">{formatPrice(stats.deadValue)}</div>
-                <div className="ins-attn-cost-lbl">{t(lang, "tiedUp")}</div>
-              </div>
-            </div>
-          ) : null}
-          {noAttention ? <div className="ins-attn-empty">{t(lang, "attentionAllGood")}</div> : null}
-        </div>
-      </div>
-
-      <div className="ins-two-col">
-        <div className="ins-sec">
-          <div className="ins-sec-hd">
-            <div className="ins-sec-ttl">{t(lang, "highestValueHeld")}</div>
+        <section className="ins-card">
+          <header className="ins-card-hd">
+            <h2>{t(lang, "stockHealth")}</h2>
+            <p>{t(lang, "insHealthSub", stats.total)}</p>
+          </header>
+          <div className="ins-meter" role="img" aria-label={t(lang, "stockHealth")}>
+            <span className="is-ok" style={{ width: `${pct(stats.inStock.length)}%` }} />
+            <span className="is-low" style={{ width: `${pct(stats.low.length)}%` }} />
+            <span className="is-out" style={{ width: `${pct(stats.out.length)}%` }} />
           </div>
-          <div className="ins-card">
-            {stats.byValue.length ? (
-              stats.byValue.map((item, idx) => (
-                <div className="ins-rank-row" key={item.id}>
-                  <div className="ins-rank-n">{idx + 1}</div>
+          <ul className="ins-key">
+            <li>
+              <i className="is-ok" />
+              {t(lang, "inStock")}
+              <b>{stats.inStock.length}</b>
+            </li>
+            <li>
+              <i className="is-low" />
+              {t(lang, "low")}
+              <b>{stats.low.length}</b>
+            </li>
+            <li>
+              <i className="is-out" />
+              {t(lang, "out")}
+              <b>{stats.out.length}</b>
+            </li>
+          </ul>
+        </section>
+
+        <section className="ins-card">
+          <header className="ins-card-hd">
+            <h2>{t(lang, "insTopTtl")}</h2>
+            <p>{t(lang, "insInRange", range)}</p>
+          </header>
+          {stats.top.length ? (
+            <ol className="ins-rank">
+              {stats.top.map((r, i) => (
+                <li key={r.id}>
+                  <span className="ins-rank-n">{i + 1}</span>
                   <div className="ins-rank-main">
-                    <div className="ins-rank-name">{item.partName}</div>
-                    <div className="ins-rank-meta">
-                      {vehicleLabel(item.vehicleCategory)} · {item.quantity} {t(lang, "inStock").toLowerCase()}
+                    <div className="ins-rank-top">
+                      <span className="ins-rank-name">{r.name}</span>
+                      <b>{t(lang, "insUnitsSold", r.units)}</b>
                     </div>
-                    <div className="ins-rank-track">
-                      <div
-                        className="ins-rank-fill"
-                        style={{ width: `${Math.max(6, (item.value / stats.maxItemValue) * 100)}%` }}
-                      />
+                    <div className="ins-track">
+                      <span className="is-sold" style={{ width: `${Math.max(6, (r.units / stats.maxTop) * 100)}%` }} />
                     </div>
                   </div>
-                  <div className="ins-rank-val">
-                    <div className="ins-rank-val-n">{formatPrice(item.value)}</div>
-                    <div className="ins-rank-val-lbl">{t(lang, "valueLbl")}</div>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="ins-empty">{salesLoading ? "…" : t(lang, "insTopNone")}</p>
+          )}
+        </section>
+
+        <section className="ins-card">
+          <header className="ins-card-hd">
+            <h2>{t(lang, "needsAttentionToday")}</h2>
+          </header>
+          {attention.length ? (
+            <ul className="ins-attn">
+              {attention.map((a) => (
+                <li key={a.key}>
+                  <Link to={a.to} className="ins-attn-row">
+                    <span className={`ins-ic is-${a.tone}`}>{a.tone === "crit" ? <AlertIcon /> : a.tone === "warn" ? <BellIcon /> : <ClockIcon />}</span>
+                    <span className="ins-attn-body">
+                      <strong>{a.title}</strong>
+                      <span>{a.meta}</span>
+                    </span>
+                    <ChevronIcon />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="ins-empty">{t(lang, "attentionAllGood")}</p>
+          )}
+        </section>
+
+        <section className="ins-card">
+          <header className="ins-card-hd">
+            <h2>{t(lang, "stockValueByVehicle")}</h2>
+            <p>{t(lang, "insAtPrice")}</p>
+          </header>
+          {stats.byVehicle.length ? (
+            <ul className="ins-veh">
+              {stats.byVehicle.map((v) => (
+                <li key={v.id}>
+                  <div className="ins-rank-top">
+                    <span className="ins-rank-name">{v.label}</span>
+                    <b>{formatPrice(v.value)}</b>
                   </div>
-                </div>
-              ))
-            ) : (
-              <div className="ins-attn-empty">—</div>
-            )}
-          </div>
-        </div>
-
-        <div className="ins-sec">
-          <div className="ins-sec-hd">
-            <div className="ins-sec-ttl">{t(lang, "stockValueByVehicle")}</div>
-          </div>
-          <div className="ins-card">
-            {stats.byVehicle.map((v) => (
-              <div className="ins-veh-row" key={v.id}>
-                <div className="ins-veh-top">
-                  <span className="ins-veh-name">{v.label}</span>
-                  <span className="ins-veh-val">{formatPrice(v.value)}</span>
-                </div>
-                <div className="ins-veh-track">
-                  <div
-                    className="ins-veh-fill"
-                    style={{ width: v.value > 0 ? `${Math.max(6, (v.value / stats.maxVehicleValue) * 100)}%` : "0%" }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="ins-sec">
-        <div className="ins-sec-hd">
-          <div className="ins-sec-ttl">{t(lang, "stockHealth")}</div>
-        </div>
-        <div className="ins-card">
-          <div className="ins-meter-wrap">
-            <div className="ins-meter">
-              <span className="seg-good" style={{ width: `${pct(stats.inStock.length)}%` }} />
-              <span className="seg-warn" style={{ width: `${pct(stats.low.length)}%` }} />
-              <span className="seg-crit" style={{ width: `${pct(stats.out.length)}%` }} />
-            </div>
-            <div className="ins-meter-key">
-              <div className="ins-meter-key-item">
-                <span className="sw" style={{ background: "#16a34a" }} />
-                {t(lang, "inStock")} <b>{stats.inStock.length}</b>{" "}
-                <span className="pct">({Math.round(pct(stats.inStock.length))}%)</span>
-              </div>
-              <div className="ins-meter-key-item">
-                <span className="sw" style={{ background: "#b45309" }} />
-                {t(lang, "low")} <b>{stats.low.length}</b>{" "}
-                <span className="pct">({Math.round(pct(stats.low.length))}%)</span>
-              </div>
-              <div className="ins-meter-key-item">
-                <span className="sw" style={{ background: "#c0392b" }} />
-                {t(lang, "out")} <b>{stats.out.length}</b>{" "}
-                <span className="pct">({Math.round(pct(stats.out.length))}%)</span>
-              </div>
-            </div>
-          </div>
-        </div>
+                  <div className="ins-track">
+                    <span style={{ width: `${Math.max(6, (v.value / stats.maxVehicle) * 100)}%` }} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="ins-empty">—</p>
+          )}
+        </section>
       </div>
     </div>
   );
 }
 
-function TrendTag({ tone, dir }) {
+function Tile({ tone, icon, label, value, sub }) {
   return (
-    <span className={`ins-trend ins-trend-${tone}`}>
-      {dir === "up" ? <ArrowUpIcon /> : <ArrowDownIcon />}
-    </span>
+    <div className={`ins-tile is-${tone}`}>
+      <span className="ins-tile-ic" aria-hidden="true">
+        {icon}
+      </span>
+      <p className="ins-tile-lbl">{label}</p>
+      <p className="ins-tile-val">{value}</p>
+      <p className="ins-tile-sub">{sub}</p>
+    </div>
   );
 }
 
-/* Revenue trend — buckets each item's sell value (qty × sellingPrice) into
-   12 slices across the selected date range, keyed off when it was last
-   updated. There's no order/sales history in this app to chart real revenue
-   over time, so this is the closest real-data proxy: recent stock activity
-   valued at selling price, not a fabricated series. */
-function buildRevenueTrend(items, days, buckets = 12) {
-  const now = Date.now();
-  const rangeMs = days * 86400000;
-  const bucketMs = rangeMs / buckets;
-  const data = Array.from({ length: buckets }, () => 0);
-  items.forEach((it) => {
-    const ts = new Date(it.updatedAt).getTime();
-    if (!ts || Number.isNaN(ts)) return;
-    const age = now - ts;
-    if (age < 0 || age > rangeMs) return;
-    const idx = Math.min(buckets - 1, Math.floor((rangeMs - age) / bucketMs));
-    data[idx] += (Number(it.quantity) || 0) * (Number(it.sellingPrice) || 0);
-  });
-  return data;
-}
+/* Units sold per day (per 3 days over 90) as an area line. The SVG is drawn at
+   the plot's real pixel size so nothing stretches; dots and tooltips are HTML
+   on top of it. The scale tops out on a round number and the labels name
+   values the line actually reaches. */
+function SalesChart({ lang, buckets, size }) {
+  const max = niceMax(Math.max(0, ...buckets.map((b) => b.amount)));
+  const n = buckets.length;
+  const every = n <= 7 ? 1 : n <= 15 ? 2 : 5;
+  const showLabel = (i) => (n - 1 - i) % every === 0;
+  const tip = (b) => `${size === 1 ? fmtDay(b.end) : `${fmtDay(b.start)} – ${fmtDay(b.end)}`} · ${formatPrice(b.amount)} · ${t(lang, "insUnitsSold", b.units)}`;
 
-function RevenueTrendChart({ items, days }) {
-  const data = useMemo(() => buildRevenueTrend(items, days), [items, days]);
-  const total = data.reduce((s, v) => s + v, 0);
-  const max = Math.max(1, ...data);
-  const w = 300;
-  const h = 100;
-  const stepX = w / (data.length - 1 || 1);
-  const points = data.map((v, i) => [i * stepX, h - (v / max) * (h - 6) - 2]);
-  const linePoints = points.map(([x, y]) => `${x},${y}`).join(" ");
-  const areaPoints = `0,${h} ${linePoints} ${w},${h}`;
+  const plot = useRef(null);
+  const [box, setBox] = useState({ w: 0, h: 0 });
+  useLayoutEffect(() => {
+    const el = plot.current;
+    if (!el) return undefined;
+    const read = () => setBox({ w: el.clientWidth, h: el.clientHeight });
+    read();
+    const ro = new ResizeObserver(read);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const pts = buckets.map((b, i) => [((i + 0.5) / n) * box.w, box.h - (b.amount / max) * box.h]);
+  const line = pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const area = pts.length ? `${pts[0][0]},${box.h} ${line} ${pts[pts.length - 1][0]},${box.h}` : "";
 
   return (
-    <div className="ins-revenue">
-      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="ins-revenue-chart">
-        <polygon points={areaPoints} className="ins-revenue-area" />
-        <polyline points={linePoints} className="ins-revenue-line" />
-        {points.map(([x, y], i) => (
-          <circle key={i} cx={x} cy={y} r="2.2" className="ins-revenue-dot" />
+    <div className="ins-chart">
+      <div className="ins-plot" ref={plot}>
+        {[0, 0.5, 1].map((f) => (
+          <div className="ins-gl" key={f} style={{ bottom: `${f * 100}%` }}>
+            <span>{compactMoney(Math.round(max * f))}</span>
+          </div>
         ))}
-      </svg>
-      <div className="ins-revenue-total">{formatPrice(total)}</div>
+        {box.w ? (
+          <svg className="ins-svg" width={box.w} height={box.h} aria-hidden="true">
+            <polygon points={area} className="ins-area" />
+            <polyline points={line} className="ins-line" />
+          </svg>
+        ) : null}
+        <div className={`ins-cols${n > 15 ? " is-dense" : ""}`}>
+          {buckets.map((b, i) => (
+            <div key={i} className={`ins-col${i < 3 ? " edge-l" : ""}${i >= n - 3 ? " edge-r" : ""}${i === n - 1 ? " is-last" : ""}`} data-tip={tip(b)} tabIndex={0} aria-label={tip(b)}>
+              <span className="ins-dot" style={{ bottom: `${(b.amount / max) * 100}%` }} />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="ins-xl">
+        {buckets.map((b, i) => (
+          <span key={i}>{showLabel(i) ? <em>{fmtDay(b.end)}</em> : null}</span>
+        ))}
+      </div>
     </div>
   );
 }
 
-function ArrowUpIcon() {
-  return (
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 19V5M6 11l6-6 6 6" />
-    </svg>
-  );
-}
-function ArrowDownIcon() {
-  return (
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 5v14M6 13l6 6 6-6" />
-    </svg>
-  );
-}
-function WalletIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2" />
-      <path d="M3 7v11a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1H5a2 2 0 0 1-2-2Z" />
-      <path d="M16 14h2" />
-    </svg>
-  );
-}
-function TrendIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m3 17 6-6 4 4 8-8" />
-      <path d="M17 7h4v4" />
-    </svg>
-  );
-}
-function RestockIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-      <path d="M3.27 6.96 12 12l8.73-5.04M12 22.08V12" />
-    </svg>
-  );
-}
-function ClockIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 7v5l3 3" />
-    </svg>
-  );
-}
-function AlertIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-      <path d="M12 9v4M12 17h.01M10.3 3.9 2.8 17a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
-    </svg>
-  );
-}
-function BellIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-    </svg>
-  );
-}
-function MoonIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M8 12h8" />
-    </svg>
-  );
-}
+const Ic = ({ children, size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    {children}
+  </svg>
+);
+const WalletIcon = () => (
+  <Ic>
+    <path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2" />
+    <path d="M3 7v11a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1H5a2 2 0 0 1-2-2Z" />
+    <path d="M16 14h2" />
+  </Ic>
+);
+const MinusIcon = () => (
+  <Ic>
+    <path d="M5 12h14" />
+  </Ic>
+);
+const PlusIcon = () => (
+  <Ic>
+    <path d="M12 5v14M5 12h14" />
+  </Ic>
+);
+const BoxIcon = () => (
+  <Ic>
+    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+    <path d="M3.27 6.96 12 12l8.73-5.04M12 22.08V12" />
+  </Ic>
+);
+const ClockIcon = () => (
+  <Ic size={16}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7v5l3 3" />
+  </Ic>
+);
+const AlertIcon = () => (
+  <Ic size={16}>
+    <path d="M12 9v4M12 17h.01M10.3 3.9 2.8 17a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
+  </Ic>
+);
+const BellIcon = () => (
+  <Ic size={16}>
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+  </Ic>
+);
+const ChevronIcon = () => (
+  <span className="ins-chev">
+    <Ic size={16}>
+      <path d="m9 6 6 6-6 6" />
+    </Ic>
+  </span>
+);
