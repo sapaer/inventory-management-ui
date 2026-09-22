@@ -1,7 +1,7 @@
 .su {
-  --su-sold: #b45309;
-  --su-sold-bg: #fff4e5;
-  --su-sold-bd: #f5c98a;
+  --su-sold: #b5502e;
+  --su-sold-bg: #fbece3;
+  --su-sold-bd: #e8b298;
   --su-in: #15803d;
   --su-in-bg: #e7f6ee;
   --su-in-bd: #b8d4c8;
@@ -80,10 +80,10 @@
 .su-tile {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 11px 14px;
+  gap: 9px;
+  padding: 8px 11px;
   border: 1.5px solid var(--line);
-  border-radius: 14px;
+  border-radius: 12px;
   background: #fff;
   color: #6b7280;
   text-align: left;
@@ -95,24 +95,24 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 38px;
-  height: 38px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: #eef2f0;
   color: #6b7280;
-  font-size: 24px;
+  font-size: 17px;
   font-weight: 500;
   line-height: 1;
 }
 .su-tile-txt strong {
   display: block;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
 }
 .su-tile-txt small {
   display: block;
   margin-top: 1px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   opacity: 0.85;
 }
@@ -402,12 +402,32 @@
 .su-row-x:hover { background: #fee2e2; color: #b91c1c; }
 
 .su-steps {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  align-items: flex-end;
   gap: 10px;
   margin-top: 10px;
 }
-.su-step { min-width: 0; }
+.su-step { flex: 1; min-width: 0; }
+.su-addfield {
+  flex: 0 0 auto;
+  padding: 0 13px;
+  height: 42px;
+  border: 1.5px dashed var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.su-addfield:hover:not(:disabled) { border-color: var(--line); background: var(--soft); }
+.su-addfield:disabled { opacity: 0.5; cursor: not-allowed; }
+.su-addfield.is-sold:hover:not(:disabled) { border-color: var(--su-sold); color: var(--su-sold); }
+.su-addfield.is-received:hover:not(:disabled) { border-color: var(--su-in); color: var(--su-in); }
+/* Alone (the other field is a big stepper), the pill just sits at its own
+   width; with no stepper on the row at all it stretches to fill the row. */
+.su-steps:has(.su-step) .su-addfield { flex: 0 0 auto; }
+.su-steps:not(:has(.su-step)) .su-addfield { flex: 1; }
 .su-step-lbl {
   display: block;
   margin-bottom: 4px;
@@ -428,7 +448,7 @@
   border-radius: 10px;
   background: #fff;
 }
-.su-step.is-sold .su-step-ctl:focus-within { border-color: var(--su-sold-bd); box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1); }
+.su-step.is-sold .su-step-ctl:focus-within { border-color: var(--su-sold-bd); box-shadow: 0 0 0 3px rgba(181, 80, 46, 0.12); }
 .su-step.is-received .su-step-ctl:focus-within { border-color: var(--su-in-bd); box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1); }
 .su-step-ctl button {
   flex: 0 0 40px;
@@ -472,6 +492,49 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--su-sold);
+}
+.su-soldat {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f3f6f4;
+  font-size: 13px;
+}
+.su-soldat-lbl {
+  color: var(--muted);
+}
+.su-soldat strong {
+  color: #111827;
+  font-variant-numeric: tabular-nums;
+}
+.su-soldat-btn {
+  margin-left: auto;
+  font-size: 12px;
+}
+.su-soldat-btn.is-muted {
+  margin-left: 0;
+  color: var(--muted);
+}
+.su-soldat-edit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 100%;
+}
+.su-soldat-edit .money-input {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+}
+.su-soldat .money-pfx {
+  width: 34px;
+  font-size: 14px;
+}
+.su-soldat .money-inp {
+  font-size: 13px;
 }
 
 .su-err { margin: 12px 16px 0; }
@@ -607,6 +670,12 @@
 }
 .su-sheet-row:last-child { border-bottom: none; }
 .su-sheet-name { font-size: 14px; font-weight: 600; min-width: 0; }
+.su-sheet-price {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--forest);
+}
 .su-sheet-calc {
   display: inline-flex;
   align-items: center;

@@ -2081,23 +2081,6 @@ button.sidebar-acct-item:hover {
   flex-direction: column;
   gap: 16px;
 }
-.part-form-top {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-.part-form-title {
-  font-size: clamp(18px, 2.2vw, 22px);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
-.part-form-sub {
-  margin-top: 4px;
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.4;
-}
 .part-form-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(240px, 0.85fr);
@@ -2470,46 +2453,13 @@ button.sidebar-acct-item:hover {
   font-weight: 500;
   cursor: pointer;
 }
-.pf-head {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding-bottom: 4px;
-}
-.pf-head-thumb {
-  width: 52px;
-  height: 52px;
-  border-radius: 12px;
-}
-.pf-head-thumb svg {
-  width: 24px;
-  height: 24px;
-}
-.pf-head-text {
-  min-width: 0;
-}
-.pf-kicker {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--forest);
-}
-.pf-head-title {
-  margin: 2px 0 0;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
-  color: #111827;
-  overflow-wrap: anywhere;
-}
-.pf-head-meta {
+/* Edit page: vehicle/brand + status, under the shared PageHero. */
+.pf-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 10px;
-  margin-top: 5px;
+  gap: 6px 10px;
+  margin: -8px 0 16px;
   font-size: 13px;
   color: #6b7280;
 }
@@ -2788,9 +2738,6 @@ button.sidebar-acct-item:hover {
   }
   .part-form-row-3 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .part-form-sub-desktop {
-    display: none;
   }
   .photo-drop {
     padding: 16px 12px;

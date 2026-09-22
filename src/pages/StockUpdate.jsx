@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { formatApiError, inventoryApi } from "../api";
+import MoneyInput from "../components/MoneyInput";
 import { InfoNote, PageHero } from "../components/PageHero";
 import SearchIcon from "../components/SearchIcon";
 import StatusBadge from "../components/StatusBadge";
 import { useLang } from "../context/LangContext";
 import { t, vehicleLabel } from "../i18n";
-import { stockOf } from "../utils";
+import { formatPrice, stockOf } from "../utils";
 import "./StockUpdate.css";
 
-const PAGE = 24;
-const PHONE_PAGE = 5;
+const PAGE = 12;
+const PHONE_PAGE = 12;
 const PHONE_STEP = 10;
 const FILTERS = [
   { id: "all", key: "suFilterAll" },
@@ -24,6 +25,19 @@ const hasChange = (row) => row.sold > 0 || row.received > 0;
 // Stock received during the day can be sold the same day, so what can be sold is
 // today's stock plus whatever was received (received is applied first on save).
 const sellCap = (item, received) => stockNow(item) + received;
+
+// MoneyInput only ever holds whole-rupee digits, so the part's price (which
+// can come back as a decimal, e.g. "650.00") is rounded before it's used as
+// the sold-at box's starting value.
+function wholeRupees(v) {
+  return v === null || v === undefined || v === "" ? "" : String(Math.round(Number(v)));
+}
+
+// The price this row is being sold at: the box's own value once it's been
+// opened, otherwise the part's current selling price.
+function soldAtPrice(row) {
+  return row.price !== "" && row.price != null ? row.price : wholeRupees(row.item.sellingPrice);
+}
 
 /**
  * Record what was sold or received. Tap parts to add them, adjust the counts
@@ -121,7 +135,7 @@ export default function StockUpdate() {
     const wanted = Math.max(0, Number(value) || 0);
     setRows((list) => {
       const i = list.findIndex((r) => r.item.id === item.id);
-      const base = i === -1 ? { item, sold: 0, received: 0 } : list[i];
+      const base = i === -1 ? { item, sold: 0, received: 0, price: "", priceEditing: false } : list[i];
       const updated = { ...base, [field]: wanted };
       if (field === "received") {
         // Fewer received → fewer units available to sell.
@@ -153,6 +167,21 @@ export default function StockUpdate() {
     setRows((list) => list.filter((r) => r.item.id !== id));
   }
 
+  function openPrice(row) {
+    setRows((list) =>
+      list.map((r) => (r.item.id === row.item.id ? { ...r, price: soldAtPrice(row), priceEditing: true } : r)),
+    );
+  }
+  function setPrice(id, value) {
+    setRows((list) => list.map((r) => (r.item.id === id ? { ...r, price: value } : r)));
+  }
+  function savePrice(id) {
+    setRows((list) => list.map((r) => (r.item.id === id ? { ...r, priceEditing: false } : r)));
+  }
+  function cancelPrice(id) {
+    setRows((list) => list.map((r) => (r.item.id === id ? { ...r, price: "", priceEditing: false } : r)));
+  }
+
   function onSearchKey(e) {
     if (e.key === "Enter" && shown[0]) {
       e.preventDefault();
@@ -182,10 +211,11 @@ export default function StockUpdate() {
             receivedDone = true;
           }
           if (r.sold > 0) {
+            const soldNote = [note.trim(), t(lang, "suSoldAtNote", formatPrice(soldAtPrice(r)))].filter(Boolean).join(" · ");
             await inventoryApi.quantity(r.item.id, {
               change: -Math.min(r.sold, sellCap(r.item, r.received)),
               changeType: "SOLD",
-              note: note.trim() || undefined,
+              note: soldNote,
             });
           }
           return { row: r, ok: true };
@@ -206,6 +236,8 @@ export default function StockUpdate() {
           item: fresh.find((p) => p.id === x.row.item.id) || x.row.item,
           sold: x.row.sold,
           received: x.receivedDone ? 0 : x.row.received,
+          price: x.row.price,
+          priceEditing: x.row.priceEditing,
         })),
       );
       setError(failed[0].message);
@@ -434,6 +466,10 @@ export default function StockUpdate() {
                       pulse={pulse === row.item.id}
                       onCount={(field, v) => setCount(row.item.id, field, v)}
                       onRemove={() => removeRow(row.item.id)}
+                      onOpenPrice={() => openPrice(row)}
+                      onPrice={(v) => setPrice(row.item.id, v)}
+                      onSavePrice={() => savePrice(row.item.id)}
+                      onCancelPrice={() => cancelPrice(row.item.id)}
                     />
                   ))}
                 </div>
@@ -509,6 +545,10 @@ export default function StockUpdate() {
                     removeRow(row.item.id);
                     if (rows.length === 1) setChangesOpen(false);
                   }}
+                  onOpenPrice={() => openPrice(row)}
+                  onPrice={(v) => setPrice(row.item.id, v)}
+                  onSavePrice={() => savePrice(row.item.id)}
+                  onCancelPrice={() => cancelPrice(row.item.id)}
                 />
               ))}
             </div>
@@ -547,18 +587,24 @@ export default function StockUpdate() {
   );
 }
 
+// A segment only shows once there's something in it — a sold-only batch
+// doesn't need a "0 Restocked" sitting next to it.
 function Totals({ lang, parts, sold, received, compact }) {
   return (
     <div className={`su-totals${compact ? " is-compact" : ""}`}>
       <span>
         <strong>{parts}</strong> {t(lang, parts === 1 ? "suPart" : "suParts")}
       </span>
-      <span className="is-sold">
-        <strong>{sold}</strong> {t(lang, "suSold")}
-      </span>
-      <span className="is-received">
-        <strong>{received}</strong> {t(lang, "suReceived")}
-      </span>
+      {sold > 0 ? (
+        <span className="is-sold">
+          <strong>{sold}</strong> {t(lang, "suSold")}
+        </span>
+      ) : null}
+      {received > 0 ? (
+        <span className="is-received">
+          <strong>{received}</strong> {t(lang, "suReceived")}
+        </span>
+      ) : null}
     </div>
   );
 }
@@ -644,8 +690,8 @@ function Stepper({ value, max, disabled, label, tone, onChange }) {
   );
 }
 
-function ChangeRow({ row, lang, pulse, onCount, onRemove }) {
-  const { item, sold, received } = row;
+function ChangeRow({ row, lang, pulse, onCount, onRemove, onOpenPrice, onPrice, onSavePrice, onCancelPrice }) {
+  const { item, sold, received, priceEditing } = row;
   const stock = stockNow(item);
   const after = finalStock(row);
   const status = stockOf({ quantity: after, minQuantity: item.minQuantity });
@@ -660,22 +706,42 @@ function ChangeRow({ row, lang, pulse, onCount, onRemove }) {
           ×
         </button>
       </div>
+      {/* A part is usually only ever sold or restocked at a time, so only the
+          field already in use gets the full stepper — the other stays a
+          small "add it too" pill until it's actually needed. */}
       <div className="su-steps">
-        <Stepper
-          tone="sold"
-          label={`− ${t(lang, "suSold")}`}
-          value={sold}
-          max={sellCap(item, received)}
-          disabled={sellCap(item, received) <= 0}
-          onChange={(v) => onCount("sold", v)}
-        />
-        <Stepper
-          tone="received"
-          label={`+ ${t(lang, "suReceived")}`}
-          value={received}
-          max={99999}
-          onChange={(v) => onCount("received", v)}
-        />
+        {sold > 0 ? (
+          <Stepper
+            tone="sold"
+            label={`− ${t(lang, "suSold")}`}
+            value={sold}
+            max={sellCap(item, received)}
+            disabled={sellCap(item, received) <= 0}
+            onChange={(v) => onCount("sold", v)}
+          />
+        ) : (
+          <button
+            type="button"
+            className="su-addfield is-sold"
+            disabled={sellCap(item, received) <= 0}
+            onClick={() => onCount("sold", 1)}
+          >
+            + {t(lang, "suSold")}
+          </button>
+        )}
+        {received > 0 ? (
+          <Stepper
+            tone="received"
+            label={`+ ${t(lang, "suReceived")}`}
+            value={received}
+            max={99999}
+            onChange={(v) => onCount("received", v)}
+          />
+        ) : (
+          <button type="button" className="su-addfield is-received" onClick={() => onCount("received", 1)}>
+            + {t(lang, "suReceived")}
+          </button>
+        )}
       </div>
       <div className="su-row-after">
         <span className="su-after-eq">
@@ -689,6 +755,30 @@ function ChangeRow({ row, lang, pulse, onCount, onRemove }) {
       </div>
       {sellCap(item, received) > 0 && sold >= sellCap(item, received) ? (
         <div className="su-row-note">{t(lang, "suOnlyInStock", sellCap(item, received))}</div>
+      ) : null}
+
+      {sold > 0 ? (
+        <div className="su-soldat">
+          <span className="su-soldat-lbl">{t(lang, "suSoldAt")}</span>
+          {priceEditing ? (
+            <div className="su-soldat-edit">
+              <MoneyInput value={row.price} onChange={onPrice} />
+              <button type="button" className="link su-soldat-btn" onClick={onSavePrice}>
+                {t(lang, "saveChanges")}
+              </button>
+              <button type="button" className="link su-soldat-btn is-muted" onClick={onCancelPrice}>
+                {t(lang, "cancel")}
+              </button>
+            </div>
+          ) : (
+            <>
+              <strong>{formatPrice(soldAtPrice(row))}</strong>
+              <button type="button" className="link su-soldat-btn" onClick={onOpenPrice}>
+                {t(lang, "changeShort")}
+              </button>
+            </>
+          )}
+        </div>
       ) : null}
     </div>
   );
@@ -706,7 +796,12 @@ function ReviewSheet({ lang, rows, note, onNote, busy, error, onBack, onConfirm 
             const stock = stockNow(r.item);
             return (
               <div className="su-sheet-row" key={r.item.id}>
-                <span className="su-sheet-name">{r.item.partName}</span>
+                <div>
+                  <span className="su-sheet-name">{r.item.partName}</span>
+                  {r.sold > 0 ? (
+                    <div className="su-sheet-price">{t(lang, "suSoldAtNote", formatPrice(soldAtPrice(r)))}</div>
+                  ) : null}
+                </div>
                 <span className="su-sheet-calc">
                   <span>{stock}</span>
                   {r.sold > 0 ? <span className="is-sold">− {r.sold}</span> : null}

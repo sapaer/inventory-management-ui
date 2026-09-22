@@ -7,6 +7,7 @@ import FormField from "../components/FormField";
 import FormPanel from "../components/FormPanel";
 import MoneyInput from "../components/MoneyInput";
 import PhotoUploader from "../components/PhotoUploader";
+import { InfoNote, PageHero } from "../components/PageHero";
 import QtyStepper from "../components/QtyStepper";
 import StatusBadge from "../components/StatusBadge";
 import VehicleFitPicker from "../components/VehicleFitPicker";
@@ -209,36 +210,24 @@ export default function PartForm() {
   return (
     <div className="content part-form-page">
       <div className="part-form">
-        <header className="pf-head">
-          {editing && original ? (
-            <>
-              {original.images[0] ? (
-                <img className="inv-thumb pf-head-thumb" src={original.images[0]} alt="" />
-              ) : (
-                <span className="inv-thumb inv-thumb-ic pf-head-thumb" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                    <path d="m3.3 7 8.7 5 8.7-5M12 22V12" />
-                  </svg>
-                </span>
-              )}
-              <div className="pf-head-text">
-                <span className="pf-kicker">{t(lang, "editPartTitle")}</span>
-                <h1 className="pf-head-title">{original.partName}</h1>
-                <div className="pf-head-meta">
-                  <span>{[vehicleLabel(original.vehicleCategory), original.brand].filter(Boolean).join(" · ")}</span>
-                  <StatusBadge status={stockOf(original)} lang={lang} />
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="pf-head-text">
-              <span className="pf-kicker">{editing ? t(lang, "editPartTitle") : t(lang, "newPart")}</span>
-              <h1 className="pf-head-title">{editing ? "…" : t(lang, "addPartTitle")}</h1>
-              {editing ? null : <div className="pf-head-meta">{t(lang, "addPartSub")}</div>}
-            </div>
-          )}
-        </header>
+        <PageHero
+          icon={
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+              <path d="m3.3 7 8.7 5 8.7-5M12 22V12" />
+            </svg>
+          }
+          kicker={editing ? t(lang, "editPartTitle") : t(lang, "newPart")}
+          title={editing ? (original ? original.partName : "…") : t(lang, "addPartTitle")}
+        />
+        {editing && original ? (
+          <div className="pf-meta">
+            <span>{[vehicleLabel(original.vehicleCategory), original.brand].filter(Boolean).join(" · ")}</span>
+            <StatusBadge status={stockOf(original)} lang={lang} />
+          </div>
+        ) : (
+          <InfoNote id="addPart">{t(lang, "addPartSub")}</InfoNote>
+        )}
 
         <div className="pf-cols">
           <div className="pf-col">

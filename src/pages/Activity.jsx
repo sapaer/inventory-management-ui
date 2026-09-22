@@ -6,9 +6,9 @@ import { t } from "../i18n";
 import { formatDate } from "../utils";
 import ActivityRow from "../components/ActivityRow";
 import Dropdown from "../components/Dropdown";
+import PartPicker from "../components/PartPicker";
 import { InfoNote, PageHero } from "../components/PageHero";
-import SearchIcon from "../components/SearchIcon";
-import DateRangePicker, { fromKey } from "../components/DateRangePicker";
+import DateRangePicker, { formatRangeLabel, fromKey } from "../components/DateRangePicker";
 import "./Activity.css";
 
 const PAGE = 15;
@@ -141,7 +141,7 @@ export default function Activity() {
       {/* One toolbar instead of stacked blocks. On a phone the type and date
           controls fold behind a Filters button. */}
       <div className="act-bar">
-        <PartPicker lang={lang} parts={parts} onChange={selectPart} />
+        <PartPicker parts={parts} onChange={selectPart} placeholder={t(lang, "actSearchPart")} className="act-picker" />
         <button
           type="button"
           className={`act-filter-btn${activeCount ? " is-set" : ""}`}
@@ -170,7 +170,7 @@ export default function Activity() {
             <FilterTag label={t(lang, TYPES.find((x) => x.id === type)?.key)} remove={t(lang, "actRemoveFilter")} onRemove={() => setType("ALL")} />
           ) : null}
           {datesSet ? (
-            <FilterTag label={rangeText(dates)} remove={t(lang, "actClearDates")} onRemove={() => setDates({ from: "", to: "" })} />
+            <FilterTag label={formatRangeLabel(dates)} remove={t(lang, "actClearDates")} onRemove={() => setDates({ from: "", to: "" })} />
           ) : null}
           {anyActive ? (
             <button type="button" className="act-clear" onClick={clearAll}>
@@ -214,59 +214,6 @@ export default function Activity() {
   );
 }
 
-function PartPicker({ lang, parts, onChange }) {
-  const [text, setText] = useState("");
-  const [open, setOpen] = useState(false);
-  const box = useRef(null);
-
-  useEffect(() => {
-    function onDoc(ev) {
-      if (box.current && !box.current.contains(ev.target)) setOpen(false);
-    }
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, []);
-
-  const q = text.trim().toLowerCase();
-  const matches = parts.filter((p) => !q || p.partName.toLowerCase().includes(q)).slice(0, 8);
-
-  return (
-    <div className="act-picker" ref={box}>
-      <span className="act-picker-ic" aria-hidden="true">
-        <SearchIcon size={18} />
-      </span>
-      <input
-        value={text}
-        placeholder={t(lang, "actSearchPart")}
-        onFocus={() => setOpen(true)}
-        onChange={(ev) => {
-          setText(ev.target.value);
-          setOpen(true);
-        }}
-      />
-      {open && matches.length ? (
-        <ul className="act-picker-list" role="listbox">
-          {matches.map((p) => (
-            <li key={p.id}>
-              <button
-                type="button"
-                role="option"
-                onClick={() => {
-                  setOpen(false);
-                  setText("");
-                  onChange(p.id);
-                }}
-              >
-                {p.partName}
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </div>
-  );
-}
-
 function FilterTag({ label, remove, onRemove }) {
   return (
     <span className="act-tag">
@@ -276,16 +223,6 @@ function FilterTag({ label, remove, onRemove }) {
       </button>
     </span>
   );
-}
-
-function rangeText({ from, to }) {
-  const s = fromKey(from);
-  const e = fromKey(to) || s;
-  const now = new Date().getFullYear();
-  const fmt = (d) =>
-    d.toLocaleDateString("en-IN", { day: "numeric", month: "short", ...(d.getFullYear() === now ? {} : { year: "numeric" }) });
-  if (!s) return fmt(e);
-  return e && e.getTime() !== s.getTime() ? `${fmt(s)} – ${fmt(e)}` : fmt(s);
 }
 
 function groupByDay(list) {

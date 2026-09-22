@@ -16,6 +16,17 @@ function short(d, withYear) {
   return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", ...(withYear ? { year: "numeric" } : {}) });
 }
 
+/** Human label for a {from,to} pair (yyyy-mm-dd strings), e.g. "12 Sep" or
+ * "12 Sep – 18 Sep" — the year only shows up if it isn't the current one. */
+export function formatRangeLabel({ from, to }) {
+  const s = fromKey(from);
+  const e = fromKey(to) || s;
+  if (!s) return "";
+  const now = new Date().getFullYear();
+  const fmt = (d) => short(d, d.getFullYear() !== now);
+  return e && toKey(e) !== toKey(s) ? `${fmt(s)} – ${fmt(e)}` : fmt(s);
+}
+
 /**
  * Calendar-popover date range. `value` is { from, to } as yyyy-mm-dd strings
  * ("" = open); a single picked day means that one day. Future days are disabled.

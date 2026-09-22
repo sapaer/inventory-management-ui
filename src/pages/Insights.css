@@ -2,9 +2,9 @@
    dashboard and Update stock). Amber = sold, green = received / healthy. */
 
 .ins {
-  --ins-sold: #b45309;
-  --ins-sold-bar: #e39a45;
-  --ins-sold-bg: #fff4e5;
+  --ins-sold: #b5502e;
+  --ins-sold-bar: #e8b298;
+  --ins-sold-bg: #fbece3;
   --ins-in: #15803d;
   --ins-in-bg: #e7f6ee;
   --ins-out: #c0392b;
@@ -15,7 +15,7 @@
   width: 100%;
 }
 
-.ins-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px 14px; margin-bottom: 14px; flex-wrap: wrap; }
+.ins-toolbar { display: flex; align-items: center; gap: 10px 14px; margin-bottom: 14px; flex-wrap: wrap; }
 .ins-chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .ins-chip {
   font: inherit;
@@ -32,6 +32,7 @@
 .ins-chip:hover { border-color: #b8d4c8; color: var(--ink); }
 .ins-chip.on { background: var(--forest); border-color: var(--forest); color: #fff; }
 .ins-preview-btn {
+  margin-left: auto;
   font: inherit;
   font-size: 12.5px;
   font-weight: 600;
@@ -102,7 +103,7 @@
 .ins-gl:first-child { border-top-color: #d3ddd7; }
 .ins-gl span { position: absolute; left: -46px; width: 40px; text-align: right; transform: translateY(-50%); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .ins-svg { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
-.ins-area { fill: rgba(227, 154, 69, 0.16); }
+.ins-area { fill: rgba(181, 80, 46, 0.16); }
 .ins-line { fill: none; stroke: var(--ins-sold); stroke-width: 2.25; stroke-linejoin: round; stroke-linecap: round; }
 .ins-cols { position: absolute; inset: 0; display: flex; }
 .ins-col { position: relative; flex: 1; min-width: 0; height: 100%; outline: none; }
@@ -135,6 +136,48 @@
 .ins-xl { display: flex; margin: 8px 0 0 46px; }
 .ins-xl span { position: relative; flex: 1; min-width: 0; height: 15px; }
 .ins-xl em { position: absolute; left: 50%; transform: translateX(-50%); font-style: normal; font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+/* ── part trend ── */
+.ins-trend-pick {
+  max-width: 360px;
+  margin-bottom: 14px;
+}
+.ins-trend-picked {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  max-width: 360px;
+  height: 38px;
+  margin-bottom: 14px;
+  padding: 0 6px 0 14px;
+  border: 1px solid #b8d4c8;
+  border-radius: 10px;
+  background: var(--ins-in-bg);
+  color: var(--forest);
+  font-size: 13px;
+  font-weight: 600;
+}
+.ins-trend-picked span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ins-trend-x {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.ins-trend-x:hover {
+  background: rgba(20, 92, 69, 0.12);
+}
 
 /* ── stock health ── */
 .ins-meter { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: var(--ins-track); gap: 2px; }
@@ -181,5 +224,5 @@
   .ins-tile-val { font-size: 23px; }
   .ins-card { padding: 14px 14px 16px; }
   .ins-plot { height: 160px; }
-  .ins-preview-btn { margin-left: auto; }
+  .ins-trend-pick, .ins-trend-picked { max-width: none; }
 }

@@ -5,9 +5,18 @@ import { useLang } from "../context/LangContext";
 import { t, VEHICLES } from "../i18n";
 import { formatPrice, stockOf } from "../utils";
 import { InfoNote, PageHero } from "../components/PageHero";
+import DateRangePicker, { formatRangeLabel, fromKey } from "../components/DateRangePicker";
+import PartPicker from "../components/PartPicker";
 import "./Insights.css";
 
-const RANGE_DAYS = [7, 30, 90];
+// Quick presets; "Custom" is the calendar button (DateRangePicker) instead of
+// a chip — picking a date there is what covers "a particular date" or "2 days".
+const QUICK_RANGES = [
+  { id: "24h", key: "insLast24h" },
+  { id: "7", key: "last7" },
+  { id: "30", key: "last30" },
+  { id: "90", key: "last90" },
+];
 const MAX_PAGES = 10; // 100 events a page
 
 const DAY = 86400000;
@@ -87,9 +96,35 @@ export default function Insights() {
   const { lang } = useLang();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [range, setRange] = useState(30);
+  const [quick, setQuick] = useState("30");
+  const [dates, setDates] = useState({ from: "", to: "" });
   const [preview, setPreview] = useState(false);
+  const [trendPartId, setTrendPartId] = useState("");
   const [sales, setSales] = useState({ list: [], units: 0, received: 0, failed: false, loading: true });
+
+  const customActive = Boolean(dates.from || dates.to);
+
+  // {start, end, days, is24h} from whichever control is active. `end` is
+  // null for every preset (open-ended — "up to now"); only a custom range
+  // has a real upper bound.
+  const resolved = useMemo(() => {
+    const now = new Date();
+    if (customActive) {
+      const s = fromKey(dates.from) || fromKey(dates.to);
+      const eDay = fromKey(dates.to) || s;
+      const end = new Date(eDay.getFullYear(), eDay.getMonth(), eDay.getDate() + 1);
+      return { start: s, end, days: Math.max(1, Math.round((end - s) / DAY)), is24h: false };
+    }
+    if (quick === "24h") return { start: new Date(now.getTime() - DAY), end: null, days: 1, is24h: true };
+    const days = Number(quick);
+    return { start: new Date(startOfDay(now).getTime() - (days - 1) * DAY), end: null, days, is24h: false };
+  }, [quick, dates, customActive]);
+  const range = resolved.days;
+  const rangeLabel = customActive
+    ? formatRangeLabel(dates)
+    : resolved.is24h
+      ? t(lang, "insRangeLabel24h")
+      : t(lang, "insRangeLabel", range);
 
   useEffect(() => {
     inventoryApi
@@ -104,14 +139,15 @@ export default function Insights() {
     if (preview) return undefined;
     let stale = false;
     setSales((s) => ({ ...s, loading: true }));
-    const from = new Date(startOfDay(new Date()).getTime() - (range - 1) * DAY).toISOString();
+    const from = resolved.start.toISOString();
+    const to = resolved.end ? resolved.end.toISOString() : undefined;
     (async () => {
       const list = [];
       let units = 0;
       let received = 0;
       try {
         for (let page = 1; page <= MAX_PAGES; page++) {
-          const res = await inventoryApi.activity({ type: "SOLD", from, page, limit: 100 });
+          const res = await inventoryApi.activity({ type: "SOLD", from, to, page, limit: 100 });
           units = res.stats?.unitsSold ?? 0;
           received = res.stats?.unitsReceived ?? 0;
           for (const e of res.content || []) {
@@ -127,10 +163,14 @@ export default function Insights() {
     return () => {
       stale = true;
     };
-  }, [range, preview]);
+  }, [resolved, preview]);
 
   const displayItems = preview ? DUMMY_ITEMS : items;
   const soldList = useMemo(() => {
+    // The sample-data preview is a client-side fake, not filtered by the
+    // backend — approximated here as "within the last `range` days", which
+    // is exact for the 7/30/90 presets but only roughly right for 24h or a
+    // custom range that doesn't end today.
     const raw = preview ? dummySales().filter((s) => Date.now() - s.at <= range * DAY) : sales.list;
     const price = new Map(displayItems.map((i) => [i.id, Number(i.sellingPrice) || 0]));
     return raw.map((s) => ({ ...s, amount: s.qty * (price.get(s.partId) || 0) }));
@@ -185,6 +225,11 @@ export default function Insights() {
   const buckets = useMemo(() => bucketSales(soldList, range), [soldList, range]);
   const salesTotal = soldList.reduce((n, s) => n + s.amount, 0);
 
+  const trendPart = displayItems.find((i) => i.id === trendPartId) || null;
+  const trendSold = useMemo(() => soldList.filter((s) => s.partId === trendPartId), [soldList, trendPartId]);
+  const trendBuckets = useMemo(() => bucketSales(trendSold, range), [trendSold, range]);
+  const trendUnits = trendSold.reduce((n, s) => n + s.qty, 0);
+
   function namesLine(list) {
     const names = list.slice(0, 2).map((i) => i.partName).join(", ");
     const more = list.length - 2;
@@ -202,7 +247,7 @@ export default function Insights() {
       key: "idle",
       tone: "idle",
       to: "/inventory",
-      title: t(lang, "insNotSold", stats.idle.length, range),
+      title: t(lang, "insNotSold", stats.idle.length, rangeLabel),
       meta: `${namesLine(stats.idle)} · ${t(lang, "insTiedUp", formatPrice(stats.idleWorth))}`,
     },
   ].filter(Boolean);
@@ -222,12 +267,21 @@ export default function Insights() {
 
       <div className="ins-toolbar">
         <div className="ins-chips" role="group" aria-label={t(lang, "insRange")}>
-          {RANGE_DAYS.map((d) => (
-            <button key={d} type="button" className={`ins-chip${range === d ? " on" : ""}`} onClick={() => setRange(d)}>
-              {t(lang, d === 7 ? "last7" : d === 30 ? "last30" : "last90")}
+          {QUICK_RANGES.map((q) => (
+            <button
+              key={q.id}
+              type="button"
+              className={`ins-chip${!customActive && quick === q.id ? " on" : ""}`}
+              onClick={() => {
+                setQuick(q.id);
+                setDates({ from: "", to: "" });
+              }}
+            >
+              {t(lang, q.key)}
             </button>
           ))}
         </div>
+        <DateRangePicker value={dates} onChange={setDates} />
         <button type="button" className="ins-preview-btn" onClick={() => setPreview((v) => !v)}>
           {t(lang, preview ? "exitSampleData" : "previewSampleData")}
         </button>
@@ -235,8 +289,8 @@ export default function Insights() {
 
       <div className="ins-tiles">
         <Tile tone="worth" icon={<WalletIcon />} label={t(lang, "insWorth")} value={formatPrice(stats.worth)} sub={t(lang, "insWorthSub", stats.total, stats.units)} />
-        <Tile tone="sold" icon={<MinusIcon />} label={t(lang, "insSoldLbl")} value={salesLoading ? "…" : unitsSold} sub={t(lang, "insInRange", range)} />
-        <Tile tone="recv" icon={<PlusIcon />} label={t(lang, "insRecvLbl")} value={salesLoading ? "…" : unitsReceived} sub={t(lang, "insInRange", range)} />
+        <Tile tone="sold" icon={<MinusIcon />} label={t(lang, "insSoldLbl")} value={salesLoading ? "…" : unitsSold} sub={t(lang, "insInRange", rangeLabel)} />
+        <Tile tone="recv" icon={<PlusIcon />} label={t(lang, "insRecvLbl")} value={salesLoading ? "…" : unitsReceived} sub={t(lang, "insInRange", rangeLabel)} />
         <Tile
           tone={restock ? "alert" : "ok"}
           icon={<BoxIcon />}
@@ -273,6 +327,40 @@ export default function Insights() {
           )}
         </section>
 
+        <section className="ins-card ins-span ins-trend">
+          <header className="ins-card-hd">
+            <h2>{t(lang, "insTrendTtl")}</h2>
+            <p>{t(lang, "insInRange", rangeLabel)}</p>
+          </header>
+
+          {trendPart ? (
+            <div className="ins-trend-picked">
+              <span>{trendPart.partName}</span>
+              <button type="button" className="ins-trend-x" aria-label={t(lang, "insTrendClear")} onClick={() => setTrendPartId("")}>
+                ×
+              </button>
+            </div>
+          ) : (
+            <PartPicker
+              parts={displayItems}
+              onChange={setTrendPartId}
+              placeholder={t(lang, "insTrendSearch")}
+              className="ins-trend-pick"
+            />
+          )}
+
+          {!trendPart ? (
+            <p className="ins-empty">{t(lang, "insTrendEmpty")}</p>
+          ) : trendUnits === 0 ? (
+            <p className="ins-empty">{t(lang, "insTrendNone", rangeLabel)}</p>
+          ) : (
+            <>
+              <SalesChart lang={lang} buckets={trendBuckets} size={range === 90 ? 3 : 1} />
+              <p className="ins-foot">{t(lang, "insUnitsSold", trendUnits)}</p>
+            </>
+          )}
+        </section>
+
         <section className="ins-card">
           <header className="ins-card-hd">
             <h2>{t(lang, "stockHealth")}</h2>
@@ -305,7 +393,7 @@ export default function Insights() {
         <section className="ins-card">
           <header className="ins-card-hd">
             <h2>{t(lang, "insTopTtl")}</h2>
-            <p>{t(lang, "insInRange", range)}</p>
+            <p>{t(lang, "insInRange", rangeLabel)}</p>
           </header>
           {stats.top.length ? (
             <ol className="ins-rank">
