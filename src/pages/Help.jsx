@@ -52,18 +52,27 @@ export default function Help() {
   );
 }
 
+// One card + one overlapping badge, same recipe as FaqArt/TermsArt — the
+// card's three dot-and-line rows echo the page's own "Quick links" list, and
+// the badge reuses Contact's headset glyph, pointing at where "further
+// assistance" leads.
 function HelpArt() {
   return (
     <svg viewBox="0 0 220 160" fill="none">
-      <circle cx="168" cy="44" r="28" fill="#e8f4ee" />
-      <rect x="118" y="58" width="86" height="62" rx="10" fill="#d7eee3" />
-      <circle cx="161" cy="82" r="16" fill="#145c45" />
-      <path d="M152 108c4-8 14-8 18 0" stroke="#145c45" strokeWidth="4" strokeLinecap="round" />
-      <rect x="16" y="36" width="92" height="88" rx="10" fill="#145c45" />
-      <rect x="28" y="50" width="40" height="8" rx="4" fill="#e8f4ee" />
-      <rect x="28" y="66" width="68" height="6" rx="3" fill="#2bbc8a" />
-      <rect x="28" y="80" width="56" height="6" rx="3" fill="#2bbc8a" opacity=".7" />
-      <rect x="28" y="94" width="62" height="6" rx="3" fill="#2bbc8a" opacity=".45" />
+      <rect x="20" y="20" width="148" height="120" rx="14" fill="#e8f4ee" />
+      <circle cx="40" cy="46" r="8" fill="#145c45" />
+      <rect x="56" y="41" width="96" height="10" rx="5" fill="#9cc9b4" />
+      <circle cx="40" cy="78" r="8" fill="#145c45" />
+      <rect x="56" y="73" width="80" height="10" rx="5" fill="#9cc9b4" />
+      <circle cx="40" cy="110" r="8" fill="#145c45" />
+      <rect x="56" y="105" width="88" height="10" rx="5" fill="#9cc9b4" />
+      <circle cx="168" cy="118" r="24" fill="#145c45" />
+      <g transform="translate(155.5, 106)" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round">
+        <path d="M4.5 12a7.5 7.5 0 0 1 15 0" />
+        <rect x="2.5" y="12" width="5" height="7" rx="2" />
+        <rect x="16.5" y="12" width="5" height="7" rx="2" />
+        <path d="M20 19v.5a3.5 3.5 0 0 1-3.5 3.5H13" />
+      </g>
     </svg>
   );
 }

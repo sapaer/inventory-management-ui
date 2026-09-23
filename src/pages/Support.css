@@ -4,6 +4,15 @@
   background: #f4f7f6;
 }
 
+/* The global `p { text-align: justify }` (index.css) reads fine for short
+   labels but turns these pages' long-form paragraphs — FAQ answers, terms,
+   the hero lead — into uneven, rivery text at this column width. */
+.support-page p {
+  text-align: left;
+  hyphens: none;
+  -webkit-hyphens: none;
+}
+
 .support-main {
   flex: 1;
   width: 100%;
@@ -18,7 +27,7 @@
   grid-template-columns: minmax(0, 1.2fr) minmax(160px, 0.7fr);
   gap: 20px 32px;
   align-items: center;
-  margin-bottom: 36px;
+  margin-bottom: 28px;
 }
 
 .support-hero-copy h1 {
@@ -37,10 +46,6 @@
   font-size: 1.02rem;
   line-height: 1.55;
   color: #2f3f39;
-}
-
-.contact-page .support-hero-copy p {
-  color: #102021;
 }
 
 .support-hero-extra {
@@ -234,7 +239,11 @@
   color: #5b7168;
 }
 
-.support-assist-btn {
+.support-assist-btn,
+.support-assist-btn:link,
+.support-assist-btn:visited,
+.support-assist-btn:hover,
+.support-assist-btn:active {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -242,10 +251,16 @@
   padding: 8px 16px;
   border-radius: 10px;
   background: var(--lp-forest, #145c45);
+  /* :visited beats a plain class in specificity, so without this a link the
+     browser already thinks you've been to (like /contact) falls back to its
+     default visited-link colour instead of white — muddying the button. */
   color: #fff;
   font-size: 0.88rem;
   font-weight: 600;
   text-decoration: none;
+}
+.support-assist-btn:hover {
+  background: color-mix(in srgb, var(--lp-forest, #145c45) 88%, #000);
 }
 
 .support-list,
@@ -313,44 +328,6 @@
   gap: 18px;
 }
 
-.contact-channels {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  min-width: 0;
-}
-
-.contact-hero-row {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.contact-wa-picker {
-  display: flex;
-  gap: 8px;
-  margin: 0;
-}
-
-.contact-wa-pick {
-  min-width: 44px;
-  height: 34px;
-  padding: 0 14px;
-  border-radius: 8px;
-  border: 1px solid #cfe6da;
-  background: #fff;
-  color: #145c45;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.contact-wa-pick.is-on {
-  background: #145c45;
-  border-color: #145c45;
-  color: #fff;
-}
-
 .contact-tiles {
   display: grid;
   grid-template-columns: 1fr;
@@ -366,22 +343,28 @@
   min-height: 168px;
   padding: 28px 18px 24px;
   border-radius: 18px;
-  border: 1px solid #e6ddd0;
-  background: #fbf7f0;
-  box-shadow: 0 10px 24px rgba(80, 60, 30, 0.08);
+  border: 1px solid #e6eee9;
+  background: #fff;
   text-decoration: none;
   text-align: center;
   color: inherit;
   box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.contact-tile:hover {
+  border-color: color-mix(in srgb, var(--lp-forest, #145c45) 35%, #e2ece7);
 }
 
 .contact-tile-ic {
   width: 52px;
   height: 52px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #b08948;
+  background: #e8f4ee;
+  color: var(--lp-forest, #145c45);
 }
 
 .contact-tile-ic svg {
@@ -393,139 +376,13 @@
 .contact-tile strong {
   font-size: 1.02rem;
   font-weight: 700;
-  color: #1a1712;
+  color: var(--lp-ink, #102021);
 }
 
 .contact-tile span {
   font-size: 0.88rem;
   line-height: 1.35;
-  font-weight: 500;
-  color: #1f1c18;
-}
-
-.contact-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  min-height: 0;
-  padding: 22px 20px;
-  border-radius: 16px;
-  border: 1px solid #e6eee9;
-  background: #fff;
-  text-decoration: none;
-  color: inherit;
-  box-sizing: border-box;
-}
-
-.contact-card-ic {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 0 4px;
-  background: #e8f4ee;
-  color: var(--lp-forest, #145c45);
-}
-
-.contact-card-ic svg {
-  display: block;
-}
-
-.contact-card strong {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--lp-ink, #102021);
-}
-
-.contact-card > span:not(.contact-card-ic) {
-  font-size: 0.92rem;
-  line-height: 1.45;
-  color: #102021;
-}
-
-.contact-card-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 10px;
-  min-height: 40px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: var(--lp-forest, #145c45);
-  color: #fff;
-  font-size: 0.86rem;
-  font-style: normal;
-  font-weight: 600;
-}
-
-.contact-card-btn.is-ghost {
-  background: #fff;
-  color: var(--lp-forest, #145c45);
-  border: 1px solid var(--lp-forest, #145c45);
-}
-
-.contact-hero-card {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px 16px;
-  background: linear-gradient(135deg, #e8f4ee, #d7eee3);
-  border-color: #cfe6da;
-}
-
-.contact-hero-ttl {
-  min-width: 0;
-}
-
-.contact-hero-ic {
-  width: 44px;
-  height: 44px;
-  margin: 0;
-  flex-shrink: 0;
-  border-radius: 12px;
-  background: #128c7e;
-  color: #fff;
-  box-shadow: 0 4px 10px rgba(18, 140, 126, 0.22);
-}
-
-.contact-hero-ic svg {
-  width: 22px;
-  height: 22px;
-}
-
-.contact-hero-card strong {
-  font-family: var(--lp-heading, Fraunces, Georgia, serif);
-  font-size: 1.2rem;
-  color: #0a1614;
-}
-
-.contact-hero-card.is-wa-c {
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  border-radius: 999px;
-}
-
-.contact-hero-card.is-wa-c strong {
-  font-size: 1.05rem;
-}
-
-.contact-hero-card.is-wa-c .contact-hero-ic {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  box-shadow: none;
-}
-
-.contact-hero-card.is-wa-c .contact-hero-ic svg {
-  width: 18px;
-  height: 18px;
+  color: #5b7168;
 }
 
 /* Hero illustration — one rounded tile instead of the old pair of
@@ -544,39 +401,6 @@
 .contact-hero-tile svg {
   width: 44px;
   height: 44px;
-}
-
-.contact-secondary {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.contact-card-sm {
-  padding: 16px 14px;
-  gap: 6px;
-}
-
-.contact-card-ic-sm {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-}
-
-.contact-card-sm strong {
-  font-size: 0.92rem;
-}
-
-.contact-card-sm > span:not(.contact-card-ic) {
-  font-size: 0.78rem;
-  word-break: break-word;
-}
-
-.contact-card-sm .contact-card-btn {
-  width: 100%;
-  min-height: 36px;
-  padding: 7px 10px;
-  font-size: 0.78rem;
 }
 
 .contact-note {
@@ -653,21 +477,20 @@
 }
 
 .contact-form.is-board {
-  gap: 8px;
-  padding: 22px 22px 18px;
-  border-radius: 20px;
-  border: 1px solid #ece4d8;
-  background: #fffefb;
-  box-shadow: 0 10px 24px rgba(80, 60, 30, 0.08);
+  gap: 14px;
+  padding: 22px 22px 20px;
+  border-radius: 16px;
+  border: 1px solid #e6eee9;
+  background: #fff;
 }
 
 .contact-form.is-board h2 {
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   font-size: 1.2rem;
 }
 
 .contact-form.is-board .contact-field {
-  gap: 2px;
+  gap: 6px;
 }
 
 .contact-form.is-board .contact-field > span {
@@ -676,34 +499,30 @@
   color: #102021;
 }
 
-.contact-form.is-board .inp {
-  border: 0;
-  border-bottom: 1px solid #b7b0a6;
-  border-radius: 0;
-  background: transparent;
-  padding: 8px 0 10px;
-  box-shadow: none;
-  color: #102021;
-}
-
 .contact-form.is-board .contact-query {
-  min-height: 52px;
+  min-height: 80px;
 }
 
 .contact-form.is-board .contact-form-submit {
   align-self: stretch;
   width: 100%;
-  margin-top: 12px;
-  min-height: 48px;
-  border-radius: 999px;
+  margin-top: 8px;
+  min-height: 46px;
+  border-radius: 10px;
   justify-content: center;
-  box-shadow: inset 0 0 0 1px rgba(196, 154, 74, 0.55);
 }
 
 .faq-acc {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.faq-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
 }
 
 .faq-acc-item {
@@ -775,99 +594,15 @@
     height: 100%;
   }
 
-  .contact-layout.is-classic {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-    gap: 22px;
-    align-items: stretch;
-  }
-
   .contact-layout.is-cards {
     display: flex;
     flex-direction: column;
     gap: 22px;
   }
 
-  .contact-layout.is-split {
-    display: grid;
-    grid-template-columns: minmax(0, 1.08fr) minmax(260px, 0.92fr);
-    gap: 24px;
-    align-items: stretch;
-  }
-
-  .contact-layout.is-split .contact-form {
-    height: 100%;
-    min-height: 460px;
-    display: flex;
-    flex-direction: column;
-    padding: 28px 28px 24px;
-  }
-
-  .contact-layout.is-split .contact-form .contact-field:last-of-type {
-    flex: 1;
-  }
-
-  .contact-layout.is-split .contact-query {
-    flex: 1;
-    min-height: 180px;
-  }
-
-  .contact-layout.is-split .contact-tiles {
-    display: flex;
-    flex-direction: column;
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-
-  .contact-layout.is-split .contact-tile {
-    flex: 1;
-    min-height: 0;
-    padding: 18px 16px;
-  }
-
-  .contact-wa-picker {
-    display: flex;
-  }
-
-  .contact-wa-pick {
-    min-width: 48px;
-    height: 36px;
-    font-size: 14px;
-  }
-
   .contact-tiles {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 18px;
-  }
-
-  .contact-hero-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-    gap: 20px;
-    align-items: stretch;
-  }
-
-  .contact-secondary {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .contact-hero-card.is-wa-c {
-    padding: 12px 18px;
-  }
-
-  .contact-hero-card.is-wa-c .contact-hero-ic {
-    width: 40px;
-    height: 40px;
-  }
-
-  .contact-card-sm {
-    flex: 1;
-  }
-
-  .contact-card-btn {
-    margin-top: auto;
   }
 
   .contact-form {
@@ -882,13 +617,18 @@
     margin-top: 4px;
   }
 
+  /* Two independent columns, not a CSS grid — a shared grid row would
+     stretch to fit whichever card is expanded, dragging the other column's
+     cards out of line with it every time one opens. */
   .faq-acc {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-rows: repeat(var(--faq-rows, 4), minmax(76px, auto));
-    grid-auto-flow: column;
-    gap: 12px 20px;
-    align-items: start;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  .faq-col {
+    flex: 1;
+    gap: 12px;
   }
 
   .faq-acc-item {

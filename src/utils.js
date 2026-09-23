@@ -131,3 +131,15 @@ export function shouldStartTour(user) {
   if (!user || needsShopSetup(user)) return false;
   return !hasSeenTour(user);
 }
+
+/** Scrolls the page (and any `.lp-scroll` content pane) back to the top —
+ * for a nav link clicked while already on its own page, where a route change
+ * alone wouldn't otherwise happen. */
+export function scrollPageToTop() {
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+  document.querySelectorAll(".lp-scroll").forEach((el) => {
+    el.scrollTop = 0;
+  });
+}

@@ -760,7 +760,6 @@ export const messages = {
   contactPlaceholder: "Placeholder — confirm before launch",
   contactNote: "These numbers and the inbox are drafts. Swap them for the live WhatsApp and email when support is ready.",
   contactFormTitle: "Send a query",
-  contactFormLead: "Share your name, number, and what you need help with. We’ll open WhatsApp with your message.",
   contactFormName: "Your name",
   contactFormPhone: "Mobile number",
   contactFormQuery: "Your query",

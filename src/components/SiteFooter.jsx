@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
 import BrandLogo from "./BrandLogo";
+import { scrollPageToTop } from "../utils";
 import "./SiteFooter.css";
 
 export default function SiteFooter({ variant = "dark" }) {
@@ -24,13 +25,13 @@ export default function SiteFooter({ variant = "dark" }) {
         © {year} {t(lang, "brand")} {t(lang, "footRights")}
       </p>
       <nav className="lp-foot-links" aria-label={t(lang, "help")}>
-        <Link to="/help" className="lp-foot-link">
+        <Link to="/help" className="lp-foot-link" onClick={scrollPageToTop}>
           {t(lang, "help")}
         </Link>
-        <Link to="/contact" className="lp-foot-link">
+        <Link to="/contact" className="lp-foot-link" onClick={scrollPageToTop}>
           {t(lang, "contactUs")}
         </Link>
-        <Link to="/terms" className="lp-foot-link">
+        <Link to="/terms" className="lp-foot-link" onClick={scrollPageToTop}>
           {t(lang, "terms")}
         </Link>
       </nav>

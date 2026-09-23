@@ -3,6 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import { t } from "../i18n";
+import { scrollPageToTop } from "../utils";
 
 const NAV = [
   { to: "/dashboard", tabKey: "home", icon: HomeIcon, end: true },
@@ -10,15 +11,6 @@ const NAV = [
   { to: "/stock-update", tabKey: "tabUpdate", icon: UpdateIcon },
   { to: "/insights", tabKey: "insights", icon: ChartIcon },
 ];
-
-function scrollPageToTop() {
-  window.scrollTo(0, 0);
-  document.documentElement.scrollTop = 0;
-  document.body.scrollTop = 0;
-  document.querySelectorAll(".lp-scroll").forEach((el) => {
-    el.scrollTop = 0;
-  });
-}
 
 /**
  * App-wide bottom navigation for phones/small screens — the same four tabs

@@ -15,7 +15,9 @@ const FAQS = [
 
 export default function Faqs() {
   const { lang } = useLang();
-  const [open, setOpen] = useState(0);
+  // -1 = none open. Still just one at a time — opening a question closes
+  // whichever one was open before.
+  const [open, setOpen] = useState(-1);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -24,25 +26,37 @@ export default function Faqs() {
     });
   }, []);
 
+  // Two independent columns (not a CSS grid) so opening a long answer on
+  // one side only pushes down the cards below it in that same column —
+  // a shared grid row would otherwise drag the other column's cards out of
+  // line with it every time something expands.
+  const half = Math.ceil(FAQS.length / 2);
+  const columns = [FAQS.slice(0, half), FAQS.slice(half)];
+
   return (
     <SupportLayout title={t(lang, "faqsTitle")} art={<FaqArt />}>
       <div className="faq-acc">
-        {FAQS.map(([q, a], i) => {
-          const isOpen = open === i;
-          return (
-            <article key={q} className={`faq-acc-item${isOpen ? " is-open" : ""}`}>
-              <h2>
-                <button type="button" className="faq-acc-q" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? -1 : i)}>
-                  <span>{t(lang, q)}</span>
-                  <span className="faq-acc-icon" aria-hidden="true">
-                    {isOpen ? "×" : "+"}
-                  </span>
-                </button>
-              </h2>
-              {isOpen ? <p className="faq-acc-a">{t(lang, a)}</p> : null}
-            </article>
-          );
-        })}
+        {columns.map((col, ci) => (
+          <div className="faq-col" key={ci}>
+            {col.map(([q, a], j) => {
+              const i = ci === 0 ? j : half + j;
+              const isOpen = open === i;
+              return (
+                <article key={q} className={`faq-acc-item${isOpen ? " is-open" : ""}`}>
+                  <h2>
+                    <button type="button" className="faq-acc-q" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? -1 : i)}>
+                      <span>{t(lang, q)}</span>
+                      <span className="faq-acc-icon" aria-hidden="true">
+                        {isOpen ? "×" : "+"}
+                      </span>
+                    </button>
+                  </h2>
+                  {isOpen ? <p className="faq-acc-a">{t(lang, a)}</p> : null}
+                </article>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </SupportLayout>
   );
